@@ -1,0 +1,55 @@
+{
+  "name": "",
+  "version": "1.0.0",
+  "description": "",
+  "main": "dist/main.js",
+  "scripts": {
+    "build": "rm -rf dist && tsc",
+    "watch": "tsc -w & nodemon",
+    "start": "node dist/main.js",
+    "start:dev": "npm run build && npm run watch",
+    "test-ci": "npm test",
+    "test:watch": "npm test -- --watchAll",
+    "test": "jest \"\\.spec\\.ts\"",
+    "test-integrations": "jest \"\\.integration\\.ts\" --forceExit",
+    "lint-check": "eslint --fix-dry-run \"src/**/*.ts\"",
+    "lint-fix": "eslint --fix \"src/**/*.ts\"",
+    "prepare": "husky install"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Pocket/.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Pocket//issues"
+  },
+  "homepage": "https://github.com/Pocket/#readme",
+  "dependencies": {
+    "@apollo/subgraph": "2.0.5",
+    "@pocket-tools/apollo-utils": "^2.2.0",
+    "@sentry/node": "7.7.0",
+    "@sentry/tracing": "7.7.0",
+    "apollo-datasource-rest": "^3.5.1",
+    "apollo-server": "^3.4.1",
+    "apollo-server-cache-redis": "^3.3.1",
+    "apollo-server-express": "^3.4.1",
+    "apollo-server-plugin-response-cache": "^3.3.0",
+    "aws-xray-sdk-express": "^3.3.4",
+    "dataloader": "^2.0.0"
+  },
+  "devDependencies": {
+    "@pocket-tools/eslint-config": "2.0.0",
+    "@pocket-tools/tsconfig": "2.0.1",
+    "@types/chai": "4.3.1",
+    "@types/jest": "27.4.1",
+    "chai": "4.3.6",
+    "husky": "8.0.1",
+    "jest": "27.5.1",
+    "nock": "13.2.4",
+    "nodemon": "2.0.16",
+    "ts-jest": "27.1.4",
+    "ts-node": "10.5.0"
+  }
+}

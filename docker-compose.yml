@@ -1,0 +1,27 @@
+version: '3.1'
+services:
+  redis:
+    image: redis:latest@sha256:f3dc1120dac1293deaf8cf46aa450f2652087c0128f8487effedabae045bc24f
+    platform: linux/amd64
+    ports:
+      - '6379:6379'
+
+  snowplow:
+    image: pocket/snowplow-micro:prod
+    platform: linux/amd64
+    ports:
+      - '9090:9090'
+
+  app:
+    image: node:16-slim@sha256:e5936cf8dbbb3c0d9d337c0e9f23e56e00b7e62280a8a617d12adfdda8ca9f11
+    platform: linux/amd64
+    working_dir: /app
+    ports:
+      - '4001:4001'
+    volumes:
+      - ./:/app
+    environment:
+      - NODE_ENV=development
+      - AWS_XRAY_LOG_LEVEL=silent
+      - AWS_XRAY_CONTEXT_MISSING=LOG_ERROR
+    command: "bash -c 'cd /app && npm run start:dev'"
