@@ -1,27 +1,56 @@
 version: '3.1'
 services:
-  redis:
-    image: redis:latest@sha256:f3dc1120dac1293deaf8cf46aa450f2652087c0128f8487effedabae045bc24f
+  mysql:
+    image: mysql:5.7@sha256:8cf035b14977b26f4a47d98e85949a7dd35e641f88fc24aa4b466b36beecf9d6
     platform: linux/amd64
+    env_file:
+      - ./.docker/local.env
     ports:
-      - '6379:6379'
+      - '3306:3306'
+    environment:
+      - MYSQL_ALLOW_EMPTY_PASSWORD=yes
+      - TZ=UTC
 
-  snowplow:
-    image: pocket/snowplow-micro:prod
+  localstack:
+    image: localstack/localstack@sha256:9d51869fe254848890d3b1b602671a85bf24ec43082ca5b6be920272077ed43c
     platform: linux/amd64
+    env_file:
+      - .docker/local.env
     ports:
-      - '9090:9090'
+      - '4566:4566'
+      - '8080:8080'
+    volumes:
+      - ./.docker/localstack:/docker-entrypoint-initaws.d
+    environment:
+      - LOCALSTACK_API_KEY=${LOCALSTACK_API_KEY}
+      - DEBUG=1
+      - SERVICES=s3
+      - DATA_DIR=/tmp/localstack/data
+      - DOCKER_HOST=unix:///var/run/docker.sock
+      - PORT_WEB_UI=8080
+      - EXTRA_CORS_ALLOWED_HEADERS=Content-Disposition, Content-Type, x-amz-acl
+      - EXTRA_CORS_EXPOSE_HEADERS=ETag
+      - HOSTNAME_EXTERNAL=localstack
 
   app:
-    image: node:16-slim@sha256:e5936cf8dbbb3c0d9d337c0e9f23e56e00b7e62280a8a617d12adfdda8ca9f11
+    image: node:16@sha256:0eafb338139eaaad6e867b22ef75dec1f7f51dcb08845531aed6cf6f6a1adea5
     platform: linux/amd64
     working_dir: /app
     ports:
-      - '4001:4001'
+      - '4029:4029'
     volumes:
       - ./:/app
+    env_file:
+      - .docker/local.env
     environment:
-      - NODE_ENV=development
-      - AWS_XRAY_LOG_LEVEL=silent
-      - AWS_XRAY_CONTEXT_MISSING=LOG_ERROR
-    command: "bash -c 'cd /app && npm run start:dev'"
+      - NODE_ENV=local
+    command: "bash -c 'cd /app && npm i && npm run start:dev'"
+    depends_on:
+      - mysql
+      - localstack
+
+  # snowplow:
+  #   image: pocket/snowplow-micro:prod
+  #   platform: linux/amd64
+  #   ports:
+  #     - '9090:9090'

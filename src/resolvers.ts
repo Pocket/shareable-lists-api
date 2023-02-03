@@ -1,14 +1,18 @@
+// dummy data until we can get actual data
+const lists = [
+  {
+    title: 'Recipes',
+    author: 'Kate Chopin',
+  },
+  {
+    title: 'Top 10 Places to Visit in Paris',
+    author: 'Paul Auster',
+  },
+];
+
+// dummy resolver
 export const resolvers = {
-  Acme: {},
   Query: {
-    getAcme: async (
-      _source,
-      { id },
-      { repositories }
-    ): Promise<{ acme: string }> => {
-      return {
-        acme: 'sign',
-      };
-    },
+    lists: () => lists,
   },
 };

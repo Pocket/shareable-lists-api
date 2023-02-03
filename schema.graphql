@@ -1,3 +1,8 @@
-"""
-Remove me if this is not a graphql service
-"""
+type List {
+	title: String
+	author: String
+}
+
+type Query {
+	lists: [List]
+}
