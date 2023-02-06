@@ -299,29 +299,28 @@ workflows:
           env: Dev
           service_name: ${SERVICE_NAME}
 
-      # UNCOMMENT WHEN ADDED SENTRY
       # Notify sentry of main deployment
-      # - pocket/sentry_release_notification:
-      #     <<: *only_main
-      #     name: sentry-release-notification-prod
-      #     context: pocket
-      #     repository_name: Pocket/${CONSTRUCT_NAME}
-      #     sentry_project_name: ${CONSTRUCT_NAME}
-      #     sentry_env: production
-      #     sentry_org: pocket
-      #     workspace-path: /tmp/workspace
-      #     requires:
-      #       - deploy_prod
+      - pocket/sentry_release_notification:
+          <<: *only_main
+          name: sentry-release-notification-prod
+          context: pocket
+          repository_name: Pocket/shareable-lists-api
+          sentry_project_name: shareable-lists-api
+          sentry_env: production
+          sentry_org: pocket
+          workspace-path: /tmp/workspace
+          requires:
+            - deploy_prod
 
-      # # Notify sentry of dev deployment
-      # - pocket/sentry_release_notification:
-      #     <<: *only_dev
-      #     name: sentry-release-notification-dev
-      #     context: pocket
-      #     repository_name: Pocket/${CONSTRUCT_NAME}
-      #     sentry_project_name: ${CONSTRUCT_NAME}
-      #     sentry_env: development
-      #     sentry_org: pocket
-      #     workspace-path: /tmp/workspace
-      #     requires:
-      #       - deploy_dev
+      # Notify sentry of dev deployment
+      - pocket/sentry_release_notification:
+          <<: *only_dev
+          name: sentry-release-notification-dev
+          context: pocket
+          repository_name: Pocket/shareable-lists-api
+          sentry_project_name: shareable-lists-api
+          sentry_env: development
+          sentry_org: pocket
+          workspace-path: /tmp/workspace
+          requires:
+            - deploy_dev

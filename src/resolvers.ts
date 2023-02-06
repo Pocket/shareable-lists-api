@@ -1,7 +1,7 @@
 import { faker } from '@faker-js/faker';
 // dummy data -- this is temporary, remove when OSL-144: https://getpocket.atlassian.net/browse/OSL-144
 // is done
-let listData = [];
+const listData = [];
 let singleList;
 for (let i = 0; i < 5; i++) {
   singleList = {};
