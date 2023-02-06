@@ -20,27 +20,17 @@ export const config = {
   isDev,
   prefix: `${name}-${environment}`,
   circleCIPrefix: `/${name}/CircleCI/${environment}`,
-  shortName: 'SLAPI', //change to your service name, limit to 6 characters, match shared-infrastructure short name
+  shortName: 'SLAPI',
   environment,
   domain,
   codePipeline: {
     githubConnectionArn,
-    repository: 'pocket/',
+    repository: 'pocket/shareable-lists-api',
     branch,
   },
   graphqlVariant,
   cacheNodes,
   cacheSize,
-  healthCheck: {
-    command: [
-      'CMD-SHELL',
-      'curl -f http://localhost:4001/.well-known/apollo/server-health || exit 1',
-    ],
-    interval: 15,
-    retries: 3,
-    timeout: 5,
-    startPeriod: 0,
-  },
   tags: {
     service: name,
     environment,

@@ -8,18 +8,17 @@ import {
 import { AwsProvider, kms, datasources, sns } from '@cdktf/provider-aws';
 import { config } from './config';
 import {
-  ApplicationRedis,
+  // ApplicationRedis,
   PocketALBApplication,
   PocketECSCodePipeline,
   PocketPagerDuty,
-  PocketVPC,
 } from '@pocket-tools/terraform-modules';
 import { PagerdutyProvider } from '@cdktf/provider-pagerduty';
 import { LocalProvider } from '@cdktf/provider-local';
 import { NullProvider } from '@cdktf/provider-null';
 import * as fs from 'fs';
 
-class Stack extends TerraformStack {
+class ShareableListsAPI extends TerraformStack {
   constructor(scope: Construct, name: string) {
     super(scope, name);
 
@@ -36,7 +35,7 @@ class Stack extends TerraformStack {
 
     const region = new datasources.DataAwsRegion(this, 'region');
     const caller = new datasources.DataAwsCallerIdentity(this, 'caller');
-    const cache = Stack.createElasticache(this);
+    // const cache = ShareableListsAP.createElasticache(this);
 
     const pocketApp = this.createPocketAlbApplication({
       pagerDuty: this.createPagerDuty(),
@@ -44,7 +43,7 @@ class Stack extends TerraformStack {
       snsTopic: this.getCodeDeploySnsTopic(),
       region,
       caller,
-      cache,
+      // cache,
     });
 
     this.createApplicationCodePipeline(pocketApp);
@@ -55,36 +54,36 @@ class Stack extends TerraformStack {
    * @param scope
    * @private
    */
-  private static createElasticache(scope: Construct): {
-    primaryEndpoint: string;
-    readerEndpoint: string;
-  } {
-    const pocketVPC = new PocketVPC(scope, 'pocket-vpc');
+  // private static createElasticache(scope: Construct): {
+  //   primaryEndpoint: string;
+  //   readerEndpoint: string;
+  // } {
+  //   const pocketVPC = new PocketVPC(scope, 'pocket-vpc');
 
-    const elasticache = new ApplicationRedis(scope, 'redis', {
-      //Usually we would set the security group ids of the service that needs to hit this.
-      //However we don't have the necessary security group because it gets created in PocketALBApplication
-      //So instead we set it to null and allow anything within the vpc to access it.
-      //This is not ideal..
-      //Ideally we need to be able to add security groups to the ALB application.
-      allowedIngressSecurityGroupIds: undefined,
-      node: {
-        count: config.cacheNodes,
-        size: config.cacheSize,
-      },
-      subnetIds: pocketVPC.privateSubnetIds,
-      tags: config.tags,
-      vpcId: pocketVPC.vpc.id,
-      prefix: config.prefix,
-    });
+  // const elasticache = new ApplicationRedis(scope, 'redis', {
+  //   //Usually we would set the security group ids of the service that needs to hit this.
+  //   //However we don't have the necessary security group because it gets created in PocketALBApplication
+  //   //So instead we set it to null and allow anything within the vpc to access it.
+  //   //This is not ideal..
+  //   //Ideally we need to be able to add security groups to the ALB application.
+  //   allowedIngressSecurityGroupIds: undefined,
+  //   node: {
+  //     count: config.cacheNodes,
+  //     size: config.cacheSize,
+  //   },
+  //   subnetIds: pocketVPC.privateSubnetIds,
+  //   tags: config.tags,
+  //   vpcId: pocketVPC.vpc.id,
+  //   prefix: config.prefix,
+  // });
 
-    return {
-      primaryEndpoint:
-        elasticache.elasticacheReplicationGroup.primaryEndpointAddress,
-      readerEndpoint:
-        elasticache.elasticacheReplicationGroup.readerEndpointAddress,
-    };
-  }
+  //   return {
+  //     primaryEndpoint:
+  //       elasticache.elasticacheReplicationGroup.primaryEndpointAddress,
+  //     readerEndpoint:
+  //       elasticache.elasticacheReplicationGroup.readerEndpointAddress,
+  //   };
+  // }
 
   /**
    * Get the sns topic for code deploy
@@ -162,7 +161,7 @@ class Stack extends TerraformStack {
     caller: datasources.DataAwsCallerIdentity;
     secretsManagerKmsAlias: kms.DataAwsKmsAlias;
     snsTopic: sns.DataAwsSnsTopic;
-    cache: { primaryEndpoint: string; readerEndpoint: string };
+    // cache: { primaryEndpoint: string; readerEndpoint: string };
   }): PocketALBApplication {
     const {
       //  pagerDuty, // enable if necessary
@@ -170,7 +169,7 @@ class Stack extends TerraformStack {
       caller,
       secretsManagerKmsAlias,
       snsTopic,
-      cache,
+      // cache,
     } = dependencies;
 
     return new PocketALBApplication(this, 'application', {
@@ -186,11 +185,20 @@ class Stack extends TerraformStack {
           name: 'app',
           portMappings: [
             {
-              hostPort: 4005,
-              containerPort: 4005,
+              hostPort: 4029,
+              containerPort: 4029,
             },
           ],
-          healthCheck: config.healthCheck,
+          healthCheck: {
+            command: [
+              'CMD-SHELL',
+              'curl -f http://localhost:4029/.well-known/apollo/server-health || exit 1',
+            ],
+            interval: 15,
+            retries: 3,
+            timeout: 5,
+            startPeriod: 0,
+          },
           envVars: [
             {
               name: 'NODE_ENV',
@@ -200,25 +208,26 @@ class Stack extends TerraformStack {
               name: 'ENVIRONMENT',
               value: process.env.NODE_ENV, // this gives us a nice lowercase production and development
             },
-            {
-              name: 'REDIS_PRIMARY_ENDPOINT',
-              value: cache.primaryEndpoint,
-            },
-            {
-              name: 'REDIS_READER_ENDPOINT',
-              value: cache.readerEndpoint,
-            },
+            // {
+            //   name: 'REDIS_PRIMARY_ENDPOINT',
+            //   value: cache.primaryEndpoint,
+            // },
+            // {
+            //   name: 'REDIS_READER_ENDPOINT',
+            //   value: cache.readerEndpoint,
+            // },
           ],
-          secretEnvVars: [
-            {
-              name: 'SENTRY_DSN',
-              valueFrom: `arn:aws:ssm:${region.name}:${caller.accountId}:parameter/${config.name}/${config.environment}/SENTRY_DSN`,
-            },
-          ],
+          // secretEnvVars: [
+          //   {
+          //     name: 'SENTRY_DSN',
+          //     valueFrom: `arn:aws:ssm:${region.name}:${caller.accountId}:parameter/${config.name}/${config.environment}/SENTRY_DSN`,
+          //   },
+          // ],
         },
         {
           name: 'xray-daemon',
-          containerImage: 'public.ecr.aws/xray/aws-xray-daemon:latest',
+          containerImage: 'amazon/aws-xray-daemon',
+          repositoryCredentialsParam: `arn:aws:secretsmanager:${region.name}:${caller.accountId}:secret:Shared/DockerHub`,
           portMappings: [
             {
               hostPort: 2000,
@@ -241,7 +250,7 @@ class Stack extends TerraformStack {
       },
       exposedContainer: {
         name: 'app',
-        port: 4001,
+        port: 4029,
         healthCheckPath: '/.well-known/apollo/server-health',
       },
       ecsIamConfig: {
@@ -303,9 +312,8 @@ class Stack extends TerraformStack {
     });
   }
 }
-
 const app = new App();
-const stack = new Stack(app, '');
+const stack = new ShareableListsAPI(app, 'shareable-lists-api');
 const tfEnvVersion = fs.readFileSync('.terraform-version', 'utf8');
 stack.addOverride('terraform.required_version', tfEnvVersion);
 app.synth();
