@@ -2,6 +2,10 @@
 
 The API that manages the ability to create and share lists of related content.
 
+## Application Overview
+
+[Express](https://expressjs.com/) is the Node framework, [Apollo Server](https://www.apollographql.com/docs/apollo-server/) is used in Express to expose a GraphQL API, and [Prisma](https://www.prisma.io/) is used as the ORM. [MySQL](https://www.mysql.com/) is the relational database, though in AWS this is [Aurora Serverless](https://aws.amazon.com/rds/aurora/serverless/).
+
 ## Folder structure
 
 - the infrastructure code is present in `.aws`

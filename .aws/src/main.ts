@@ -9,9 +9,11 @@ import { AwsProvider, kms, datasources, sns } from '@cdktf/provider-aws';
 import { config } from './config';
 import {
   // ApplicationRedis,
+  ApplicationRDSCluster,
   PocketALBApplication,
   PocketECSCodePipeline,
   PocketPagerDuty,
+  PocketVPC,
 } from '@pocket-tools/terraform-modules';
 import { PagerdutyProvider } from '@cdktf/provider-pagerduty';
 import { LocalProvider } from '@cdktf/provider-local';
@@ -33,11 +35,13 @@ class ShareableListsAPI extends TerraformStack {
       workspaces: [{ prefix: `${config.name}-` }],
     });
 
+    const pocketVpc = new PocketVPC(this, 'pocket-vpc');
     const region = new datasources.DataAwsRegion(this, 'region');
     const caller = new datasources.DataAwsCallerIdentity(this, 'caller');
     // const cache = ShareableListsAP.createElasticache(this);
 
     const pocketApp = this.createPocketAlbApplication({
+      rds: this.createRds(pocketVpc),
       pagerDuty: this.createPagerDuty(),
       secretsManagerKmsAlias: this.getSecretsManagerKmsAlias(),
       snsTopic: this.getCodeDeploySnsTopic(),
@@ -106,6 +110,32 @@ class ShareableListsAPI extends TerraformStack {
   }
 
   /**
+   * Creat Aurora database
+   * @param pocketVpc
+   * @private
+   */
+  private createRds(pocketVpc: PocketVPC) {
+    return new ApplicationRDSCluster(this, 'rds', {
+      prefix: config.prefix,
+      vpcId: pocketVpc.vpc.id,
+      subnetIds: pocketVpc.privateSubnetIds,
+      rdsConfig: {
+        databaseName: 'shareablelists',
+        masterUsername: 'pkt_slists',
+        engine: 'aurora-mysql',
+        engineMode: 'serverless',
+        scalingConfiguration: {
+          minCapacity: config.rds.minCapacity,
+          maxCapacity: config.rds.maxCapacity,
+          autoPause: false,
+        },
+      },
+
+      tags: config.tags,
+    });
+  }
+
+  /**
    * Create CodePipeline to build and deploy terraform and ecs
    * @param app
    * @private
@@ -156,6 +186,7 @@ class ShareableListsAPI extends TerraformStack {
   }
 
   private createPocketAlbApplication(dependencies: {
+    rds: ApplicationRDSCluster;
     pagerDuty: PocketPagerDuty;
     region: datasources.DataAwsRegion;
     caller: datasources.DataAwsCallerIdentity;
@@ -165,6 +196,7 @@ class ShareableListsAPI extends TerraformStack {
   }): PocketALBApplication {
     const {
       //  pagerDuty, // enable if necessary
+      rds,
       region,
       caller,
       secretsManagerKmsAlias,
@@ -221,6 +253,10 @@ class ShareableListsAPI extends TerraformStack {
             {
               name: 'SENTRY_DSN',
               valueFrom: `arn:aws:ssm:${region.name}:${caller.accountId}:parameter/${config.name}/${config.environment}/SENTRY_DSN`,
+            },
+            {
+              name: 'DATABASE_URL',
+              valueFrom: `${rds.secretARN}:database_url::`,
             },
           ],
         },
