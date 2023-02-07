@@ -217,12 +217,12 @@ class ShareableListsAPI extends TerraformStack {
             //   value: cache.readerEndpoint,
             // },
           ],
-          // secretEnvVars: [
-          //   {
-          //     name: 'SENTRY_DSN',
-          //     valueFrom: `arn:aws:ssm:${region.name}:${caller.accountId}:parameter/${config.name}/${config.environment}/SENTRY_DSN`,
-          //   },
-          // ],
+          secretEnvVars: [
+            {
+              name: 'SENTRY_DSN',
+              valueFrom: `arn:aws:ssm:${region.name}:${caller.accountId}:parameter/${config.name}/${config.environment}/SENTRY_DSN`,
+            },
+          ],
         },
         {
           name: 'xray-daemon',

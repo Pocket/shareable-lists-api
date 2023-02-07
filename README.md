@@ -31,3 +31,25 @@ After Docker completes, you should be able to access the GraphQL playground at `
 ```
 
 ```
+
+### Testing Sentry
+
+To test Sentry within a local instance of the API:
+
+- Add `SENTRY_DSN` env to `.docker/local.env`. The DSN value can be found in the [Sentry project](https://sentry.io/settings/pocket/projects/shareable-lists-api/)
+- In `docker-compose.yaml`, change the node environment under `app` to `development`:
+
+```
+environment:
+	- NODE_ENV=development
+```
+
+- Add a `try/catch` block in a query / mutation, throw an error and capture it with `Sentry.captureException(err)`
+- In `src/server.ts` replace `nonProdPlugins` with:
+
+```
+const nonProdPlugins = [
+	ApolloServerPluginLandingPageGraphQLPlayground(),
+	ApolloServerPluginInlineTrace(),
+];
+```

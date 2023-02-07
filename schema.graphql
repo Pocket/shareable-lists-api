@@ -1,6 +1,19 @@
+type ListItem {
+	id: String
+	listId: String
+	itemId: String
+	title: String
+	excerpt: String
+}
+
 type List {
+	id: String
 	title: String
 	author: String
+	slug: String
+	description: String
+	status: String
+	listItems: [ListItem]
 }
 
 type Query {

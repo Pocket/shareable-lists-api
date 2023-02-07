@@ -3,7 +3,7 @@ import { Server } from 'http';
 import { buildSubgraphSchema } from '@apollo/subgraph';
 import typeDefs from './typeDefs';
 import { resolvers } from './resolvers';
-import { errorHandler } from '@pocket-tools/apollo-utils';
+import { errorHandler, sentryPlugin } from '@pocket-tools/apollo-utils';
 import { ApolloServerPluginLandingPageGraphQLPlayground } from '@apollo/server-plugin-landing-page-graphql-playground';
 import {
   ApolloServerPluginLandingPageDisabled,
@@ -11,8 +11,13 @@ import {
   ApolloServerPluginUsageReportingDisabled,
 } from '@apollo/server/plugin/disabled';
 import { ApolloServerPluginInlineTrace } from '@apollo/server/plugin/inlineTrace';
+import { ApolloServerPluginDrainHttpServer } from '@apollo/server/plugin/drainHttpServer';
 
 export function getServer(httpServer: Server): ApolloServer {
+  const defaultPlugins = [
+    sentryPlugin,
+    ApolloServerPluginDrainHttpServer({ httpServer }),
+  ];
   const prodPlugins = [
     ApolloServerPluginLandingPageDisabled(),
     ApolloServerPluginInlineTrace(),
@@ -25,7 +30,9 @@ export function getServer(httpServer: Server): ApolloServer {
   ];
 
   const plugins =
-    process.env.NODE_ENV === 'production' ? prodPlugins : nonProdPlugins;
+    process.env.NODE_ENV === 'production'
+      ? defaultPlugins.concat(prodPlugins)
+      : defaultPlugins.concat(nonProdPlugins);
   return new ApolloServer({
     schema: buildSubgraphSchema([{ typeDefs: typeDefs, resolvers: resolvers }]),
     plugins,
