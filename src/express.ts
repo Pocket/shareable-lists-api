@@ -5,8 +5,11 @@ import cors from 'cors';
 import xrayExpress from 'aws-xray-sdk-express';
 import { ApolloServer } from '@apollo/server';
 import { expressMiddleware } from '@apollo/server/express4';
-import { startApolloServer } from './server';
 import config from './config';
+import { startPublicServer } from './public/server';
+import { getPublicContext, IPublicContext } from './public/context';
+import { getAdminContext, IAdminContext } from './admin/context';
+import { startAdminServer } from './admin/server';
 
 /**
  * Initialize an express server.
@@ -15,8 +18,10 @@ import config from './config';
  */
 export async function startServer(port: number): Promise<{
   app: Express.Application;
-  server: ApolloServer;
-  url: string;
+  adminServer: ApolloServer<IAdminContext>;
+  adminUrl: string;
+  publicServer: ApolloServer<IPublicContext>;
+  publicUrl: string;
 }> {
   Sentry.init({
     ...config.sentry,
@@ -39,15 +44,33 @@ export async function startServer(port: number): Promise<{
     res.status(200).send('ok');
   });
 
-  // set up server
-  const server = await startApolloServer(httpServer);
-  const url = '/';
+  // set up the admin server
+  const adminServer = await startAdminServer(httpServer);
+  const adminUrl = '/admin';
 
-  app.use(url, cors<cors.CorsRequest>(), expressMiddleware(server));
+  app.use(
+    adminUrl,
+    cors<cors.CorsRequest>(),
+    expressMiddleware<IAdminContext>(adminServer, {
+      context: getAdminContext,
+    })
+  );
+
+  // set up the public server
+  const publicServer = await startPublicServer(httpServer);
+  const publicUrl = '/';
+
+  app.use(
+    publicUrl,
+    cors<cors.CorsRequest>(),
+    expressMiddleware<IPublicContext>(publicServer, {
+      context: getPublicContext,
+    })
+  );
 
   //Make sure the express app has the xray close segment handler
   app.use(xrayExpress.closeSegment());
 
   await new Promise<void>((resolve) => httpServer.listen({ port }, resolve));
-  return { app, server, url };
+  return { app, adminServer, adminUrl, publicServer, publicUrl };
 }

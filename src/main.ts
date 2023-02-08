@@ -19,6 +19,7 @@ AWSXRay.capturePromise();
 AWSXRay.middleware.enableDynamicNaming('*');
 
 (async () => {
-  const { url } = await startServer(4029);
-  console.log(`🚀 Server ready at http://localhost:4029${url}`);
+  const { adminUrl, publicUrl } = await startServer(4029);
+  console.log(`🚀 Public server ready at http://localhost:4029${publicUrl}`);
+  console.log(`🚀 Public server ready at http://localhost:4029${adminUrl}`);
 })();

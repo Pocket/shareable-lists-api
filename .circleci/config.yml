@@ -46,7 +46,7 @@ only_dev: &only_dev
 jobs:
   apollo:
     docker:
-      - image: circleci/node:16@sha256:1803e9ed7deec9456ad2609124b7333d40b2eec0cf34998ae766cbf90c9a3625
+      - image: node:18@sha256:f27e3f4c8b5719cb9816084475d687a283c59149f3d11a7aa45b675fea56bed0
     steps:
       - checkout
       - run:
@@ -59,25 +59,25 @@ jobs:
             echo 'export PATH=$HOME/.rover/bin:$PATH' >> $BASH_ENV
       - run:
           name: check service
-          command: rover subgraph check pocket-client-api@current --schema ./schema.graphql --name=shareable-lists-api
+          command: rover subgraph check pocket-client-api@current --schema ./schema-public.graphql --name=shareable-lists-api
       - when:
           condition:
             equal: [main, << pipeline.git.branch >>]
           steps:
             - run:
                 name: push service to prod
-                command: rover subgraph publish pocket-client-api@current --schema ./schema.graphql --routing-url https://shareablelistsapi.readitlater.com/ --name=shareable-lists-api
+                command: rover subgraph publish pocket-client-api@current --schema ./schema-public.graphql --routing-url https://shareablelistsapi.readitlater.com/ --name=shareable-lists-api
       - when:
           condition:
             equal: [dev, << pipeline.git.branch >>]
           steps:
             - run:
                 name: push service to dev
-                command: rover subgraph publish pocket-client-api@development --schema ./schema.graphql --routing-url https://shareablelistsapi.getpocket.dev/ --name=shareable-lists-api
+                command: rover subgraph publish pocket-client-api@development --schema ./schema-public.graphql --routing-url https://shareablelistsapi.getpocket.dev/ --name=shareable-lists-api
 
   build:
     docker:
-      - image: circleci/node:16@sha256:1803e9ed7deec9456ad2609124b7333d40b2eec0cf34998ae766cbf90c9a3625
+      - image: node:18@sha256:f27e3f4c8b5719cb9816084475d687a283c59149f3d11a7aa45b675fea56bed0
     steps:
       - checkout
       # Define the working directory for this job
@@ -123,7 +123,7 @@ jobs:
         type: string
     docker:
       # The application
-      - image: circleci/node:16@sha256:1803e9ed7deec9456ad2609124b7333d40b2eec0cf34998ae766cbf90c9a3625
+      - image: node:18@sha256:f27e3f4c8b5719cb9816084475d687a283c59149f3d11a7aa45b675fea56bed0
         auth:
           username: $DOCKERHUB_USERNAME
           password: $DOCKERHUB_PASSWORD
@@ -143,7 +143,7 @@ jobs:
         environment:
           MYSQL_ALLOW_EMPTY_PASSWORD: yes
           TZ: 'UTC'
-      - image: localstack/localstack@sha256:9d51869fe254848890d3b1b602671a85bf24ec43082ca5b6be920272077ed43c
+      - image: localstack/localstack@sha256:11c1bfb85c9a848941d5ea234bfd1ae2c2eaaaf67f7c468796f0de2f195b600c
         auth:
           username: $DOCKERHUB_USERNAME
           password: $DOCKERHUB_PASSWORD

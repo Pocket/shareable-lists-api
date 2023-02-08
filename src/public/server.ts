@@ -1,8 +1,6 @@
 import { ApolloServer } from '@apollo/server';
 import { Server } from 'http';
 import { buildSubgraphSchema } from '@apollo/subgraph';
-import typeDefs from './typeDefs';
-import { resolvers } from './resolvers';
 import { errorHandler, sentryPlugin } from '@pocket-tools/apollo-utils';
 import { ApolloServerPluginLandingPageGraphQLPlayground } from '@apollo/server-plugin-landing-page-graphql-playground';
 import {
@@ -13,7 +11,13 @@ import {
 import { ApolloServerPluginInlineTrace } from '@apollo/server/plugin/inlineTrace';
 import { ApolloServerPluginDrainHttpServer } from '@apollo/server/plugin/drainHttpServer';
 
-export function getServer(httpServer: Server): ApolloServer {
+import { typeDefsPublic } from '../typeDefs';
+import { resolvers } from './resolvers';
+import { IPublicContext } from './context';
+
+export function getPublicServer(
+  httpServer: Server
+): ApolloServer<IPublicContext> {
   const defaultPlugins = [
     sentryPlugin,
     ApolloServerPluginDrainHttpServer({ httpServer }),
@@ -33,17 +37,20 @@ export function getServer(httpServer: Server): ApolloServer {
     process.env.NODE_ENV === 'production'
       ? defaultPlugins.concat(prodPlugins)
       : defaultPlugins.concat(nonProdPlugins);
-  return new ApolloServer({
-    schema: buildSubgraphSchema([{ typeDefs: typeDefs, resolvers: resolvers }]),
+
+  return new ApolloServer<IPublicContext>({
+    schema: buildSubgraphSchema([
+      { typeDefs: typeDefsPublic, resolvers: resolvers },
+    ]),
     plugins,
     formatError: errorHandler,
   });
 }
 
-export async function startApolloServer(
+export async function startPublicServer(
   httpServer: Server
-): Promise<ApolloServer> {
-  const server = getServer(httpServer);
+): Promise<ApolloServer<IPublicContext>> {
+  const server = getPublicServer(httpServer);
   await server.start();
   return server;
 }
