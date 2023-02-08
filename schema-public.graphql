@@ -12,7 +12,7 @@ type ListItem {
 	externalId: ID!
 	itemId: Int
 	url: String
-	title: Stringhttps://www.google.com/url?sa=i&url=https%3A%2F%2Fgeorgejziogas.medium.com%2Fwhat-albert-einstein-can-teach-your-children-about-confidence-1d981e53ee82&psig=AOvVaw37n1cbgv4GfSvdUpI2xShN&ust=1675977095158000&source=images&cd=vfe&ved=0CAMQjB1qFwoTCJjBvK7rhv0CFQAAAAAdAAAAABAD
+	title: String
 	excerpt: String
 	imageUrl: String
 	authors: String
@@ -26,6 +26,8 @@ type List {
 	description: String
 	status: ListStatus!
 	moderationStatus: ModerationStatus!
+	moderatedBy: String
+	moderationReason: String
 	listItems: [ListItem!]!
 }
 
