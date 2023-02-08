@@ -54,6 +54,7 @@ model ListItem {
   listId     BigInt
   // Optional ID of Parser Item and Item props outside of this subgraph's control
   itemId     Int?
+  url        String?  @db.VarChar(500)
   title      String?  @db.VarChar(300)
   excerpt    String?  @db.Text
   imageUrl   String?  @db.Text
