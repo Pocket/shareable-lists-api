@@ -54,11 +54,11 @@ model ListItem {
   listId     BigInt
   // Optional ID of Parser Item and Item props outside of this subgraph's control
   itemId     Int?
-  url        String?  @db.VarChar(500)
+  url        String?  @db.VarChar(1000)
   title      String?  @db.VarChar(300)
   excerpt    String?  @db.Text
-  imageUrl   String?  @db.Text
-  authors    String?  @db.Text
+  imageUrl   String?  @db.VarChar(1000)
+  authors    String?  @db.VarChar(1000)
   sortOrder  Int      @default(0)
   createdAt  DateTime @default(now()) @db.DateTime(0)
   updatedAt  DateTime @updatedAt
