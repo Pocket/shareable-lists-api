@@ -6,19 +6,15 @@ let singleList;
 for (let i = 0; i < 5; i++) {
   singleList = {};
   singleList['externalId'] = faker.datatype.uuid();
-  singleList['userId'] = faker.datatype.uuid();
   singleList['slug'] = faker.lorem.slug();
   singleList['title'] = faker.random.words(5);
   singleList['description'] = faker.lorem.sentences(2);
   singleList['status'] = 'PUBLIC';
   singleList['moderationStatus'] = 'VISIBLE';
-  singleList['moderatedBy'] = faker.name.findName();
-  singleList['moderationReason'] = faker.random.words(5);
   singleList['listItems'] = [
     {
       externalId: faker.datatype.uuid(),
       listId: i,
-      itemId: i,
       url: faker.internet.url(),
       title: faker.random.words(2),
       excerpt: faker.lorem.sentences(4),

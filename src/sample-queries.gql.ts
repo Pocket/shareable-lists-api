@@ -4,18 +4,16 @@ export const GET_LISTS = gql`
   query lists {
     lists {
       externalId
-      userId
       slug
       title
       description
       status
       moderationStatus
-      moderatedBy
-      moderationReason
       listItems {
         externalId
-        listId
         itemId
+        url
+        imageUrl
         title
         excerpt
       }

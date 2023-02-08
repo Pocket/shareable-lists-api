@@ -10,10 +10,9 @@ enum ModerationStatus {
 
 type ListItem {
 	externalId: ID!
-	listId: Int!
 	itemId: Int
 	url: String
-	title: String
+	title: Stringhttps://www.google.com/url?sa=i&url=https%3A%2F%2Fgeorgejziogas.medium.com%2Fwhat-albert-einstein-can-teach-your-children-about-confidence-1d981e53ee82&psig=AOvVaw37n1cbgv4GfSvdUpI2xShN&ust=1675977095158000&source=images&cd=vfe&ved=0CAMQjB1qFwoTCJjBvK7rhv0CFQAAAAAdAAAAABAD
 	excerpt: String
 	imageUrl: String
 	authors: String
@@ -22,14 +21,11 @@ type ListItem {
 
 type List {
 	externalId: ID!
-	userId: String!
 	slug: String!
 	title: String!
 	description: String
 	status: ListStatus!
 	moderationStatus: ModerationStatus!
-	moderatedBy: String
-	moderationReason: String
 	listItems: [ListItem!]!
 }
 
