@@ -1,4 +1,4 @@
-// import * as Sentry from '@sentry/node';
+import * as Sentry from '@sentry/node';
 import express from 'express';
 import http from 'http';
 import cors from 'cors';
@@ -6,6 +6,7 @@ import xrayExpress from 'aws-xray-sdk-express';
 import { ApolloServer } from '@apollo/server';
 import { expressMiddleware } from '@apollo/server/express4';
 import { startApolloServer } from './server';
+import config from './config';
 
 /**
  * Initialize an express server.
@@ -17,10 +18,10 @@ export async function startServer(port: number): Promise<{
   server: ApolloServer;
   url: string;
 }> {
-  // Sentry.init({
-  //   ...config.sentry,
-  //   debug: config.sentry.environment === 'development',
-  // });
+  Sentry.init({
+    ...config.sentry,
+    debug: config.sentry.environment === 'development',
+  });
 
   // initialize express with exposed httpServer so that it may be
   // provided to drain plugin for graceful shutdown.
