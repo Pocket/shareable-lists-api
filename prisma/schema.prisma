@@ -21,7 +21,7 @@ enum ModerationStatus {
 model List {
   // *** Table fields ***
   // Prisma needs an integer ID to make relationships between tables
-  id               Int              @id @default(autoincrement())
+  id               BigInt           @id @default(autoincrement())
   // This is our public-facing ID for use in Admin Tools and Snowplow event reporting
   externalId       String           @default(uuid()) @db.VarChar(255)
   // This is the Pocket ID. Sourced externally from a mutation input
@@ -47,18 +47,17 @@ model List {
 model ListItem {
   // *** Table fields ***
   // Prisma needs an integer ID to make relationships between tables
-  id         Int      @id @default(autoincrement())
+  id         BigInt   @id @default(autoincrement())
   // This is our public-facing ID for use in Admin Tools and Snowplow event reporting
   externalId String   @default(uuid()) @db.VarChar(255)
   // The link to the parent List
-  listId     Int
-  // Optional ID of Parser Item
+  listId     BigInt
+  // Optional ID of Parser Item and Item props outside of this subgraph's control
   itemId     Int?
-  title      String   @db.VarChar(300)
-  excerpt    String   @db.Text
-  // Optional as not all items will have a thumbnail image
-  imageUrl   String?   @db.Text
-  authors    String   @db.Text
+  title      String?  @db.VarChar(300)
+  excerpt    String?  @db.Text
+  imageUrl   String?  @db.Text
+  authors    String?  @db.Text
   sortOrder  Int      @default(0)
   createdAt  DateTime @default(now()) @db.DateTime(0)
   updatedAt  DateTime @updatedAt
