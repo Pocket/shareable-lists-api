@@ -5,17 +5,17 @@ const listData = [];
 let singleList;
 for (let i = 0; i < 5; i++) {
   singleList = {};
-  singleList['author'] = faker.name.findName();
-  singleList['id'] = faker.datatype.uuid();
+  singleList['externalId'] = faker.datatype.uuid();
   singleList['slug'] = faker.lorem.slug();
   singleList['title'] = faker.random.words(5);
   singleList['description'] = faker.lorem.sentences(2);
   singleList['status'] = 'PUBLIC';
+  singleList['moderationStatus'] = 'VISIBLE';
   singleList['listItems'] = [
     {
-      id: faker.datatype.uuid(),
-      listId: faker.datatype.uuid(),
-      itemId: i,
+      externalId: faker.datatype.uuid(),
+      listId: i,
+      url: faker.internet.url(),
       title: faker.random.words(2),
       excerpt: faker.lorem.sentences(4),
     },

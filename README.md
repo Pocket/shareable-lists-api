@@ -32,10 +32,6 @@ Start Docker container:
 
 After Docker completes, you should be able to access the GraphQL playground at `http://localhost:4029`.
 
-```
-
-```
-
 ### Testing Sentry
 
 To test Sentry within a local instance of the API:
