@@ -12,6 +12,7 @@ type ListItem {
 	externalId: ID!
 	listId: Int!
 	itemId: Int
+	url: String
 	title: String
 	excerpt: String
 	imageUrl: String

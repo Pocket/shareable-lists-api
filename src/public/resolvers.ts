@@ -19,6 +19,7 @@ for (let i = 0; i < 5; i++) {
       externalId: faker.datatype.uuid(),
       listId: i,
       itemId: i,
+      url: faker.internet.url(),
       title: faker.random.words(2),
       excerpt: faker.lorem.sentences(4),
     },
