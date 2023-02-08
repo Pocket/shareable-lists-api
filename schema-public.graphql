@@ -1,19 +1,35 @@
+enum ListStatus {
+	PRIVATE
+	PUBLIC
+}
+
+enum ModerationStatus {
+	VISIBLE
+	HIDDEN
+}
+
 type ListItem {
-	id: String
-	listId: String
-	itemId: String
+	externalId: ID!
+	listId: Int!
+	itemId: Int
 	title: String
 	excerpt: String
+	imageUrl: String
+	authors: String
+	sortOrder: Int!
 }
 
 type List {
-	id: String
-	title: String
-	author: String
-	slug: String
+	externalId: ID!
+	userId: String!
+	slug: String!
+	title: String!
 	description: String
-	status: String
-	listItems: [ListItem]
+	status: ListStatus!
+	moderationStatus: ModerationStatus!
+	moderatedBy: String
+	moderationReason: String
+	listItems: [ListItem!]!
 }
 
 type Query {

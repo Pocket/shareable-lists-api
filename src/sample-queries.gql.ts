@@ -3,14 +3,17 @@ import { gql } from 'graphql-tag';
 export const GET_LISTS = gql`
   query lists {
     lists {
-      id
-      title
-      owner
+      externalId
+      userId
       slug
+      title
       description
       status
+      moderationStatus
+      moderatedBy
+      moderationReason
       listItems {
-        id
+        externalId
         listId
         itemId
         title
