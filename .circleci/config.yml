@@ -99,6 +99,9 @@ jobs:
           paths:
             - ./node_modules
       - run:
+          name: generate prisma client
+          command: npm run db:generate-client
+      - run:
           name:
           command: |
             export NODE_ENV=production
