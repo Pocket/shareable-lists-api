@@ -1,4 +1,6 @@
 import { faker } from '@faker-js/faker';
+import { getShareableList } from './resolvers/queries/ShareableList';
+
 // dummy data -- this is temporary, remove when OSL-144: https://getpocket.atlassian.net/browse/OSL-144
 // is done
 const listData = [];
@@ -23,12 +25,14 @@ for (let i = 0; i < 5; i++) {
   listData.push(singleList);
 }
 
+// dummy resolver
 function lists(): any {
   return listData;
 }
-// dummy resolver
-export const resolvers = {
+
+export const index = {
   Query: {
     lists,
+    shareableList: getShareableList,
   },
 };

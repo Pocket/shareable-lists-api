@@ -12,7 +12,7 @@ import { ApolloServerPluginInlineTrace } from '@apollo/server/plugin/inlineTrace
 import { ApolloServerPluginDrainHttpServer } from '@apollo/server/plugin/drainHttpServer';
 
 import { typeDefsPublic } from '../typeDefs';
-import { resolvers } from './resolvers';
+import { index } from './index';
 import { IPublicContext } from './context';
 
 export function getPublicServer(
@@ -40,7 +40,7 @@ export function getPublicServer(
 
   return new ApolloServer<IPublicContext>({
     schema: buildSubgraphSchema([
-      { typeDefs: typeDefsPublic, resolvers: resolvers },
+      { typeDefs: typeDefsPublic, resolvers: index },
     ]),
     plugins,
     formatError: errorHandler,

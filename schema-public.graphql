@@ -1,36 +1,50 @@
-enum ListStatus {
+"""
+ISOString scalar - all datetimes fields are Typescript Date objects on this server &
+returned as ISO-8601 encoded date strings (e.g. ISOString scalars) to GraphQL clients.
+See Section 5.6 of the RFC 3339 profile of the ISO 8601 standard: https://www.ietf.org/rfc/rfc3339.txt.
+"""
+scalar ISOString
+
+"""
+A URL to a web page or image
+"""
+scalar Url
+
+enum ShareableListStatus {
 	PRIVATE
 	PUBLIC
 }
 
-enum ModerationStatus {
+enum ShareableListModerationStatus {
 	VISIBLE
 	HIDDEN
 }
 
-type ListItem {
-	externalId: ID!
-	itemId: Int
-	url: String
+type ShareableListItem {
+	url: Url
 	title: String
 	excerpt: String
-	imageUrl: String
+	imageUrl: Url
 	authors: String
 	sortOrder: Int!
 }
 
-type List {
-	externalId: ID!
+type ShareableList {
 	slug: String!
 	title: String!
 	description: String
-	status: ListStatus!
-	moderationStatus: ModerationStatus!
-	moderatedBy: String
-	moderationReason: String
-	listItems: [ListItem!]!
+	status: ShareableListStatus!
+	moderationStatus: ShareableListModerationStatus!
+  createdAt: ISOString!
+  updatedAt: ISOString!
+	listItems: [ShareableListItem!]!
 }
 
 type Query {
-	lists: [List]
+	lists: [ShareableList]
+
+  """
+  Looks up and returns a Shareable List with a given slug for a given user
+  """
+  shareableList(userId: String!, slug: String!): ShareableList
 }

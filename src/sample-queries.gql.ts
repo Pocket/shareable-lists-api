@@ -1,17 +1,36 @@
 import { gql } from 'graphql-tag';
 
+export const GET_SHAREABLE_LIST = gql`
+  query shareableList($userId: String!, $slug: String!) {
+    shareableList(userId: $userId, slug: $slug) {
+      slug
+      title
+      description
+      status
+      moderationStatus
+      createdAt
+      updatedAt
+      listItems {
+        url
+        title
+        excerpt
+        imageUrl
+        authors
+        sortOrder
+      }
+    }
+  }
+`;
+
 export const GET_LISTS = gql`
   query lists {
     lists {
-      externalId
       slug
       title
       description
       status
       moderationStatus
       listItems {
-        externalId
-        itemId
         url
         imageUrl
         title
