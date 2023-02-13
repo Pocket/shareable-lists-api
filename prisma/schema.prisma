@@ -26,7 +26,7 @@ model List {
   externalId       String           @default(uuid()) @db.VarChar(255)
   // This is the Pocket ID. Sourced externally from a mutation input
   userId           String           @db.VarChar(300)
-  slug             String           @db.VarChar(300)
+  slug             String?          @db.VarChar(300)
   title            String           @db.VarChar(300)
   description      String?          @db.Text
   status           ListStatus       @default(PRIVATE)

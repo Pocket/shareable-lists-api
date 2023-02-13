@@ -37,9 +37,15 @@ type ShareableList {
 	description: String
 	status: ShareableListStatus!
 	moderationStatus: ShareableListModerationStatus!
-  createdAt: ISOString!
-  updatedAt: ISOString!
+	createdAt: ISOString!
+	updatedAt: ISOString!
 	listItems: [ShareableListItem!]!
+}
+
+input CreateShareableListInput {
+	title: String!
+	description: String
+	status: ShareableListStatus
 }
 
 type Query {
@@ -50,4 +56,11 @@ type Query {
   (the user ID will be coming through with the headers)
   """
   shareableList(slug: String!): ShareableList
+}
+
+type Mutation {
+	"""
+	Creates a Shareable List
+	"""
+	createShareableList(data: CreateShareableListInput!): ShareableList
 }

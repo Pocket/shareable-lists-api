@@ -1,5 +1,6 @@
 import { faker } from '@faker-js/faker';
 import { getShareableList } from './queries/ShareableList';
+import { createShareableList } from './mutations/ShareableList';
 
 // dummy data -- this is temporary, remove when OSL-144: https://getpocket.atlassian.net/browse/OSL-144
 // is done
@@ -31,6 +32,7 @@ function lists(): any {
 }
 
 export const resolvers = {
+  Mutation: { createShareableList },
   Query: {
     lists,
     shareableList: getShareableList,
