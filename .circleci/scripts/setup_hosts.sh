@@ -1,5 +1,6 @@
 #!/bin/bash
 set -e
+apt-get update && apt-get install -y sudo
 
 # Add host entries to match local docker development names.
 

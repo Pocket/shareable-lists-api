@@ -1,6 +1,6 @@
 import { faker } from '@faker-js/faker';
-// dummy data -- this is temporary, remove when OSL-144: https://getpocket.atlassian.net/browse/OSL-144
-// is done
+import { createShareableList } from './mutations/ShareableList';
+// dummy data -- this is temporary
 const listData = [];
 let singleList;
 for (let i = 0; i < 5; i++) {
@@ -26,8 +26,9 @@ for (let i = 0; i < 5; i++) {
 function lists(): any {
   return listData;
 }
-// dummy resolver
+
 export const resolvers = {
+  Mutation: { createShareableList },
   Query: {
     lists,
   },

@@ -53,3 +53,51 @@ const nonProdPlugins = [
 	ApolloServerPluginInlineTrace(),
 ];
 ```
+
+### Adding a Migration
+
+If you need to change the Prisma schema (in `prisma/schema.prisma`), you'll need to create a migration to ensure the database is in sync. After you have made your changes to `schema.prisma`, run
+
+```bash
+docker compose exec app npx prisma migrate dev --name some_meaningful_migration_name
+```
+
+This will create a migration script in `prisma/migrations` and will automatically run the new migration. This will also re-create your Prisma Typescript types.
+
+#### Re-creating Prisma Typescript Types
+
+If your local environment gets messed up (it happens - for example switching to a branch with a different prisma schema), you can re-create your Prisma Typescript types by running `npx prisma generate`. (Note that you don't have to do this within the Docker container, but you can if you want.)
+
+### Running Tests
+
+A `userId` in the headers is needed in order to run mutations:
+
+```typescript
+{
+	"userId": "bobSinclair123"
+}
+```
+
+We have two test commands, one for unit/functional tests and one for integration tests. These are both run by [Jest](https://jestjs.io/) and are differentiated by file names. Any file ending with `.spec.ts` will be run in the unit/functional suite, while integration tests should have the `.integration.ts` suffix.
+
+Test are run via `npm` commands:
+
+- Unit/functional:
+
+```bash
+npm test
+```
+
+- Integration:
+
+If tests rely on MySQL and AWS (which is mocked by a [localstack](https://github.com/localstack/localstack) Docker container locally):
+
+```bash
+docker compose exec app npm run test-integrations
+```
+
+If tests don't rely on other services:
+
+```
+npm run test-integrations
+```
