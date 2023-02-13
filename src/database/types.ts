@@ -6,13 +6,7 @@ import { List, ListItem } from '@prisma/client';
  */
 export type ShareableListItem = Omit<
   ListItem,
-  | 'id'
-  | 'externalId'
-  | 'listId'
-  | 'itemId'
-  | 'sortOrder'
-  | 'createdAt'
-  | 'updatedAt'
+  'id' | 'externalId' | 'listId' | 'itemId'
 >;
 
 /**

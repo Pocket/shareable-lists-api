@@ -3,15 +3,17 @@ import { getShareableList as dbGetShareableList } from '../../../database/querie
 import { ShareableList } from '../../../database/types';
 
 /**
+ * Resolver for the public 'shareableList` query.
+ *
  * @param parent
- * @param userId
  * @param slug
+ * @param userId
  * @param db
  */
 export async function getShareableList(
   parent,
-  { userId, slug },
-  { db }
+  { slug },
+  { userId, db }
 ): Promise<ShareableList> {
   const list = await dbGetShareableList(db, userId, slug);
 

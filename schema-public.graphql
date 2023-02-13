@@ -27,6 +27,8 @@ type ShareableListItem {
 	imageUrl: Url
 	authors: String
 	sortOrder: Int!
+  createdAt: ISOString!
+  updatedAt: ISOString!
 }
 
 type ShareableList {
@@ -45,6 +47,7 @@ type Query {
 
   """
   Looks up and returns a Shareable List with a given slug for a given user
+  (the user ID will be coming through with the headers)
   """
-  shareableList(userId: String!, slug: String!): ShareableList
+  shareableList(slug: String!): ShareableList
 }

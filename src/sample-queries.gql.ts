@@ -1,8 +1,8 @@
 import { gql } from 'graphql-tag';
 
 export const GET_SHAREABLE_LIST = gql`
-  query shareableList($userId: String!, $slug: String!) {
-    shareableList(userId: $userId, slug: $slug) {
+  query shareableList($slug: String!) {
+    shareableList(slug: $slug) {
       slug
       title
       description
@@ -17,6 +17,8 @@ export const GET_SHAREABLE_LIST = gql`
         imageUrl
         authors
         sortOrder
+        createdAt
+        updatedAt
       }
     }
   }

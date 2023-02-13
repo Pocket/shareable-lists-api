@@ -1,5 +1,5 @@
 import { faker } from '@faker-js/faker';
-import { getShareableList } from './resolvers/queries/ShareableList';
+import { getShareableList } from './queries/ShareableList';
 
 // dummy data -- this is temporary, remove when OSL-144: https://getpocket.atlassian.net/browse/OSL-144
 // is done
@@ -30,7 +30,7 @@ function lists(): any {
   return listData;
 }
 
-export const index = {
+export const resolvers = {
   Query: {
     lists,
     shareableList: getShareableList,

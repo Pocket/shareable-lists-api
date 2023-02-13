@@ -38,6 +38,8 @@ export async function getShareableList(
           imageUrl: true,
           authors: true,
           sortOrder: true,
+          createdAt: true,
+          updatedAt: true,
         },
       },
     },
