@@ -12,13 +12,13 @@ import { ShareableList } from '../../../database/types';
  */
 export async function getShareableList(
   parent,
-  { slug },
+  { externalId },
   { userId, db }
 ): Promise<ShareableList> {
-  const list = await dbGetShareableList(db, userId, slug);
+  const list = await dbGetShareableList(db, userId, externalId);
 
   if (!list) {
-    throw new NotFoundError(slug);
+    throw new NotFoundError(externalId);
   }
 
   return list;

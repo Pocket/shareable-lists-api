@@ -1,8 +1,9 @@
 import { gql } from 'graphql-tag';
 
 export const GET_SHAREABLE_LIST = gql`
-  query shareableList($slug: String!) {
-    shareableList(slug: $slug) {
+  query shareableList($externalId: String!) {
+    shareableList(externalId: $externalId) {
+      externalId
       slug
       title
       description

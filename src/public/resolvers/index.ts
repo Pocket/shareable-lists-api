@@ -2,8 +2,7 @@ import { faker } from '@faker-js/faker';
 import { getShareableList } from './queries/ShareableList';
 import { createShareableList } from './mutations/ShareableList';
 
-// dummy data -- this is temporary, remove when OSL-144: https://getpocket.atlassian.net/browse/OSL-144
-// is done
+// dummy data -- this is temporary
 const listData = [];
 let singleList;
 for (let i = 0; i < 5; i++) {
@@ -26,7 +25,6 @@ for (let i = 0; i < 5; i++) {
   listData.push(singleList);
 }
 
-// dummy resolver
 function lists(): any {
   return listData;
 }

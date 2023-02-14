@@ -64,7 +64,7 @@ describe('public queries: ShareableList', () => {
         .send({
           query: print(GET_SHAREABLE_LIST),
           variables: {
-            slug: 'this-will-not-be-found',
+            externalId: 'this-will-not-be-found',
           },
         });
 
@@ -86,7 +86,7 @@ describe('public queries: ShareableList', () => {
         .send({
           query: print(GET_SHAREABLE_LIST),
           variables: {
-            slug: shareableList.slug,
+            externalId: shareableList.externalId,
           },
         });
 
@@ -112,6 +112,7 @@ describe('public queries: ShareableList', () => {
       // returns them in a compatible format
       expect(list.createdAt).not.to.be.empty;
       expect(list.updatedAt).not.to.be.empty;
+      expect(list.externalId).not.to.be.empty;
 
       // Empty list items array
       expect(list.listItems).to.have.lengthOf(0);
@@ -129,7 +130,7 @@ describe('public queries: ShareableList', () => {
         .send({
           query: print(GET_SHAREABLE_LIST),
           variables: {
-            slug: shareableList.slug,
+            externalId: shareableList.externalId,
           },
         });
 

@@ -7,22 +7,23 @@ import { ShareableList } from '../types';
  *
  * @param db
  * @param userId
- * @param slug
+ * @param externalId
  */
 export async function getShareableList(
   db: PrismaClient,
   userId: string,
-  slug: string
+  externalId: string
 ): Promise<ShareableList> {
-  // slug is unique, but the generated type for `findUnique` here doesn't
+  // externalId is unique, but the generated type for `findUnique` here doesn't
   // include `moderationStatus`, so using `findFirst` instead
   return db.list.findFirst({
     where: {
       userId,
-      slug,
+      externalId,
       moderationStatus: ModerationStatus.VISIBLE,
     },
     select: {
+      externalId: true,
       slug: true,
       title: true,
       description: true,

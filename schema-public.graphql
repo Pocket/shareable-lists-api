@@ -32,6 +32,7 @@ type ShareableListItem {
 }
 
 type ShareableList {
+  externalId: String!
 	slug: String!
 	title: String!
 	description: String
@@ -52,10 +53,10 @@ type Query {
 	lists: [ShareableList]
 
   """
-  Looks up and returns a Shareable List with a given slug for a given user
+  Looks up and returns a Shareable List with a given external ID for a given user
   (the user ID will be coming through with the headers)
   """
-  shareableList(slug: String!): ShareableList
+  shareableList(externalId: String!): ShareableList
 }
 
 type Mutation {
