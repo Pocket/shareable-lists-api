@@ -1,4 +1,3 @@
-import { AuthenticationError } from '@pocket-tools/apollo-utils';
 import {
   CreateShareableListInput,
   ShareableList,
@@ -19,13 +18,7 @@ export async function executeMutation<T, U>(
 ): Promise<U> {
   const { db, userId } = context;
 
-  if (!userId) {
-    throw new AuthenticationError('You must be logged in to use this service');
-  }
-
-  const entity = await callback(db, data, userId);
-
-  return entity;
+  return await callback(db, data, userId);
 }
 
 /**

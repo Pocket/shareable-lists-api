@@ -3,8 +3,11 @@ import { PrismaClient } from '@prisma/client';
 import { CreateShareableListInput, ShareableList } from '../types';
 
 /**
+ * This mutation creates a shareable list, and _only_ a shareable list
+ *
  * @param db
  * @param data
+ * @param userId
  */
 export async function createShareableList(
   db: PrismaClient,
@@ -15,6 +18,7 @@ export async function createShareableList(
   const titleExists = await db.list.count({
     where: { title: data.title, userId: userId },
   });
+
   if (titleExists) {
     throw new UserInputError(
       `A list with the title "${data.title}" already exists`

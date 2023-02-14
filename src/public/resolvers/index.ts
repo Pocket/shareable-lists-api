@@ -1,5 +1,7 @@
 import { faker } from '@faker-js/faker';
+import { getShareableList } from './queries/ShareableList';
 import { createShareableList } from './mutations/ShareableList';
+
 // dummy data -- this is temporary
 const listData = [];
 let singleList;
@@ -31,5 +33,6 @@ export const resolvers = {
   Mutation: { createShareableList },
   Query: {
     lists,
+    shareableList: getShareableList,
   },
 };

@@ -1,6 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import { client } from '../database/client';
-import Express from 'express';
+import { AuthenticationError } from '@pocket-tools/apollo-utils';
 
 /**
  * Context components specifically for the public graph.
@@ -15,8 +15,8 @@ export interface IPublicContext {
 export class PublicContextManager implements IPublicContext {
   constructor(
     private config: {
-      request: Express.Request;
       db: PrismaClient;
+      request: any;
     }
   ) {}
 
@@ -24,8 +24,16 @@ export class PublicContextManager implements IPublicContext {
     return this.config.db;
   }
 
-  get userId(): string {
+  get userId(): IPublicContext['userId'] {
     const userId = this.config.request.headers.userid;
+
+    // We need this check for every query and mutation on the public graph
+    if (!userId) {
+      throw new AuthenticationError(
+        'You must be logged in to use this service'
+      );
+    }
+
     return userId instanceof Array ? userId[0] : userId;
   }
 }
@@ -42,7 +50,7 @@ export async function getPublicContext({
   req: Express.Request;
 }): Promise<PublicContextManager> {
   return new PublicContextManager({
-    request: req,
     db: client(),
+    request: req,
   });
 }
