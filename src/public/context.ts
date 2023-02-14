@@ -25,7 +25,7 @@ export class PublicContextManager implements IPublicContext {
     return this.config.db;
   }
 
-  get userId(): number | bigint {
+  get userId(): IPublicContext['userId'] {
     const userId = this.config.request.headers.userid;
     // We need this check for every query and mutation on the public graph
     if (!userId) {

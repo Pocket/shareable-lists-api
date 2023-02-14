@@ -26,7 +26,7 @@ export async function createShareableList(
   }
 
   return db.list.create({
-    data: { ...data, userId: userId },
+    data: { ...data, userId },
     include: {
       listItems: true,
     },
