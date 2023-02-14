@@ -21,7 +21,7 @@ describe('mutations: List', () => {
   let db: PrismaClient;
 
   const headers = {
-    userId: 'bobSinclair123',
+    userId: '12345',
   };
 
   beforeAll(async () => {
@@ -74,7 +74,7 @@ describe('mutations: List', () => {
       const list1 = await createShareableListHelper(
         db,
         `Katerina's List`,
-        headers.userId
+        parseInt(headers.userId)
       );
       const title1 = list1.title;
       // create new List with title1 value for the same user
@@ -99,7 +99,7 @@ describe('mutations: List', () => {
       const list1 = await createShareableListHelper(
         db,
         `Best Abstraction Art List`,
-        'wassilyKandinsky'
+        parseInt('8765')
       );
       const title1 = list1.title;
       // create new List with title1 value for the same user

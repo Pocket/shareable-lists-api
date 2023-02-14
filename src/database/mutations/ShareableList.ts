@@ -13,7 +13,7 @@ export async function createShareableList(
 ): Promise<ShareableList> {
   // check if the title already exists for this user
   const titleExists = await db.list.count({
-    where: { title: data.title, userId: userId },
+    where: { title: data.title, userId: parseInt(userId) },
   });
   if (titleExists) {
     throw new UserInputError(
@@ -22,6 +22,9 @@ export async function createShareableList(
   }
 
   return db.list.create({
-    data: { ...data, userId },
+    data: { ...data, userId: parseInt(userId) },
+    include: {
+      listItems: true,
+    },
   });
 }

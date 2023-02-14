@@ -6,14 +6,14 @@ import { faker } from '@faker-js/faker';
 export async function createShareableListHelper(
   prisma: PrismaClient,
   title?: string,
-  userId?: string
+  userId?: number | bigint
 ): Promise<ShareableList> {
   const data: CreateShareableListInput = {
     title: title || faker.random.words(2),
     description: faker.lorem.sentences(2),
   };
 
-  userId = userId || faker.internet.userName();
+  userId = userId || faker.datatype.number();
 
   return await prisma.list.create({ data: { ...data, userId } });
 }

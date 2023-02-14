@@ -74,7 +74,7 @@ A `userId` in the headers is needed in order to run mutations:
 
 ```typescript
 {
-	"userId": "bobSinclair123"
+	"userId": "12345"
 }
 ```
 
