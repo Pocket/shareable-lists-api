@@ -1,8 +1,9 @@
-import { AuthenticationError } from '@pocket-tools/apollo-utils';
+import { ForbiddenError } from '@pocket-tools/apollo-utils';
 import {
   CreateShareableListInput,
   ShareableList,
 } from '../../../database/types';
+import { ACCESS_DENIED_ERROR } from '../../../shared/constants';
 import { createShareableList as dbCreateShareableList } from '../../../database/mutations';
 import { IPublicContext } from '../../context';
 
@@ -15,12 +16,12 @@ import { IPublicContext } from '../../context';
 export async function executeMutation<T, U>(
   context: IPublicContext,
   data: T,
-  callback: (db, data: T, userId?: string) => Promise<U>
+  callback: (db, data: T, userId?: number | bigint) => Promise<U>
 ): Promise<U> {
   const { db, userId } = context;
 
   if (!userId) {
-    throw new AuthenticationError('You must be logged in to use this service');
+    throw new ForbiddenError(ACCESS_DENIED_ERROR);
   }
 
   const entity = await callback(db, data, userId);

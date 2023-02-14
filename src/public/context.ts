@@ -9,7 +9,7 @@ import Express from 'express';
 export interface IPublicContext {
   db: PrismaClient;
   // Pocket userId coming in from the http headers
-  userId: string;
+  userId: number | bigint;
 }
 
 export class PublicContextManager implements IPublicContext {
@@ -24,9 +24,9 @@ export class PublicContextManager implements IPublicContext {
     return this.config.db;
   }
 
-  get userId(): string {
+  get userId(): number | bigint {
     const userId = this.config.request.headers.userid;
-    return userId instanceof Array ? userId[0] : userId;
+    return userId instanceof Array ? parseInt(userId[0]) : parseInt(userId);
   }
 }
 
