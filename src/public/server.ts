@@ -41,7 +41,8 @@ export function getPublicServer(
   return new ApolloServer<IPublicContext>({
     schema: buildSubgraphSchema([{ typeDefs: typeDefsPublic, resolvers }]),
     plugins,
-    formatError: errorHandler,
+    formatError:
+      process.env.NODE_ENV === 'development' ? undefined : errorHandler,
   });
 }
 
