@@ -1,9 +1,7 @@
-import { ForbiddenError } from '@pocket-tools/apollo-utils';
 import {
   CreateShareableListInput,
   ShareableList,
 } from '../../../database/types';
-import { ACCESS_DENIED_ERROR } from '../../../shared/constants';
 import { createShareableList as dbCreateShareableList } from '../../../database/mutations';
 import { IPublicContext } from '../../context';
 
@@ -20,13 +18,7 @@ export async function executeMutation<T, U>(
 ): Promise<U> {
   const { db, userId } = context;
 
-  if (!userId) {
-    throw new ForbiddenError(ACCESS_DENIED_ERROR);
-  }
-
-  const entity = await callback(db, data, userId);
-
-  return entity;
+  return await callback(db, data, userId);
 }
 
 /**

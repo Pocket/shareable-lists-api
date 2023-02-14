@@ -1,6 +1,7 @@
 import { PrismaClient } from '@prisma/client';
 import { client } from '../database/client';
-import Express from 'express';
+import { ForbiddenError } from '@pocket-tools/apollo-utils';
+import { ACCESS_DENIED_ERROR } from '../shared/constants';
 
 /**
  * Context components specifically for the public graph.
@@ -15,8 +16,8 @@ export interface IPublicContext {
 export class PublicContextManager implements IPublicContext {
   constructor(
     private config: {
-      request: Express.Request;
       db: PrismaClient;
+      request: any;
     }
   ) {}
 
@@ -26,6 +27,10 @@ export class PublicContextManager implements IPublicContext {
 
   get userId(): number | bigint {
     const userId = this.config.request.headers.userid;
+    // We need this check for every query and mutation on the public graph
+    if (!userId) {
+      throw new ForbiddenError(ACCESS_DENIED_ERROR);
+    }
     return userId instanceof Array ? parseInt(userId[0]) : parseInt(userId);
   }
 }
@@ -42,7 +47,7 @@ export async function getPublicContext({
   req: Express.Request;
 }): Promise<PublicContextManager> {
   return new PublicContextManager({
-    request: req,
     db: client(),
+    request: req,
   });
 }

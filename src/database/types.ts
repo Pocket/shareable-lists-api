@@ -6,13 +6,7 @@ import { List, ListItem, ListStatus } from '@prisma/client';
  */
 export type ShareableListItem = Omit<
   ListItem,
-  | 'id'
-  | 'externalId'
-  | 'listId'
-  | 'itemId'
-  | 'sortOrder'
-  | 'createdAt'
-  | 'updatedAt'
+  'id' | 'externalId' | 'listId' | 'itemId'
 >;
 
 /**
@@ -21,7 +15,7 @@ export type ShareableListItem = Omit<
  */
 export type ShareableList = Omit<
   List,
-  'id' | 'externalId' | 'userId' | 'moderatedBy' | 'moderationReason'
+  'id' | 'userId' | 'moderatedBy' | 'moderationReason'
 > & {
   // optional as not needed for returning when creating a ShareableList atm
   listItems?: ShareableListItem[];

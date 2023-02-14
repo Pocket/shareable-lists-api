@@ -39,9 +39,7 @@ export function getPublicServer(
       : defaultPlugins.concat(nonProdPlugins);
 
   return new ApolloServer<IPublicContext>({
-    schema: buildSubgraphSchema([
-      { typeDefs: typeDefsPublic, resolvers: resolvers },
-    ]),
+    schema: buildSubgraphSchema([{ typeDefs: typeDefsPublic, resolvers }]),
     plugins,
     formatError: errorHandler,
   });
