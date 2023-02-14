@@ -1,4 +1,4 @@
-import { List, ListItem, ListStatus } from '@prisma/client';
+import { List, ListItem } from '@prisma/client';
 
 /**
  * These are the properties of list items exposed on the public Pocket Graph -
@@ -24,5 +24,4 @@ export type ShareableList = Omit<
 export type CreateShareableListInput = {
   title: string;
   description?: string;
-  status?: ListStatus;
 };
