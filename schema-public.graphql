@@ -27,12 +27,12 @@ type ShareableListItem {
 	imageUrl: Url
 	authors: String
 	sortOrder: Int!
-  createdAt: ISOString!
-  updatedAt: ISOString!
+	createdAt: ISOString!
+	updatedAt: ISOString!
 }
 
 type ShareableList {
-  externalId: String!
+	externalId: String!
 	slug: String!
 	title: String!
 	description: String
@@ -46,17 +46,16 @@ type ShareableList {
 input CreateShareableListInput {
 	title: String!
 	description: String
-	status: ShareableListStatus
 }
 
 type Query {
 	lists: [ShareableList]
 
-  """
-  Looks up and returns a Shareable List with a given external ID for a given user
-  (the user ID will be coming through with the headers)
-  """
-  shareableList(externalId: String!): ShareableList
+	"""
+	Looks up and returns a Shareable List with a given external ID for a given user
+	(the user ID will be coming through with the headers)
+	"""
+	shareableList(externalId: String!): ShareableList
 }
 
 type Mutation {

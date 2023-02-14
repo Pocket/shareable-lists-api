@@ -24,5 +24,4 @@ export type ShareableList = Omit<
 export type CreateShareableListInput = {
   title: string;
   description?: string;
-  status?: ListStatus;
 };
