@@ -10,6 +10,7 @@ import { ListStatus, ModerationStatus, PrismaClient } from '@prisma/client';
 import { CreateShareableListInput } from '../../../database/types';
 import { CREATE_SHAREABLE_LIST } from './sample-mutations.gql';
 import { clearDb, createShareableListHelper } from '../../../test/helpers';
+import { ACCESS_DENIED_ERROR } from '../../../shared/constants';
 
 describe('public mutations: ShareableList', () => {
   let app: Express.Application;
@@ -47,6 +48,23 @@ describe('public mutations: ShareableList', () => {
         userId: parseInt(headers.userId),
         title: 'Simon Le Bon List',
       });
+    });
+    it('should not create a new List without userId in header', async () => {
+      const title = faker.random.words(2);
+      const data: CreateShareableListInput = {
+        title: title,
+        description: faker.lorem.sentences(2),
+      };
+      const result = await request(app)
+        .post(graphQLUrl)
+        .send({
+          query: print(CREATE_SHAREABLE_LIST),
+          variables: { data },
+        });
+      expect(result.body.data.createShareableList).not.to.exist;
+      expect(result.body.errors.length).to.equal(1);
+      expect(result.body.errors[0].extensions.code).to.equal('FORBIDDEN');
+      expect(result.body.errors[0].message).to.equal(ACCESS_DENIED_ERROR);
     });
     it('should create a new List', async () => {
       const title = faker.random.words(2);
@@ -90,6 +108,7 @@ describe('public mutations: ShareableList', () => {
         });
       expect(result.body.data.createShareableList).not.to.exist;
       expect(result.body.errors.length).to.equal(1);
+      expect(result.body.errors[0].extensions.code).to.equal('BAD_USER_INPUT');
       expect(result.body.errors[0].message).to.equal(
         `A list with the title "Katerina's List" already exists`
       );
