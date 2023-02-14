@@ -9,12 +9,9 @@ import { client } from '../../../database/client';
 import { ListStatus, ModerationStatus, PrismaClient } from '@prisma/client';
 import { CreateShareableListInput } from '../../../database/types';
 import { CREATE_SHAREABLE_LIST } from './sample-mutations.gql';
-import {
-  clear as clearDb,
-  createShareableListHelper,
-} from '../../../test/helpers';
+import { clearDb, createShareableListHelper } from '../../../test/helpers';
 
-describe('mutations: List', () => {
+describe('public mutations: ShareableList', () => {
   let app: Express.Application;
   let server: ApolloServer<IPublicContext>;
   let graphQLUrl: string;
@@ -46,7 +43,10 @@ describe('mutations: List', () => {
   describe('createShareableList', () => {
     beforeAll(async () => {
       // Create a List
-      await createShareableListHelper(db, 'Simon Le Bon List');
+      await createShareableListHelper(db, {
+        userId: headers.userId,
+        title: 'Simon Le Bon List',
+      });
     });
     it('should create a new List', async () => {
       const title = faker.random.words(2);
@@ -71,11 +71,10 @@ describe('mutations: List', () => {
       );
     });
     it('should not create List with existing title for the same userId', async () => {
-      const list1 = await createShareableListHelper(
-        db,
-        `Katerina's List`,
-        headers.userId
-      );
+      const list1 = await createShareableListHelper(db, {
+        userId: headers.userId,
+        title: `Katerina's List`,
+      });
       const title1 = list1.title;
       // create new List with title1 value for the same user
       const data: CreateShareableListInput = {
@@ -96,11 +95,10 @@ describe('mutations: List', () => {
       );
     });
     it('should create List with existing title in db but for different userId', async () => {
-      const list1 = await createShareableListHelper(
-        db,
-        `Best Abstraction Art List`,
-        'wassilyKandinsky'
-      );
+      const list1 = await createShareableListHelper(db, {
+        userId: 'wassilyKandinsky',
+        title: `Best Abstraction Art List`,
+      });
       const title1 = list1.title;
       // create new List with title1 value for the same user
       const data: CreateShareableListInput = {
