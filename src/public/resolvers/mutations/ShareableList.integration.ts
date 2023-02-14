@@ -18,7 +18,7 @@ describe('public mutations: ShareableList', () => {
   let db: PrismaClient;
 
   const headers = {
-    userId: 'bobSinclair123',
+    userId: '12345',
   };
 
   beforeAll(async () => {
@@ -44,7 +44,7 @@ describe('public mutations: ShareableList', () => {
     beforeAll(async () => {
       // Create a List
       await createShareableListHelper(db, {
-        userId: headers.userId,
+        userId: parseInt(headers.userId),
         title: 'Simon Le Bon List',
       });
     });
@@ -72,8 +72,8 @@ describe('public mutations: ShareableList', () => {
     });
     it('should not create List with existing title for the same userId', async () => {
       const list1 = await createShareableListHelper(db, {
-        userId: headers.userId,
         title: `Katerina's List`,
+        userId: parseInt(headers.userId),
       });
       const title1 = list1.title;
       // create new List with title1 value for the same user
@@ -96,8 +96,8 @@ describe('public mutations: ShareableList', () => {
     });
     it('should create List with existing title in db but for different userId', async () => {
       const list1 = await createShareableListHelper(db, {
-        userId: 'wassilyKandinsky',
         title: `Best Abstraction Art List`,
+        userId: parseInt('8765'),
       });
       const title1 = list1.title;
       // create new List with title1 value for the same user

@@ -49,7 +49,7 @@ describe('public queries: ShareableList', () => {
 
     // create a list to be used in tests (no list items)
     shareableList = await createShareableListHelper(db, {
-      userId: headers.userId,
+      userId: parseInt(headers.userId),
       title: 'This is a test list',
       slug: 'this-is-a-test-list-89674523',
     });

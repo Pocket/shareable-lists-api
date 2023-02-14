@@ -12,7 +12,7 @@ import { CreateShareableListInput, ShareableList } from '../types';
 export async function createShareableList(
   db: PrismaClient,
   data: CreateShareableListInput,
-  userId: string
+  userId: number | bigint
 ): Promise<ShareableList> {
   // check if the title already exists for this user
   const titleExists = await db.list.count({
@@ -27,5 +27,8 @@ export async function createShareableList(
 
   return db.list.create({
     data: { ...data, userId },
+    include: {
+      listItems: true,
+    },
   });
 }

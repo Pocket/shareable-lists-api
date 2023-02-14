@@ -4,7 +4,7 @@ import slugify from 'slugify';
 import config from '../../config';
 
 interface ListHelperInput {
-  userId: string;
+  userId: number | bigint;
   title: string;
   slug?: string;
   description?: string;
@@ -24,7 +24,7 @@ export async function createShareableListHelper(
   const listSlug = data.slug ?? slugify(listTitle, config.slugify);
 
   const input: ListHelperInput = {
-    userId: data.userId ?? faker.internet.userName(),
+    userId: data.userId ?? faker.datatype.number(),
     title: listTitle,
     slug: listSlug,
     description: data.description ?? faker.lorem.sentences(2),

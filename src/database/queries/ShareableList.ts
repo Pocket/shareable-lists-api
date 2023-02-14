@@ -11,7 +11,7 @@ import { ShareableList } from '../types';
  */
 export async function getShareableList(
   db: PrismaClient,
-  userId: string,
+  userId: number | bigint,
   externalId: string
 ): Promise<ShareableList> {
   // externalId is unique, but the generated type for `findUnique` here doesn't

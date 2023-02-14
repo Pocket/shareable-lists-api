@@ -14,7 +14,7 @@ import { IPublicContext } from '../../context';
 export async function executeMutation<T, U>(
   context: IPublicContext,
   data: T,
-  callback: (db, data: T, userId?: string) => Promise<U>
+  callback: (db, data: T, userId?: number | bigint) => Promise<U>
 ): Promise<U> {
   const { db, userId } = context;
 

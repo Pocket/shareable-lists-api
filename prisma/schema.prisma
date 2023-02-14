@@ -25,7 +25,7 @@ model List {
   // This is our public-facing ID for use in Admin Tools and Snowplow event reporting
   externalId       String           @default(uuid()) @db.VarChar(255)
   // This is the Pocket ID. Sourced externally from a mutation input
-  userId           String           @db.VarChar(300)
+  userId           BigInt
   slug             String?          @db.VarChar(300)
   title            String           @db.VarChar(300)
   description      String?          @db.Text
