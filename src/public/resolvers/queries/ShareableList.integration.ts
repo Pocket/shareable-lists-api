@@ -51,7 +51,6 @@ describe('public queries: ShareableList', () => {
     shareableList = await createShareableListHelper(db, {
       userId: parseInt(headers.userId),
       title: 'This is a test list',
-      slug: 'this-is-a-test-list-89674523',
     });
   });
 
@@ -101,7 +100,6 @@ describe('public queries: ShareableList', () => {
 
       // Values we know as we've assigned them manually
       expect(list.title).to.equal(shareableList.title);
-      expect(list.slug).to.equal(shareableList.slug);
       expect(list.description).to.equal(shareableList.description);
 
       // Default status values
@@ -113,6 +111,9 @@ describe('public queries: ShareableList', () => {
       expect(list.createdAt).not.to.be.empty;
       expect(list.updatedAt).not.to.be.empty;
       expect(list.externalId).not.to.be.empty;
+
+      // Empty slug - it's not generated on creation
+      expect(list.slug).to.be.null;
 
       // Empty list items array
       expect(list.listItems).to.have.lengthOf(0);

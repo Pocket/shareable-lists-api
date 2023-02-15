@@ -6,7 +6,6 @@ import config from '../../config';
 interface ListHelperInput {
   userId: number | bigint;
   title: string;
-  slug?: string;
   description?: string;
 }
 
@@ -21,12 +20,10 @@ export async function createShareableListHelper(
   data: ListHelperInput
 ): Promise<List> {
   const listTitle = data.title ?? faker.random.words(2);
-  const listSlug = data.slug ?? slugify(listTitle, config.slugify);
 
   const input: ListHelperInput = {
     userId: data.userId ?? faker.datatype.number(),
     title: listTitle,
-    slug: listSlug,
     description: data.description ?? faker.lorem.sentences(2),
   };
 
