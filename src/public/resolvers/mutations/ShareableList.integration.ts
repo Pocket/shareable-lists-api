@@ -2,16 +2,18 @@ import { expect } from 'chai';
 import { print } from 'graphql';
 import request from 'supertest';
 import { ApolloServer } from '@apollo/server';
-import { startServer } from '../../../express';
-import { IPublicContext } from '../../context';
-import { faker } from '@faker-js/faker';
-import { client } from '../../../database/client';
 import {
   List,
   ListStatus,
   ModerationStatus,
   PrismaClient,
 } from '@prisma/client';
+import { faker } from '@faker-js/faker';
+import slugify from 'slugify';
+import { startServer } from '../../../express';
+import { IPublicContext } from '../../context';
+import { client } from '../../../database/client';
+
 import {
   CreateShareableListInput,
   UpdateShareableListInput,
@@ -21,8 +23,8 @@ import {
   UPDATE_SHAREABLE_LIST,
 } from './sample-mutations.gql';
 import { clearDb, createShareableListHelper } from '../../../test/helpers';
-import slugify from 'slugify';
 import config from '../../../config';
+import { ACCESS_DENIED_ERROR } from '../../../shared/constants';
 
 describe('public mutations: ShareableList', () => {
   let app: Express.Application;
@@ -60,6 +62,24 @@ describe('public mutations: ShareableList', () => {
         userId: parseInt(headers.userId),
         title: 'Simon Le Bon List',
       });
+    });
+
+    it('should not create a new List without userId in header', async () => {
+      const title = faker.random.words(2);
+      const data: CreateShareableListInput = {
+        title: title,
+        description: faker.lorem.sentences(2),
+      };
+      const result = await request(app)
+        .post(graphQLUrl)
+        .send({
+          query: print(CREATE_SHAREABLE_LIST),
+          variables: { data },
+        });
+      expect(result.body.data.createShareableList).not.to.exist;
+      expect(result.body.errors.length).to.equal(1);
+      expect(result.body.errors[0].extensions.code).to.equal('FORBIDDEN');
+      expect(result.body.errors[0].message).to.equal(ACCESS_DENIED_ERROR);
     });
 
     it('should create a new List', async () => {
@@ -105,6 +125,7 @@ describe('public mutations: ShareableList', () => {
         });
       expect(result.body.data.createShareableList).not.to.exist;
       expect(result.body.errors.length).to.equal(1);
+      expect(result.body.errors[0].extensions.code).to.equal('BAD_USER_INPUT');
       expect(result.body.errors[0].message).to.equal(
         `A list with the title "Katerina's List" already exists`
       );
