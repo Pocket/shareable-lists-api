@@ -1,8 +1,7 @@
 import { ApolloServer } from '@apollo/server';
 import { Server } from 'http';
 import { buildSubgraphSchema } from '@apollo/subgraph';
-// import { errorHandler, sentryPlugin } from '@pocket-tools/apollo-utils';
-import { sentryPlugin } from '@pocket-tools/apollo-utils';
+import { errorHandler, sentryPlugin } from '@pocket-tools/apollo-utils';
 import { ApolloServerPluginLandingPageGraphQLPlayground } from '@apollo/server-plugin-landing-page-graphql-playground';
 import {
   ApolloServerPluginLandingPageDisabled,
@@ -42,10 +41,9 @@ export function getPublicServer(
   return new ApolloServer<IPublicContext>({
     schema: buildSubgraphSchema([{ typeDefs: typeDefsPublic, resolvers }]),
     plugins,
-    // Turning off the formatter for now as the web team needs to get the errors unmasked.
     // OSL-202 (https://getpocket.atlassian.net/browse/OSL-202) needs to get done in order
-    // to turn back on the formatter.
-    // formatError: errorHandler,
+    // to stop masking Apollo Errors.
+    formatError: errorHandler,
   });
 }
 
