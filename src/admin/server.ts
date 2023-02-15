@@ -3,7 +3,8 @@ import { Server } from 'http';
 import { buildSubgraphSchema } from '@apollo/subgraph';
 import { typeDefsAdmin } from '../typeDefs';
 import { resolvers as adminResolvers } from './resolvers';
-import { errorHandler, sentryPlugin } from '@pocket-tools/apollo-utils';
+// import { errorHandler, sentryPlugin } from '@pocket-tools/apollo-utils';
+import { sentryPlugin } from '@pocket-tools/apollo-utils';
 import { ApolloServerPluginLandingPageGraphQLPlayground } from '@apollo/server-plugin-landing-page-graphql-playground';
 import {
   ApolloServerPluginLandingPageDisabled,
@@ -48,7 +49,10 @@ export function getAdminServer(
       { typeDefs: typeDefsAdmin, resolvers: adminResolvers },
     ]),
     plugins,
-    formatError: errorHandler,
+    // Turning off the formatter for now as the web team needs to get the errors unmasked.
+    // OSL-202 (https://getpocket.atlassian.net/browse/OSL-202) needs to get done in order
+    // to turn back on the formatter.
+    // formatError: errorHandler,
   });
 }
 
