@@ -1,7 +1,5 @@
 import { List, PrismaClient } from '@prisma/client';
 import { faker } from '@faker-js/faker';
-import slugify from 'slugify';
-import config from '../../config';
 
 interface ListHelperInput {
   userId: number | bigint;

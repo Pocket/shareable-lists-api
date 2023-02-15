@@ -43,7 +43,8 @@ export async function createShareableList(
 }
 
 /**
- * Works out what to send to the up
+ * The update list mutation. Handles everything, including toggling the list
+ * between PRIVATE and PUBLIC.
  *
  * @param parent
  * @param data
