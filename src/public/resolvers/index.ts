@@ -4,6 +4,7 @@ import {
   createShareableList,
   updateShareableList,
 } from './mutations/ShareableList';
+import { shareableListFieldResolvers } from './fieldResolvers';
 
 // dummy data -- this is temporary
 const listData = [];
@@ -33,6 +34,7 @@ function lists(): any {
 }
 
 export const resolvers = {
+  ShareableList: shareableListFieldResolvers,
   Mutation: { createShareableList, updateShareableList },
   Query: {
     lists,

@@ -74,26 +74,12 @@ export async function updateShareableList(
   }
 
   // If there is no slug and the list is being shared with the world,
-  // let's generate a slug from the title with a string of random numbers
-  // at the end.
+  // let's generate a slug from the title. Once set, it will not be
+  // updated to sync with any further title edits.
   if (data.status === ListStatus.PUBLIC && !list.slug) {
     // If an updated title is provided, generate the slug from that,
     // otherwise default to the title saved previously.
     data.slug = slugify(data.title ?? list.title, config.slugify);
-
-    // Append a dash and a random ten-digit number at the end of the slug.
-    data.slug += `-${parseInt(String(Math.random() * 10000000000), 10)}`;
-
-    // Verify that this slug is unique to this user
-    const slugExists = await db.list.count({
-      where: { slug: data.slug, userId: userId },
-    });
-
-    if (slugExists) {
-      throw new UserInputError(
-        `A list with the slug "${data.slug}" already exists`
-      );
-    }
   }
 
   return db.list.update({
