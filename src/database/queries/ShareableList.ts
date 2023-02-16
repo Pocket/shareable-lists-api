@@ -44,15 +44,7 @@ export async function getShareableLists(
       moderationStatus: ModerationStatus.VISIBLE,
     },
     orderBy: { updatedAt: 'desc' },
-    select: {
-      externalId: true,
-      slug: true,
-      title: true,
-      description: true,
-      status: true,
-      moderationStatus: true,
-      createdAt: true,
-      updatedAt: true,
+    include: {
       listItems: true,
     },
   });
