@@ -46,3 +46,44 @@ export async function getShareableList(
     },
   });
 }
+
+/**
+ * Retrieves all available shareable lists for a given userId from the datastore.
+ *
+ * @param db
+ * @param userId
+ */
+export async function getShareableLists(
+  db: PrismaClient,
+  userId: number | bigint
+): Promise<ShareableList[]> {
+  return db.list.findMany({
+    where: {
+      userId,
+      moderationStatus: ModerationStatus.VISIBLE,
+    },
+    orderBy: { updatedAt: 'desc' },
+    select: {
+      externalId: true,
+      slug: true,
+      title: true,
+      description: true,
+      status: true,
+      moderationStatus: true,
+      createdAt: true,
+      updatedAt: true,
+      listItems: {
+        select: {
+          url: true,
+          title: true,
+          excerpt: true,
+          imageUrl: true,
+          authors: true,
+          sortOrder: true,
+          createdAt: true,
+          updatedAt: true,
+        },
+      },
+    },
+  });
+}

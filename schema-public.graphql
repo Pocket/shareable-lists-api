@@ -49,13 +49,17 @@ input CreateShareableListInput {
 }
 
 type Query {
-	lists: [ShareableList]
-
 	"""
 	Looks up and returns a Shareable List with a given external ID for a given user
 	(the user ID will be coming through with the headers)
 	"""
 	shareableList(externalId: String!): ShareableList
+
+	"""
+	Looks up and returns an array of Shareable Lists for a given user ID for a given user
+	(the user ID will be coming through with the headers)
+	"""
+	shareableLists: [ShareableList!]!
 }
 
 type Mutation {
