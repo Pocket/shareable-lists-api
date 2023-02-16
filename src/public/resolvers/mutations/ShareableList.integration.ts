@@ -324,8 +324,10 @@ describe('public mutations: ShareableList', () => {
         slugify(updatedList.title, config.slugify)
       );
 
-      // Does the slug have a dash and 8 alphanumeric characters at the end?
-      expect(updatedList.slug).to.match(/-[a-z\d]{8}$/);
+      // Does the slug contain the first 8 characters of the externalId?
+      expect(updatedList.slug).to.contain(
+        updatedList.externalId.substring(0, updatedList.externalId.indexOf('-'))
+      );
     });
 
     it('should generate a slug from updated title if one is provided', async () => {
@@ -357,8 +359,10 @@ describe('public mutations: ShareableList', () => {
       // Does the slug match the updated title?
       expect(updatedList.slug).to.contain(slugify(data.title, config.slugify));
 
-      // Does the slug have a dash and 8 alphanumeric characters at the end?
-      expect(updatedList.slug).to.match(/-[a-z\d]{8}$/);
+      // Does the slug contain the first 8 characters of the externalId?
+      expect(updatedList.slug).to.contain(
+        updatedList.externalId.substring(0, updatedList.externalId.indexOf('-'))
+      );
     });
 
     it('should not update the slug once set if any other updates are made', async () => {
