@@ -34,3 +34,13 @@ export type UpdateShareableListInput = {
   // because it's generated in the DB resolver if required.
   slug?: string;
 };
+
+export type CreateShareableListItemInput = {
+  listExternalId: string;
+  url: string;
+  title?: string;
+  excerpt?: string;
+  imageUrl?: string;
+  authors?: string;
+  sortOrder: number;
+};

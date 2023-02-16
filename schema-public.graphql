@@ -32,7 +32,7 @@ type ShareableListItem {
 }
 
 type ShareableList {
-	externalId: String!
+	externalId: ID!
 	slug: String
 	title: String!
 	description: String
@@ -49,10 +49,20 @@ input CreateShareableListInput {
 }
 
 input UpdateShareableListInput {
-    externalId: String!
+    externalId: ID!
     title: String
     description: String
     status: ShareableListStatus
+}
+
+input CreateShareableListItemInput {
+    listExternalId: ID!
+    url: Url!
+    title: String
+    excerpt: String
+    imageUrl: Url
+    authors: String
+    sortOrder: Int!
 }
 
 type Query {
@@ -60,7 +70,7 @@ type Query {
 	Looks up and returns a Shareable List with a given external ID for a given user
 	(the user ID will be coming through with the headers)
 	"""
-	shareableList(externalId: String!): ShareableList
+	shareableList(externalId: ID!): ShareableList
 
 	"""
 	Looks up and returns an array of Shareable Lists for a given user ID for a given user
@@ -78,4 +88,8 @@ type Mutation {
   Updates a Shareable List. This includes making it public.
   """
   updateShareableList(data: UpdateShareableListInput!): ShareableList!
+  """
+  Creates a Shareable List Item
+  """
+  createShareableListItem(data: CreateShareableListItemInput!): ShareableListItem
 }

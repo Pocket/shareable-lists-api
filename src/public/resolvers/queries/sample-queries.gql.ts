@@ -2,7 +2,7 @@ import { gql } from 'graphql-tag';
 import { ShareableListPublicProps } from '../fragments.gql';
 
 export const GET_SHAREABLE_LIST = gql`
-  query shareableList($externalId: String!) {
+  query shareableList($externalId: ID!) {
     shareableList(externalId: $externalId) {
       ...ShareableListPublicProps
     }

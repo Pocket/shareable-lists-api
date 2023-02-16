@@ -1,5 +1,8 @@
 import { gql } from 'graphql-tag';
-import { ShareableListPublicProps } from '../fragments.gql';
+import {
+  ShareableListItemPublicProps,
+  ShareableListPublicProps,
+} from '../fragments.gql';
 
 export const CREATE_SHAREABLE_LIST = gql`
   mutation createShareableList($data: CreateShareableListInput!) {
@@ -17,4 +20,13 @@ export const UPDATE_SHAREABLE_LIST = gql`
     }
   }
   ${ShareableListPublicProps}
+`;
+
+export const CREATE_SHAREABLE_LIST_ITEM = gql`
+  mutation createShareableListItem($data: CreateShareableListItemInput!) {
+    createShareableListItem(data: $data) {
+      ...ShareableListItemPublicProps
+    }
+  }
+  ${ShareableListItemPublicProps}
 `;
