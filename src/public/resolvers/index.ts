@@ -1,6 +1,10 @@
 import { faker } from '@faker-js/faker';
 import { getShareableList } from './queries/ShareableList';
-import { createShareableList } from './mutations/ShareableList';
+import {
+  createShareableList,
+  updateShareableList,
+} from './mutations/ShareableList';
+import { shareableListFieldResolvers } from './fieldResolvers';
 
 // dummy data -- this is temporary
 const listData = [];
@@ -30,7 +34,8 @@ function lists(): any {
 }
 
 export const resolvers = {
-  Mutation: { createShareableList },
+  ShareableList: shareableListFieldResolvers,
+  Mutation: { createShareableList, updateShareableList },
   Query: {
     lists,
     shareableList: getShareableList,
