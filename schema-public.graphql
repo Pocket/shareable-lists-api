@@ -33,7 +33,7 @@ type ShareableListItem {
 
 type ShareableList {
 	externalId: String!
-	slug: String!
+	slug: String
 	title: String!
 	description: String
 	status: ShareableListStatus!
@@ -46,6 +46,13 @@ type ShareableList {
 input CreateShareableListInput {
 	title: String!
 	description: String
+}
+
+input UpdateShareableListInput {
+    externalId: String!
+    title: String
+    description: String
+    status: ShareableListStatus
 }
 
 type Query {
@@ -67,4 +74,8 @@ type Mutation {
 	Creates a Shareable List
 	"""
 	createShareableList(data: CreateShareableListInput!): ShareableList
+  """
+  Updates a Shareable List. This includes making it public.
+  """
+  updateShareableList(data: UpdateShareableListInput!): ShareableList!
 }

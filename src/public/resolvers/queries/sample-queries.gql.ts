@@ -4,26 +4,10 @@ import { ShareableListPublicProps } from '../fragments.gql';
 export const GET_SHAREABLE_LIST = gql`
   query shareableList($externalId: String!) {
     shareableList(externalId: $externalId) {
-      externalId
-      slug
-      title
-      description
-      status
-      moderationStatus
-      createdAt
-      updatedAt
-      listItems {
-        url
-        title
-        excerpt
-        imageUrl
-        authors
-        sortOrder
-        createdAt
-        updatedAt
-      }
+      ...ShareableListPublicProps
     }
   }
+  ${ShareableListPublicProps}
 `;
 
 export const GET_SHAREABLE_LISTS = gql`

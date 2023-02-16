@@ -2,14 +2,28 @@ import { expect } from 'chai';
 import { print } from 'graphql';
 import request from 'supertest';
 import { ApolloServer } from '@apollo/server';
+import {
+  List,
+  ListStatus,
+  ModerationStatus,
+  PrismaClient,
+} from '@prisma/client';
+import { faker } from '@faker-js/faker';
+import slugify from 'slugify';
 import { startServer } from '../../../express';
 import { IPublicContext } from '../../context';
-import { faker } from '@faker-js/faker';
 import { client } from '../../../database/client';
-import { ListStatus, ModerationStatus, PrismaClient } from '@prisma/client';
-import { CreateShareableListInput } from '../../../database/types';
-import { CREATE_SHAREABLE_LIST } from './sample-mutations.gql';
+
+import {
+  CreateShareableListInput,
+  UpdateShareableListInput,
+} from '../../../database/types';
+import {
+  CREATE_SHAREABLE_LIST,
+  UPDATE_SHAREABLE_LIST,
+} from './sample-mutations.gql';
 import { clearDb, createShareableListHelper } from '../../../test/helpers';
+import config from '../../../config';
 import { ACCESS_DENIED_ERROR } from '../../../shared/constants';
 
 describe('public mutations: ShareableList', () => {
@@ -49,6 +63,7 @@ describe('public mutations: ShareableList', () => {
         title: 'Simon Le Bon List',
       });
     });
+
     it('should not create a new List without userId in header', async () => {
       const title = faker.random.words(2);
       const data: CreateShareableListInput = {
@@ -66,6 +81,7 @@ describe('public mutations: ShareableList', () => {
       expect(result.body.errors[0].extensions.code).to.equal('FORBIDDEN');
       expect(result.body.errors[0].message).to.equal(ACCESS_DENIED_ERROR);
     });
+
     it('should create a new List', async () => {
       const title = faker.random.words(2);
       const data: CreateShareableListInput = {
@@ -88,6 +104,7 @@ describe('public mutations: ShareableList', () => {
         ModerationStatus.VISIBLE
       );
     });
+
     it('should not create List with existing title for the same userId', async () => {
       const list1 = await createShareableListHelper(db, {
         title: `Katerina's List`,
@@ -113,6 +130,7 @@ describe('public mutations: ShareableList', () => {
         `A list with the title "Katerina's List" already exists`
       );
     });
+
     it('should create List with existing title in db but for different userId', async () => {
       const list1 = await createShareableListHelper(db, {
         title: `Best Abstraction Art List`,
@@ -140,6 +158,7 @@ describe('public mutations: ShareableList', () => {
         ModerationStatus.VISIBLE
       );
     });
+
     it('should create List with a missing description', async () => {
       // create new List with a missing description
       const data: CreateShareableListInput = {
@@ -163,6 +182,245 @@ describe('public mutations: ShareableList', () => {
       expect(result.body.data.createShareableList.moderationStatus).to.equal(
         ModerationStatus.VISIBLE
       );
+    });
+  });
+
+  describe('updateShareableList', () => {
+    let listToUpdate: List;
+
+    beforeEach(async () => {
+      // Create a List
+      listToUpdate = await createShareableListHelper(db, {
+        userId: parseInt(headers.userId),
+        title: 'The Most Shareable List',
+      });
+    });
+
+    it('should update a list and return all props', async () => {
+      const data: UpdateShareableListInput = {
+        externalId: listToUpdate.externalId,
+        title: 'This Will Be A Brand New Title',
+        description: faker.lorem.sentences(2),
+        status: ListStatus.PRIVATE,
+      };
+
+      const result = await request(app)
+        .post(graphQLUrl)
+        .set(headers)
+        .send({
+          query: print(UPDATE_SHAREABLE_LIST),
+          variables: { data },
+        });
+
+      // There should be no errors
+      expect(result.body.errors).to.be.undefined;
+
+      // A result should be returned
+      expect(result.body.data.updateShareableList).not.to.be.null;
+
+      // Verify that all optional properties have been updated
+      const updatedList = result.body.data.updateShareableList;
+      expect(updatedList.title).to.equal(data.title);
+      expect(updatedList.description).to.equal(data.description);
+      expect(updatedList.status).to.equal(data.status);
+
+      // Check that props that shouldn't have changed stayed the same
+      expect(updatedList.slug).to.equal(listToUpdate.slug);
+      expect(updatedList.moderationStatus).to.equal(
+        listToUpdate.moderationStatus
+      );
+      expect(updatedList.createdAt).to.equal(
+        listToUpdate.createdAt.toISOString()
+      );
+      expect(updatedList.listItems).to.have.lengthOf(0);
+
+      // The `updatedAt` timestamp should change
+      expect(updatedList.updatedAt).not.to.equal(
+        listToUpdate.updatedAt.toISOString()
+      );
+    });
+
+    it('should return a "Not Found" error if no list exists', async () => {
+      const data: UpdateShareableListInput = {
+        externalId: 'this-will-never-be-found',
+        title: 'This Will Never Get Into The Database',
+      };
+
+      const result = await request(app)
+        .post(graphQLUrl)
+        .set(headers)
+        .send({
+          query: print(UPDATE_SHAREABLE_LIST),
+          variables: { data },
+        });
+
+      // There should be nothing in results
+      expect(result.body.data).to.be.null;
+
+      // And a "Not found" error
+      expect(result.body).to.have.nested.property(
+        'errors[0].extensions.code',
+        'NOT_FOUND'
+      );
+    });
+
+    it('should reject the update if user already has a list with the same title', async () => {
+      const anotherListProps = {
+        userId: parseInt(headers.userId),
+        title: 'A Very Popular Title',
+      };
+      await createShareableListHelper(db, anotherListProps);
+
+      const data: UpdateShareableListInput = {
+        externalId: listToUpdate.externalId,
+        title: anotherListProps.title,
+      };
+
+      const result = await request(app)
+        .post(graphQLUrl)
+        .set(headers)
+        .send({
+          query: print(UPDATE_SHAREABLE_LIST),
+          variables: { data },
+        });
+
+      // There should be nothing in results
+      expect(result.body.data).to.be.null;
+
+      // And a "Bad user input" error
+      expect(result.body).to.have.nested.property(
+        'errors[0].extensions.code',
+        'BAD_USER_INPUT'
+      );
+    });
+
+    it('should generate a slug if a list is being made public for the first time', async () => {
+      const data: UpdateShareableListInput = {
+        externalId: listToUpdate.externalId,
+        status: ListStatus.PUBLIC,
+      };
+
+      const result = await request(app)
+        .post(graphQLUrl)
+        .set(headers)
+        .send({
+          query: print(UPDATE_SHAREABLE_LIST),
+          variables: { data },
+        });
+
+      // There should be no errors
+      expect(result.body.errors).to.be.undefined;
+
+      // A result should be returned
+      expect(result.body.data.updateShareableList).not.to.be.null;
+
+      // Verify that the updates have taken place
+      const updatedList = result.body.data.updateShareableList;
+      expect(updatedList.status).to.equal(ListStatus.PUBLIC);
+      expect(updatedList.slug).not.to.be.empty;
+
+      // Does the slug match the current title?
+      expect(updatedList.slug).to.contain(
+        slugify(updatedList.title, config.slugify)
+      );
+
+      // Does the slug contain the first 8 characters of the externalId?
+      expect(updatedList.slug).to.contain(
+        updatedList.externalId.substring(0, updatedList.externalId.indexOf('-'))
+      );
+    });
+
+    it('should generate a slug from updated title if one is provided', async () => {
+      const data: UpdateShareableListInput = {
+        externalId: listToUpdate.externalId,
+        title: 'This Title is Different',
+        status: ListStatus.PUBLIC,
+      };
+
+      const result = await request(app)
+        .post(graphQLUrl)
+        .set(headers)
+        .send({
+          query: print(UPDATE_SHAREABLE_LIST),
+          variables: { data },
+        });
+
+      // There should be no errors
+      expect(result.body.errors).to.be.undefined;
+
+      // A result should be returned
+      expect(result.body.data.updateShareableList).not.to.be.null;
+
+      // Verify that the updates have taken place
+      const updatedList = result.body.data.updateShareableList;
+      expect(updatedList.status).to.equal(ListStatus.PUBLIC);
+      expect(updatedList.slug).not.to.be.empty;
+
+      // Does the slug match the updated title?
+      expect(updatedList.slug).to.contain(slugify(data.title, config.slugify));
+
+      // Does the slug contain the first 8 characters of the externalId?
+      expect(updatedList.slug).to.contain(
+        updatedList.externalId.substring(0, updatedList.externalId.indexOf('-'))
+      );
+    });
+
+    it('should not update the slug once set if any other updates are made', async () => {
+      // Run through the steps to publish the list and update the slug
+      const data: UpdateShareableListInput = {
+        externalId: listToUpdate.externalId,
+        title: 'This Title Could Not Be More Different',
+        status: ListStatus.PUBLIC,
+      };
+
+      const result = await request(app)
+        .post(graphQLUrl)
+        .set(headers)
+        .send({
+          query: print(UPDATE_SHAREABLE_LIST),
+          variables: { data },
+        });
+
+      // There should be no errors
+      expect(result.body.errors).to.be.undefined;
+
+      // A result should be returned
+      expect(result.body.data.updateShareableList).not.to.be.null;
+
+      // Let's save the list in this updated state
+      const listWithSlugSet = result.body.data.updateShareableList;
+
+      // Now update the title, status, description and see if anything happens
+      // to the slug
+      const data2: UpdateShareableListInput = {
+        externalId: listToUpdate.externalId,
+        title: 'Suddenly This List is Private Again',
+        description: 'I really should have kept this to myself',
+        status: ListStatus.PRIVATE,
+      };
+
+      const result2 = await request(app)
+        .post(graphQLUrl)
+        .set(headers)
+        .send({
+          query: print(UPDATE_SHAREABLE_LIST),
+          variables: { data: data2 },
+        });
+
+      // There should be no errors
+      expect(result2.body.errors).to.be.undefined;
+
+      // A result should be returned
+      expect(result2.body.data.updateShareableList).not.to.be.null;
+
+      // Verify that the updates have taken place
+      const updatedList = result2.body.data.updateShareableList;
+      expect(updatedList.status).to.equal(ListStatus.PRIVATE);
+      expect(updatedList.title).to.equal(data2.title);
+      expect(updatedList.description).to.equal(data2.description);
+
+      // Is the slug unchanged? It should be!
+      expect(updatedList.slug).to.equal(listWithSlugSet.slug);
     });
   });
 });

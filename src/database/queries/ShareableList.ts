@@ -22,27 +22,8 @@ export async function getShareableList(
       externalId,
       moderationStatus: ModerationStatus.VISIBLE,
     },
-    select: {
-      externalId: true,
-      slug: true,
-      title: true,
-      description: true,
-      status: true,
-      moderationStatus: true,
-      createdAt: true,
-      updatedAt: true,
-      listItems: {
-        select: {
-          url: true,
-          title: true,
-          excerpt: true,
-          imageUrl: true,
-          authors: true,
-          sortOrder: true,
-          createdAt: true,
-          updatedAt: true,
-        },
-      },
+    include: {
+      listItems: true,
     },
   });
 }
