@@ -53,18 +53,7 @@ export async function getShareableLists(
       moderationStatus: true,
       createdAt: true,
       updatedAt: true,
-      listItems: {
-        select: {
-          url: true,
-          title: true,
-          excerpt: true,
-          imageUrl: true,
-          authors: true,
-          sortOrder: true,
-          createdAt: true,
-          updatedAt: true,
-        },
-      },
+      listItems: true,
     },
   });
 }

@@ -198,34 +198,33 @@ describe('public queries: ShareableList', () => {
 
       // Expect the array length to contain 2 lists
       expect(result.body.data.shareableLists.length).to.equal(2);
-
-      // Verify the first List props in the aray
-      const list1 = result.body.data.shareableLists[0];
-      // these checks also ensure that the List array is ordered by updatedAt (desc)
-      // as the first element in the array is the most recently created List
-      expect(list1.title).to.equal(shareableList2.title);
-      expect(list1.slug).to.equal(shareableList2.slug);
-      expect(list1.description).to.equal(shareableList2.description);
-      expect(list1.status).to.equal(ListStatus.PRIVATE);
-      expect(list1.moderationStatus).to.equal(ModerationStatus.VISIBLE);
-      expect(list1.createdAt).not.to.be.empty;
-      expect(list1.updatedAt).not.to.be.empty;
-      expect(list1.externalId).not.to.be.empty;
-      // Empty list items array
-      expect(list1.listItems).to.have.lengthOf(0);
-
-      // Verify the second List props in the aray
-      const list2 = result.body.data.shareableLists[1];
-      expect(list2.title).to.equal(shareableList.title);
-      expect(list2.slug).to.equal(shareableList.slug);
-      expect(list2.description).to.equal(shareableList.description);
-      expect(list2.status).to.equal(ListStatus.PRIVATE);
-      expect(list2.moderationStatus).to.equal(ModerationStatus.VISIBLE);
-      expect(list1.createdAt).not.to.be.empty;
-      expect(list1.updatedAt).not.to.be.empty;
-      expect(list1.externalId).not.to.be.empty;
-      // Empty list items array
-      expect(list2.listItems).to.have.lengthOf(0);
+      // We also want to assert that the first list returned in the array is the most recently created
+      const listArray = [shareableList2, shareableList];
+      // Loop over both lists and check their values are as expected
+      for (let i = 0; i < listArray.length; i++) {
+        expect(result.body.data.shareableLists[i].title).to.equal(
+          listArray[i].title
+        );
+        expect(result.body.data.shareableLists[i].slug).to.equal(
+          listArray[i].slug
+        );
+        expect(result.body.data.shareableLists[i].description).to.equal(
+          listArray[i].description
+        );
+        expect(result.body.data.shareableLists[i].status).to.equal(
+          ListStatus.PRIVATE
+        );
+        expect(result.body.data.shareableLists[i].moderationStatus).to.equal(
+          ModerationStatus.VISIBLE
+        );
+        expect(result.body.data.shareableLists[i].createdAt).not.to.be.empty;
+        expect(result.body.data.shareableLists[i].updatedAt).not.to.be.empty;
+        expect(result.body.data.shareableLists[i].externalId).not.to.be.empty;
+        // Empty list items array
+        expect(result.body.data.shareableLists[i].listItems).to.have.lengthOf(
+          0
+        );
+      }
     });
 
     it('should return an array of lists with list items for a given userId', async () => {
