@@ -1,5 +1,5 @@
 import { NotFoundError, UserInputError } from '@pocket-tools/apollo-utils';
-import { PrismaClient } from '@prisma/client';
+import { ModerationStatus, PrismaClient } from '@prisma/client';
 import { CreateShareableListItemInput, ShareableListItem } from '../types';
 
 /**
@@ -14,14 +14,20 @@ export async function createShareableListItem(
   data: CreateShareableListItemInput,
   userId: number | bigint
 ): Promise<ShareableListItem> {
-  // Retrieve the list this item should be added to
-  const list = await db.list.findUnique({
-    where: { externalId: data.listExternalId },
+  // Retrieve the list this item should be added to.
+  // Note: no new items should be added to lists that have been taken down
+  // by the moderators.
+  const list = await db.list.findFirst({
+    where: {
+      externalId: data.listExternalId,
+      userId,
+      moderationStatus: ModerationStatus.VISIBLE,
+    },
   });
 
   if (!list) {
     throw new NotFoundError(
-      `A list with the title "${data.listExternalId}" does not exist`
+      `A list with the ID of "${data.listExternalId}" does not exist`
     );
   }
 
@@ -32,7 +38,7 @@ export async function createShareableListItem(
 
   if (itemExists) {
     throw new UserInputError(
-      `An item with the title "${data.url}" already exists in this list`
+      `An item with the URL "${data.url}" already exists in this list`
     );
   }
 

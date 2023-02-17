@@ -21,7 +21,8 @@ enum ShareableListModerationStatus {
 }
 
 type ShareableListItem {
-	url: Url
+  externalId: ID!
+	url: Url!
 	title: String
 	excerpt: String
 	imageUrl: Url
