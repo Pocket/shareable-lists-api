@@ -1,3 +1,6 @@
 // provide a single file to use for imports
-export { createShareableList } from './mutations/ShareableList';
-export { updateShareableList } from './mutations/ShareableList';
+export {
+  createShareableList,
+  updateShareableList,
+} from './mutations/ShareableList';
+export { deleteShareableListItem } from './mutations/ShareableListItem';
