@@ -1,8 +1,4 @@
-import {
-  NotFoundError,
-  ForbiddenError,
-  UserInputError,
-} from '@pocket-tools/apollo-utils';
+import { NotFoundError, ForbiddenError } from '@pocket-tools/apollo-utils';
 import { ACCESS_DENIED_ERROR } from '../../shared/constants';
 import { PrismaClient } from '@prisma/client';
 import { ShareableListItem } from '../types';
@@ -19,13 +15,13 @@ export async function deleteShareableListItem(
   externalId: string,
   userId: number | bigint
 ): Promise<ShareableListItem> {
-  if (!externalId) {
-    throw new UserInputError('externalId must be provided.');
-  }
   // retrieve the existing ListItem before it is deleted
-  const listItem = await db.listItem.findFirst({
+  const listItem = await db.listItem.findUnique({
     where: {
       externalId,
+    },
+    include: {
+      list: true, // also retrieve the list
     },
   });
 
@@ -33,18 +29,14 @@ export async function deleteShareableListItem(
   if (!listItem) {
     throw new NotFoundError('A list item by that ID could not be found');
   }
-  // Retrieve the parent List of the ListItem to be deleted
-  const list = await db.list.findFirst({
-    where: {
-      userId,
-      listItems: {
-        some: { externalId: { in: [externalId] } },
-      },
-    },
-  });
+
+  // Check that the userId in the headers matches the userId of the List
+  if (Number(listItem.list.userId) !== userId) {
+    throw new ForbiddenError(ACCESS_DENIED_ERROR);
+  }
 
   // Check first the List moderation status. If HIDDEN, do not allow delete
-  if (list.moderationStatus == 'HIDDEN') {
+  if (listItem.list.moderationStatus == 'HIDDEN') {
     throw new ForbiddenError(ACCESS_DENIED_ERROR);
   }
   // delete ListItem

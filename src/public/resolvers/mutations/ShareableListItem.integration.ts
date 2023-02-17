@@ -55,20 +55,27 @@ describe('public mutations: ShareableListItem', () => {
   });
 
   describe('deleteShareableListItem', () => {
-    it('should not delete a list item if no externalId is passed', async () => {
-      // Run the mutation with no externalId passed
+    it('should not delete a list item for another userId', async () => {
+      // Create a List and ListItem for another userId
+      const list = await createShareableListHelper(db, {
+        userId: parseInt('65129'),
+        title: 'Bob Sinclair List',
+      });
+      const listItem = await createShareableListItemHelper(db, {
+        list,
+      });
+      // Run the mutation as userId: 12345 but trying to delete a list item for userId: 65129
       const result = await request(app)
         .post(graphQLUrl)
         .set(headers)
         .send({
           query: print(DELETE_SHAREABLE_LIST_ITEM),
+          variables: { externalId: listItem.externalId },
         });
       expect(result.body.data).not.to.exist;
       expect(result.body.errors.length).to.equal(1);
-      expect(result.body.errors[0].extensions.code).to.equal('BAD_USER_INPUT');
-      expect(result.body.errors[0].message).to.equal(
-        'Variable "$externalId" of required type "String!" was not provided.'
-      );
+      expect(result.body.errors[0].extensions.code).to.equal('FORBIDDEN');
+      expect(result.body.errors[0].message).to.equal(ACCESS_DENIED_ERROR);
     });
 
     it('should not delete a list item without userId in header', async () => {
@@ -136,7 +143,6 @@ describe('public mutations: ShareableListItem', () => {
           query: print(DELETE_SHAREABLE_LIST_ITEM),
           variables: { externalId: listItem1.externalId },
         });
-      console.log(result.body);
       expect(result.body.data.deleteShareableListItem).to.exist;
       expect(result.body.data.deleteShareableListItem.title).to.equal(
         listItem1.title

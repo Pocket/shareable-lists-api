@@ -32,7 +32,7 @@ type ShareableListItem {
 }
 
 type ShareableList {
-	externalId: String!
+	externalId: ID!
 	slug: String
 	title: String!
 	description: String
@@ -49,7 +49,7 @@ input CreateShareableListInput {
 }
 
 input UpdateShareableListInput {
-	externalId: String!
+	externalId: ID!
 	title: String
 	description: String
 	status: ShareableListStatus
@@ -60,7 +60,7 @@ type Query {
 	Looks up and returns a Shareable List with a given external ID for a given user.
 	(the user ID will be coming through with the headers)
 	"""
-	shareableList(externalId: String!): ShareableList
+	shareableList(externalId: ID!): ShareableList
 
 	"""
 	Looks up and returns an array of Shareable Lists for a given user ID for a given user.
@@ -81,5 +81,5 @@ type Mutation {
 	"""
 	Deletes a Shareable List Item. HIDDEN Lists cannot have their items deleted.
 	"""
-	deleteShareableListItem(externalId: String!): ShareableListItem!
+	deleteShareableListItem(externalId: ID!): ShareableListItem!
 }
