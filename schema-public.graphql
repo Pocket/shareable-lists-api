@@ -63,4 +63,8 @@ type Mutation {
 	Creates a Shareable List
 	"""
 	createShareableList(data: CreateShareableListInput!): ShareableList
+	"""
+	Deletes a Shareable List
+	"""
+	deleteShareableList(externalId: String!): String
 }

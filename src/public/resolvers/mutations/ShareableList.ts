@@ -2,8 +2,13 @@ import {
   CreateShareableListInput,
   ShareableList,
 } from '../../../database/types';
-import { createShareableList as dbCreateShareableList } from '../../../database/mutations';
+import { 
+  createShareableList as dbCreateShareableList,
+  deleteShareableList as dbDeleteShareableList,
+} from '../../../database/mutations';
+import {  } from '../../../database/mutations';
 import { IPublicContext } from '../../context';
+import { parentPort } from 'worker_threads';
 
 /**
  * Executes a mutation, catches exceptions and records to sentry and console
@@ -35,5 +40,22 @@ export async function createShareableList(
     context,
     data,
     dbCreateShareableList
+  );
+}
+
+/**
+ * @param parent
+ * @param externalId
+ * @param context
+ */
+export async function deleteShareableList(
+  parent,
+  { externalId },
+  context: IPublicContext
+): Promise<String> {
+  return await executeMutation<String, String>(
+    context,
+    externalId,
+    dbDeleteShareableList
   );
 }
