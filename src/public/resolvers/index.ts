@@ -3,7 +3,10 @@ import {
   createShareableList,
   updateShareableList,
 } from './mutations/ShareableList';
-import { createShareableListItem } from './mutations/ShareableListItem';
+import {
+  createShareableListItem,
+  deleteShareableListItem,
+} from './mutations/ShareableListItem';
 import { shareableListFieldResolvers } from './fieldResolvers';
 
 export const resolvers = {
@@ -12,6 +15,7 @@ export const resolvers = {
     createShareableList,
     updateShareableList,
     createShareableListItem,
+    deleteShareableListItem,
   },
   Query: {
     shareableList: getShareableList,

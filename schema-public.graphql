@@ -1,5 +1,5 @@
 """
-ISOString scalar - all datetimes fields are Typescript Date objects on this server &
+ISOString scalar - all datetime fields are Typescript Date objects on this server &
 returned as ISO-8601 encoded date strings (e.g. ISOString scalars) to GraphQL clients.
 See Section 5.6 of the RFC 3339 profile of the ISO 8601 standard: https://www.ietf.org/rfc/rfc3339.txt.
 """
@@ -50,31 +50,31 @@ input CreateShareableListInput {
 }
 
 input UpdateShareableListInput {
-    externalId: ID!
-    title: String
-    description: String
-    status: ShareableListStatus
+	externalId: ID!
+	title: String
+	description: String
+	status: ShareableListStatus
 }
 
 input CreateShareableListItemInput {
-    listExternalId: ID!
-    url: Url!
-    title: String
-    excerpt: String
-    imageUrl: Url
-    authors: String
-    sortOrder: Int!
+  listExternalId: ID!
+  url: Url!
+  title: String
+  excerpt: String
+  imageUrl: Url
+  authors: String
+  sortOrder: Int!
 }
 
 type Query {
 	"""
-	Looks up and returns a Shareable List with a given external ID for a given user
+	Looks up and returns a Shareable List with a given external ID for a given user.
 	(the user ID will be coming through with the headers)
 	"""
 	shareableList(externalId: ID!): ShareableList
 
 	"""
-	Looks up and returns an array of Shareable Lists for a given user ID for a given user
+	Looks up and returns an array of Shareable Lists for a given user ID for a given user.
 	(the user ID will be coming through with the headers)
 	"""
 	shareableLists: [ShareableList!]!
@@ -82,7 +82,7 @@ type Query {
 
 type Mutation {
 	"""
-	Creates a Shareable List
+	Creates a Shareable List.
 	"""
 	createShareableList(data: CreateShareableListInput!): ShareableList
   """
@@ -90,7 +90,11 @@ type Mutation {
   """
   updateShareableList(data: UpdateShareableListInput!): ShareableList!
   """
-  Creates a Shareable List Item
+  Creates a Shareable List Item.
   """
   createShareableListItem(data: CreateShareableListItemInput!): ShareableListItem
+  """
+	Deletes a Shareable List Item. HIDDEN Lists cannot have their items deleted.
+	"""
+	deleteShareableListItem(externalId: ID!): ShareableListItem!
 }

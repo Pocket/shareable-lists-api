@@ -1,10 +1,11 @@
-import { List, PrismaClient } from '@prisma/client';
+import { List, ModerationStatus, PrismaClient } from '@prisma/client';
 import { faker } from '@faker-js/faker';
 
 interface ListHelperInput {
   userId: number | bigint;
   title: string;
   description?: string;
+  moderationStatus?: ModerationStatus;
 }
 
 /**
@@ -23,6 +24,7 @@ export async function createShareableListHelper(
     userId: data.userId ?? faker.datatype.number(),
     title: listTitle,
     description: data.description ?? faker.lorem.sentences(2),
+    moderationStatus: data.moderationStatus ?? ModerationStatus.VISIBLE,
   };
 
   return await prisma.list.create({
