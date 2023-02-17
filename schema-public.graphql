@@ -82,4 +82,8 @@ type Mutation {
 	Deletes a Shareable List Item. HIDDEN Lists cannot have their items deleted.
 	"""
 	deleteShareableListItem(externalId: ID!): ShareableListItem!
+	"""
+	Deletes a Shareable List
+	"""
+	deleteShareableList(externalId: String!): String
 }
