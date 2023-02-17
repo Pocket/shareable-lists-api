@@ -190,12 +190,17 @@ describe('public mutations: ShareableListItem', () => {
 
       const data: CreateShareableListItemInput = {
         listExternalId: list.externalId,
-        url: 'https://www.test.com/duplicate-url',
+        url: 'https://www.test.com/another-duplicate-url',
+        title: 'A story is a story',
+        excerpt: 'The best story ever told',
+        imageUrl: 'https://www.test.com/thumbnail.jpg',
+        authors: 'Charles Dickens, Mark Twain',
         sortOrder: 5,
       };
 
       const result = await request(app)
         .post(graphQLUrl)
+        .set(headers)
         .send({
           query: print(CREATE_SHAREABLE_LIST_ITEM),
           variables: { data },
