@@ -1,6 +1,6 @@
 // provide a single file to use for imports
 export {
-  createShareableList, 
+  createShareableList,
   deleteShareableList,
   updateShareableList,
 } from './mutations/ShareableList';

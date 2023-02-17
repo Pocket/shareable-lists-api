@@ -7,6 +7,7 @@ import {
   ShareableList,
   UpdateShareableListInput,
 } from '../types';
+
 import { getShareableList } from '../queries';
 import config from '../../config';
 
@@ -129,3 +130,4 @@ export async function deleteShareableList(
   console.log(deletedList);
   return deletedList.externalId;
 }
+
