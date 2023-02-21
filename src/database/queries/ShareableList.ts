@@ -2,8 +2,36 @@ import { ModerationStatus, PrismaClient } from '@prisma/client';
 import { ShareableList } from '../types';
 
 /**
- * This is a public query, which is why we only return
- * a subset of ShareableList properties.
+ * This query returns a publicly viewable Shareable List, retrieved by its
+ * composite slug and user ID
+ *
+ * @param db
+ * @param userId
+ * @param slug
+ */
+export async function getPublicShareableList(
+  db: PrismaClient,
+  userId: number | bigint,
+  slug: string
+): Promise<ShareableList> {
+  // Work out the value of the slug that is stored in the DB
+  const storedSlug = /
+
+
+  return db.list.findFirst({
+    where: {
+      userId,
+      slug,
+      moderationStatus: ModerationStatus.VISIBLE,
+    },
+    include: {
+      listItems: true,
+    },
+  });
+}
+
+/**
+ * This query returns a shareable list created and owned by a Pocket user.
  *
  * @param db
  * @param userId

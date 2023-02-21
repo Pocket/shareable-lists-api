@@ -56,6 +56,10 @@ input UpdateShareableListInput {
 }
 
 type Query {
+  """
+  Returns a publicly-shared Shareable List. Note: this query does not require user authentication.
+  """
+  publicShareableList(slug: String!): ShareableList
 	"""
 	Looks up and returns a Shareable List with a given external ID for a given user.
 	(the user ID will be coming through with the headers)
