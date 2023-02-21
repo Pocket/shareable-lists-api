@@ -1,7 +1,6 @@
 import { NotFoundError, UserInputError } from '@pocket-tools/apollo-utils';
 import { ListStatus, PrismaClient } from '@prisma/client';
 import slugify from 'slugify';
-import { PrismaClientKnownRequestError } from '@prisma/client/runtime';
 import {
   CreateShareableListInput,
   ShareableList,
@@ -11,7 +10,7 @@ import {
 import { getShareableList } from '../queries';
 import config from '../../config';
 
-const PRISMA_RECORD_NOT_FOUND = "P2025";
+const PRISMA_RECORD_NOT_FOUND = 'P2025';
 
 /**
  * This mutation creates a shareable list, and _only_ a shareable list
@@ -96,9 +95,9 @@ export async function updateShareableList(
 }
 
 /**
- * This method deletes a shareable list. if the owner of the list 
- * represented by externalId matches the owner of the list. 
- * 
+ * This method deletes a shareable list. if the owner of the list
+ * represented by externalId matches the owner of the list.
+ *
  * @param db
  * @param externalId
  * @param userId
@@ -106,40 +105,42 @@ export async function updateShareableList(
 export async function deleteShareableList(
   db: PrismaClient,
   externalId: string,
-  userId: number | bigint 
+  userId: number | bigint
 ): Promise<ShareableList> {
   // Note for PR : input is unsanitized
   const deleteList = await db.list.findUnique({
-    where: { externalId: externalId } ,
+    where: { externalId: externalId },
     include: { listItems: true },
   });
   if (deleteList === null) {
     throw new NotFoundError(`List ${externalId} is not available`);
-  } else if (deleteList.userId !== BigInt(userId)) { 
+  } else if (deleteList.userId !== BigInt(userId)) {
     // local convention is to 404 when a normal user doesn't have resource ownership
     throw new NotFoundError(`List ${externalId} is not accessible`);
   }
-  
+
   // Now that we've checked that the we can delete the list, let's delete it.
   // We'll still make sure to existence errors for potential race conditions
-  // This operation is possible to execute with one query, using both the 
-  // externalId and the target userId but requires that the `extendedWhereUnique` 
+  // This operation is possible to execute with one query, using both the
+  // externalId and the target userId but requires that the `extendedWhereUnique`
   // prisma preview flag be enabled.
   // We don't need the return value here, since we have it above, so we
   // tell prisma to not select anything
-  await db.list.delete({
-    where: { externalId: externalId },
-    select: null,
-  }).catch((error) => {
-    // According to the Prisma docs, this should be a typed error 
-    // of type PrismaClientKnownRequestError, with a code, but it doesn't 
-    // come through typed
-    if (error.code === PRISMA_RECORD_NOT_FOUND) {
-      throw new NotFoundError(`List ${externalId} is not available`);
-    } else { // some unexpected DB error
-      throw(error);
-    }
-  });
+  await db.list
+    .delete({
+      where: { externalId: externalId },
+      select: null,
+    })
+    .catch((error) => {
+      // According to the Prisma docs, this should be a typed error
+      // of type PrismaClientKnownRequestError, with a code, but it doesn't
+      // come through typed
+      if (error.code === PRISMA_RECORD_NOT_FOUND) {
+        throw new NotFoundError(`List ${externalId} is not available`);
+      } else {
+        // some unexpected DB error
+        throw error;
+      }
+    });
   return deleteList;
 }
-

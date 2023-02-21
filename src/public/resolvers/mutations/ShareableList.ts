@@ -3,7 +3,7 @@ import {
   ShareableList,
   UpdateShareableListInput,
 } from '../../../database/types';
-import { 
+import {
   createShareableList as dbCreateShareableList,
   deleteShareableList as dbDeleteShareableList,
   updateShareableList as dbUpdateShareableList,
@@ -58,7 +58,7 @@ export async function deleteShareableList(
   { externalId },
   context: IPublicContext
 ): Promise<ShareableList> {
-  return await executeMutation<String, ShareableList>(
+  return await executeMutation<string, ShareableList>(
     context,
     externalId,
     dbDeleteShareableList

@@ -187,7 +187,7 @@ describe('public mutations: ShareableList', () => {
   });
 
   describe('deleteShareableList', () => {
-    it('must not delete a list not owned by the current user', async() => {
+    it('must not delete a list not owned by the current user', async () => {
       const otherUserId = parseInt(headers.userId) + 1;
       const otherUserList = await createShareableListHelper(db, {
         title: `Someone else's list`,
@@ -205,8 +205,8 @@ describe('public mutations: ShareableList', () => {
       expect(result.body.errors[0].extensions.code).to.equal('NOT_FOUND');
     });
 
-    it('cannot delete a list that does not exist', async() => {
-      const dummyId = "1234567-1234-1234-1234-123456789012";
+    it('cannot delete a list that does not exist', async () => {
+      const dummyId = '1234567-1234-1234-1234-123456789012';
       const result = await request(app)
         .post(graphQLUrl)
         .set(headers)
@@ -219,7 +219,7 @@ describe('public mutations: ShareableList', () => {
       expect(result.body.errors[0].extensions.code).to.equal('NOT_FOUND');
     });
 
-    it('will delete a list created by the current user', async() => {
+    it('will delete a list created by the current user', async () => {
       const theList = await createShareableListHelper(db, {
         title: `A list to be deleted`,
         userId: BigInt(headers.userId),
@@ -231,11 +231,15 @@ describe('public mutations: ShareableList', () => {
           query: print(DELETE_SHAREABLE_LIST),
           variables: { externalId: theList.externalId },
         });
-      
+
       expect(result.body.errors).to.be.undefined;
       expect(result.body.data.deleteShareableList).to.exist;
-      expect(result.body.data.deleteShareableList.externalId).to.equal(theList.externalId);
-      expect(result.body.data.deleteShareableList.title).to.equal(theList.title);
+      expect(result.body.data.deleteShareableList.externalId).to.equal(
+        theList.externalId
+      );
+      expect(result.body.data.deleteShareableList.title).to.equal(
+        theList.title
+      );
     });
   });
 
@@ -478,5 +482,3 @@ describe('public mutations: ShareableList', () => {
     });
   });
 });
-
-
