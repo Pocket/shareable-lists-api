@@ -108,6 +108,7 @@ export async function deleteShareableList(
   externalId: string,
   userId: number | bigint 
 ): Promise<ShareableList> {
+  // Note for PR : input is unsanitized
   const deleteList = await db.list.findUnique({
     where: { externalId: externalId } ,
     include: { listItems: true },
@@ -118,30 +119,27 @@ export async function deleteShareableList(
     // local convention is to 404 when a normal user doesn't have resource ownership
     throw new NotFoundError(`List ${externalId} is not accessible`);
   }
+  
+  // Now that we've checked that the we can delete the list, let's delete it.
+  // We'll still make sure to existence errors for potential race conditions
+  // This operation is possible to execute with one query, using both the 
+  // externalId and the target userId but requires that the `extendedWhereUnique` 
+  // prisma preview flag be enabled.
+  // We don't need the return value here, since we have it above, so we
+  // tell prisma to not select anything
+  await db.list.delete({
+    where: { externalId: externalId },
+    select: null,
+  }).catch((error) => {
+    // According to the Prisma docs, this should be a typed error 
+    // of type PrismaClientKnownRequestError, with a code, but it doesn't 
+    // come through typed
+    if (error.code === PRISMA_RECORD_NOT_FOUND) {
+      throw new NotFoundError(`List ${externalId} is not available`);
+    } else { // some unexpected DB error
+      throw(error);
+    }
+  });
   return deleteList;
-  /*
-  
-  // Note for PR : input is unsanitized
-  
-  // Since we 404 both in the case where the list doesn't exist, and in the case 
-  // where the owner is not the calling user, we can save a query by running 
-  // a delete using the [unique] externalId and adding the userId as a query constraint.
-  // This will most likely get replaced by a soft delete in a future revision anyway :) 
-    const deletedList = await db.list.delete({
-      where: { externalId: externalId, userId: userId },
-    }).catch((error) => {
-      // According to the Prisma docs, this should be a typed error 
-      // of type PrismaClientKnownRequestError, with a code, but it doesn't 
-      // come through typed
-      if (error.code === PRISMA_RECORD_NOT_FOUND) {
-        throw new NotFoundError(`List ${externalId} is not available`);
-      } else {
-        throw(error);
-      }
-    });
-  
-  console.log(deletedList);
-  return deletedList.externalId;
-  */
 }
 

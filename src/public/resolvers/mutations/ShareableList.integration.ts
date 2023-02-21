@@ -200,17 +200,42 @@ describe('public mutations: ShareableList', () => {
           query: print(DELETE_SHAREABLE_LIST),
           variables: { externalId: otherUserList.externalId },
         });
-      console.log(result.body.errors);
+      expect(result.body.data).to.be.null;
       expect(result.body.errors.length).to.equal(1);
-      // expect(result.body.errors[0].extensions.code).to.equal('NOT_FOUND');
+      expect(result.body.errors[0].extensions.code).to.equal('NOT_FOUND');
     });
 
     it('cannot delete a list that does not exist', async() => {
-
+      const dummyId = "1234567-1234-1234-1234-123456789012";
+      const result = await request(app)
+        .post(graphQLUrl)
+        .set(headers)
+        .send({
+          query: print(DELETE_SHAREABLE_LIST),
+          variables: { externalId: dummyId },
+        });
+      expect(result.body.data).to.be.null;
+      expect(result.body.errors.length).to.equal(1);
+      expect(result.body.errors[0].extensions.code).to.equal('NOT_FOUND');
     });
 
     it('will delete a list created by the current user', async() => {
-
+      const theList = await createShareableListHelper(db, {
+        title: `A list to be deleted`,
+        userId: BigInt(headers.userId),
+      });
+      const result = await request(app)
+        .post(graphQLUrl)
+        .set(headers)
+        .send({
+          query: print(DELETE_SHAREABLE_LIST),
+          variables: { externalId: theList.externalId },
+        });
+      
+      expect(result.body.errors).to.be.undefined;
+      expect(result.body.data.deleteShareableList).to.exist;
+      expect(result.body.data.deleteShareableList.externalId).to.equal(theList.externalId);
+      expect(result.body.data.deleteShareableList.title).to.equal(theList.title);
     });
   });
 
