@@ -12,7 +12,7 @@ services:
       - TZ=UTC
 
   localstack:
-    image: localstack/localstack@sha256:0967eaa34b4933669518abc57afbac8cdcae0226fc03d7e56b03e92f4c4b9417
+    image: localstack/localstack@sha256:7bf57d6e3c33c48e6f389eb1f2efa7aeea81942c71be84e109cd8cf62cff23f5
     platform: linux/amd64
     env_file:
       - .docker/local.env
@@ -33,7 +33,7 @@ services:
       - HOSTNAME_EXTERNAL=localstack
 
   app:
-    image: node:18@sha256:ff9192a21b61d0c5142878b8f4a53272dc3a0d8a0fdd77d31aa65499350e6625
+    image: node:18@sha256:c501bd6f29e4be38725bcec96c6d33221d5c468136f29528a018c05c5ecbb587
     platform: linux/amd64
     working_dir: /app
     ports:
