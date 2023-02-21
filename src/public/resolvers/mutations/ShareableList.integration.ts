@@ -20,6 +20,7 @@ import {
 } from '../../../database/types';
 import {
   CREATE_SHAREABLE_LIST,
+  DELETE_SHAREABLE_LIST,
   UPDATE_SHAREABLE_LIST,
 } from './sample-mutations.gql';
 import { clearDb, createShareableListHelper } from '../../../test/helpers';
@@ -182,6 +183,34 @@ describe('public mutations: ShareableList', () => {
       expect(result.body.data.createShareableList.moderationStatus).to.equal(
         ModerationStatus.VISIBLE
       );
+    });
+  });
+
+  describe('deleteShareableList', () => {
+    it('must not delete a list not owned by the current user', async() => {
+      const otherUserId = parseInt(headers.userId) + 1;
+      const otherUserList = await createShareableListHelper(db, {
+        title: `Someone else's list`,
+        userId: otherUserId,
+      });
+      const result = await request(app)
+        .post(graphQLUrl)
+        .set(headers)
+        .send({
+          query: print(DELETE_SHAREABLE_LIST),
+          variables: { externalId: otherUserList.externalId },
+        });
+      console.log(result.body.errors);
+      expect(result.body.errors.length).to.equal(1);
+      // expect(result.body.errors[0].extensions.code).to.equal('NOT_FOUND');
+    });
+
+    it('cannot delete a list that does not exist', async() => {
+
+    });
+
+    it('will delete a list created by the current user', async() => {
+
     });
   });
 
@@ -424,3 +453,5 @@ describe('public mutations: ShareableList', () => {
     });
   });
 });
+
+

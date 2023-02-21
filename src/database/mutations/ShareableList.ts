@@ -107,7 +107,20 @@ export async function deleteShareableList(
   db: PrismaClient,
   externalId: string,
   userId: number | bigint 
-): Promise<String> {
+): Promise<ShareableList> {
+  const deleteList = await db.list.findUnique({
+    where: { externalId: externalId } ,
+    include: { listItems: true },
+  });
+  if (deleteList === null) {
+    throw new NotFoundError(`List ${externalId} is not available`);
+  } else if (deleteList.userId !== BigInt(userId)) { 
+    // local convention is to 404 when a normal user doesn't have resource ownership
+    throw new NotFoundError(`List ${externalId} is not accessible`);
+  }
+  return deleteList;
+  /*
+  
   // Note for PR : input is unsanitized
   
   // Since we 404 both in the case where the list doesn't exist, and in the case 
@@ -129,5 +142,6 @@ export async function deleteShareableList(
   
   console.log(deletedList);
   return deletedList.externalId;
+  */
 }
 

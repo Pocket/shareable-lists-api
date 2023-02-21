@@ -57,8 +57,8 @@ export async function deleteShareableList(
   parent,
   { externalId },
   context: IPublicContext
-): Promise<String> {
-  return await executeMutation<String, String>(
+): Promise<ShareableList> {
+  return await executeMutation<String, ShareableList>(
     context,
     externalId,
     dbDeleteShareableList
