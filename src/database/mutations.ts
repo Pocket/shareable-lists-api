@@ -3,4 +3,7 @@ export {
   createShareableList,
   updateShareableList,
 } from './mutations/ShareableList';
-export { deleteShareableListItem } from './mutations/ShareableListItem';
+export {
+  createShareableListItem,
+  deleteShareableListItem,
+} from './mutations/ShareableListItem';

@@ -1,7 +1,71 @@
-import { NotFoundError, ForbiddenError } from '@pocket-tools/apollo-utils';
+import {
+  ForbiddenError,
+  NotFoundError,
+  UserInputError,
+} from '@pocket-tools/apollo-utils';
+import { ModerationStatus, PrismaClient } from '@prisma/client';
+import { CreateShareableListItemInput, ShareableListItem } from '../types';
 import { ACCESS_DENIED_ERROR } from '../../shared/constants';
-import { PrismaClient } from '@prisma/client';
-import { ShareableListItem } from '../types';
+
+/**
+ * This mutation creates a shareable list item.
+ *
+ * @param db
+ * @param data
+ * @param userId
+ */
+export async function createShareableListItem(
+  db: PrismaClient,
+  data: CreateShareableListItemInput,
+  userId: number | bigint
+): Promise<ShareableListItem> {
+  // Retrieve the list this item should be added to.
+  // Note: no new items should be added to lists that have been taken down
+  // by the moderators.
+  const list = await db.list.findFirst({
+    where: {
+      externalId: data.listExternalId,
+      userId,
+      moderationStatus: ModerationStatus.VISIBLE,
+    },
+  });
+
+  if (!list) {
+    throw new NotFoundError(
+      `A list with the ID of "${data.listExternalId}" does not exist`
+    );
+  }
+
+  // Check that the userId in the headers matches the userId of the List
+  if (Number(list.userId) !== userId) {
+    throw new ForbiddenError(ACCESS_DENIED_ERROR);
+  }
+
+  // check if an item with this URL already exists in this list
+  const itemExists = await db.listItem.count({
+    where: { listId: list.id, url: data.url },
+  });
+
+  if (itemExists) {
+    throw new UserInputError(
+      `An item with the URL "${data.url}" already exists in this list`
+    );
+  }
+
+  const input = {
+    url: data.url,
+    title: data.title ?? undefined,
+    excerpt: data.excerpt ?? undefined,
+    imageUrl: data.imageUrl ?? undefined,
+    authors: data.authors ?? undefined,
+    sortOrder: data.sortOrder,
+    listId: list.id,
+  };
+
+  return db.listItem.create({
+    data: input,
+  });
+}
 
 /**
  * This mutation deletes a shareable list item. Lists that are HIDDEN cannot have their items deleted.
@@ -35,7 +99,7 @@ export async function deleteShareableListItem(
     throw new ForbiddenError(ACCESS_DENIED_ERROR);
   }
 
-  // Check first the List moderation status. If HIDDEN, do not allow delete
+  // Check first the List moderation status. If HIDDEN, do not allow to delete
   if (listItem.list.moderationStatus == 'HIDDEN') {
     throw new ForbiddenError(ACCESS_DENIED_ERROR);
   }
