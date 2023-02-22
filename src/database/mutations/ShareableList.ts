@@ -1,4 +1,8 @@
-import { NotFoundError, UserInputError } from '@pocket-tools/apollo-utils';
+import {
+  ForbiddenError,
+  NotFoundError,
+  UserInputError,
+} from '@pocket-tools/apollo-utils';
 import { ListStatus, PrismaClient } from '@prisma/client';
 import slugify from 'slugify';
 import {
@@ -6,7 +10,7 @@ import {
   ShareableList,
   UpdateShareableListInput,
 } from '../types';
-
+import { ACCESS_DENIED_ERROR } from '../../shared/constants';
 import { getShareableList } from '../queries';
 import config from '../../config';
 
@@ -95,7 +99,7 @@ export async function updateShareableList(
 }
 
 /**
- * This method deletes a shareable list. if the owner of the list
+ * This method deletes a shareable list, if the owner of the list
  * represented by externalId matches the owner of the list.
  *
  * @param db
@@ -113,14 +117,14 @@ export async function deleteShareableList(
     include: { listItems: true },
   });
   if (deleteList === null) {
-    throw new NotFoundError(`List ${externalId} is not available`);
+    throw new NotFoundError(`List ${externalId} cannot be found.`);
   } else if (deleteList.userId !== BigInt(userId)) {
-    // local convention is to 404 when a normal user doesn't have resource ownership
-    throw new NotFoundError(`List ${externalId} is not accessible`);
+    throw new ForbiddenError(ACCESS_DENIED_ERROR);
   }
 
-  // Now that we've checked that the we can delete the list, let's delete it.
-  // We'll still make sure to existence errors for potential race conditions
+  // Now that we've checked that we can delete the list, let's delete it.
+  // We'll catch the case where the list has been deleted under us, to
+  // account for a potential race conditions.
   // This operation is possible to execute with one query, using both the
   // externalId and the target userId but requires that the `extendedWhereUnique`
   // prisma preview flag be enabled.
@@ -128,15 +132,15 @@ export async function deleteShareableList(
   // tell prisma to not select anything
   await db.list
     .delete({
-      where: { externalId: externalId },
-      select: null,
+      where: { id: deleteList.id },
+      select: { id: true },
     })
     .catch((error) => {
       // According to the Prisma docs, this should be a typed error
       // of type PrismaClientKnownRequestError, with a code, but it doesn't
       // come through typed
       if (error.code === PRISMA_RECORD_NOT_FOUND) {
-        throw new NotFoundError(`List ${externalId} is not available`);
+        throw new NotFoundError(`List ${externalId} cannot be found.`);
       } else {
         // some unexpected DB error
         throw error;
