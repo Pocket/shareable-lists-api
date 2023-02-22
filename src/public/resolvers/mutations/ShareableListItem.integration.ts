@@ -111,6 +111,32 @@ describe('public mutations: ShareableListItem', () => {
       );
     });
 
+    it('should not create a list item in a list that belongs to another user', async () => {
+      const data: CreateShareableListItemInput = {
+        listExternalId: list.externalId,
+        url: 'https://www.test.com/this-is-a-story',
+        title: 'This Story Is Trying to Sneak In',
+        sortOrder: 20,
+      };
+
+      const result = await request(app)
+        .post(graphQLUrl)
+        .set({ userId: '222333444' }) // Note the test list is owned by user '12345'
+        .send({
+          query: print(CREATE_SHAREABLE_LIST_ITEM),
+          variables: { data },
+        });
+
+      // There should be nothing in results
+      expect(result.body.data.createShareableListItem).to.be.null;
+
+      // And a "Not found" error
+      expect(result.body).to.have.nested.property(
+        'errors[0].extensions.code',
+        'NOT_FOUND'
+      );
+    });
+
     it('should create a new list item', async () => {
       const data: CreateShareableListItemInput = {
         listExternalId: list.externalId,

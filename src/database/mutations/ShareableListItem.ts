@@ -36,6 +36,11 @@ export async function createShareableListItem(
     );
   }
 
+  // Check that the userId in the headers matches the userId of the List
+  if (Number(list.userId) !== userId) {
+    throw new ForbiddenError(ACCESS_DENIED_ERROR);
+  }
+
   // check if an item with this URL already exists in this list
   const itemExists = await db.listItem.count({
     where: { listId: list.id, url: data.url },
