@@ -5,6 +5,7 @@ import {
 } from '../../../database/types';
 import {
   createShareableList as dbCreateShareableList,
+  deleteShareableList as dbDeleteShareableList,
   updateShareableList as dbUpdateShareableList,
 } from '../../../database/mutations';
 import { IPublicContext } from '../../context';
@@ -44,5 +45,22 @@ export async function updateShareableList(
     context,
     data,
     dbUpdateShareableList
+  );
+}
+
+/**
+ * @param parent
+ * @param externalId
+ * @param context
+ */
+export async function deleteShareableList(
+  parent,
+  { externalId },
+  context: IPublicContext
+): Promise<ShareableList> {
+  return await executeMutation<string, ShareableList>(
+    context,
+    externalId,
+    dbDeleteShareableList
   );
 }

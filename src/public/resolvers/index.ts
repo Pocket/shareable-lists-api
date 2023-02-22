@@ -1,6 +1,7 @@
 import { getShareableList, getShareableLists } from './queries/ShareableList';
 import {
   createShareableList,
+  deleteShareableList,
   updateShareableList,
 } from './mutations/ShareableList';
 import {
@@ -13,6 +14,7 @@ export const resolvers = {
   ShareableList: shareableListFieldResolvers,
   Mutation: {
     createShareableList,
+    deleteShareableList,
     updateShareableList,
     createShareableListItem,
     deleteShareableListItem,

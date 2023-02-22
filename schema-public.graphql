@@ -75,15 +75,19 @@ type Mutation {
 	Creates a Shareable List.
 	"""
 	createShareableList(data: CreateShareableListInput!): ShareableList
-  """
-  Updates a Shareable List. This includes making it public.
-  """
-  updateShareableList(data: UpdateShareableListInput!): ShareableList!
-  """
-  Creates a Shareable List Item.
-  """
-  createShareableListItem(data: CreateShareableListItemInput!): ShareableListItem
-  """
+	"""
+	Deletes a Shareable List
+	"""
+	deleteShareableList(externalId: ID!): ShareableList!
+  	"""
+  	Updates a Shareable List. This includes making it public.
+  	"""
+  	updateShareableList(data: UpdateShareableListInput!): ShareableList!
+  	"""
+  	Creates a Shareable List Item.
+  	"""
+  	createShareableListItem(data: CreateShareableListItemInput!): ShareableListItem
+  	"""
 	Deletes a Shareable List Item. HIDDEN Lists cannot have their items deleted.
 	"""
 	deleteShareableListItem(externalId: ID!): ShareableListItem!

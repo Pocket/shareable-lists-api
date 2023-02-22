@@ -31,6 +31,15 @@ export const CREATE_SHAREABLE_LIST_ITEM = gql`
   ${ShareableListItemPublicProps}
 `;
 
+export const DELETE_SHAREABLE_LIST = gql`
+  mutation deleteShareableList($externalId: ID!) {
+    deleteShareableList(externalId: $externalId) {
+      ...ShareableListPublicProps
+    }
+  }
+  ${ShareableListPublicProps}
+`;
+
 export const DELETE_SHAREABLE_LIST_ITEM = gql`
   mutation deleteShareableListItem($externalId: ID!) {
     deleteShareableListItem(externalId: $externalId) {
