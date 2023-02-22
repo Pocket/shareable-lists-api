@@ -1,5 +1,5 @@
 """
-ISOString scalar - all datetimes fields are Typescript Date objects on this server &
+ISOString scalar - all datetime fields are Typescript Date objects on this server &
 returned as ISO-8601 encoded date strings (e.g. ISOString scalars) to GraphQL clients.
 See Section 5.6 of the RFC 3339 profile of the ISO 8601 standard: https://www.ietf.org/rfc/rfc3339.txt.
 """
@@ -10,18 +10,9 @@ A URL to a web page or image
 """
 scalar Url
 
-enum ShareableListStatus {
-	PRIVATE
-	PUBLIC
-}
-
-enum ShareableListModerationStatus {
-	VISIBLE
-	HIDDEN
-}
-
 type ShareableListItem {
-	url: Url
+  externalId: ID!
+	url: Url!
 	title: String
 	excerpt: String
 	imageUrl: Url
@@ -55,6 +46,16 @@ input UpdateShareableListInput {
 	status: ShareableListStatus
 }
 
+input CreateShareableListItemInput {
+  listExternalId: ID!
+  url: Url!
+  title: String
+  excerpt: String
+  imageUrl: Url
+  authors: String
+  sortOrder: Int!
+}
+
 type Query {
 	"""
 	Looks up and returns a Shareable List with a given external ID for a given user.
@@ -78,11 +79,15 @@ type Mutation {
 	Deletes a Shareable List
 	"""
 	deleteShareableList(externalId: ID!): ShareableList!
-	"""
-	Updates a Shareable List. This includes making it public.
-	"""
-	updateShareableList(data: UpdateShareableListInput!): ShareableList!
-	"""
+  	"""
+  	Updates a Shareable List. This includes making it public.
+  	"""
+  	updateShareableList(data: UpdateShareableListInput!): ShareableList!
+  	"""
+  	Creates a Shareable List Item.
+  	"""
+  	createShareableListItem(data: CreateShareableListItemInput!): ShareableListItem
+  	"""
 	Deletes a Shareable List Item. HIDDEN Lists cannot have their items deleted.
 	"""
 	deleteShareableListItem(externalId: ID!): ShareableListItem!
