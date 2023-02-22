@@ -1,0 +1,9 @@
+enum ShareableListStatus {
+  PRIVATE
+  PUBLIC
+}
+
+enum ShareableListModerationStatus {
+  VISIBLE
+  HIDDEN
+}

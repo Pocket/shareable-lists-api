@@ -10,16 +10,6 @@ A URL to a web page or image
 """
 scalar Url
 
-enum ShareableListStatus {
-	PRIVATE
-	PUBLIC
-}
-
-enum ShareableListModerationStatus {
-	VISIBLE
-	HIDDEN
-}
-
 type ShareableListItem {
 	url: Url
 	title: String
