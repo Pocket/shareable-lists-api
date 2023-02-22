@@ -64,6 +64,7 @@ describe('public mutations: ShareableListItem', () => {
 
       const result = await request(app)
         .post(graphQLUrl)
+        .set(headers)
         .send({
           query: print(CREATE_SHAREABLE_LIST_ITEM),
           variables: { data },
@@ -72,24 +73,29 @@ describe('public mutations: ShareableListItem', () => {
       // There should be nothing in results
       expect(result.body.data.createShareableListItem).to.be.null;
 
-      // And a "Forbidden" error
+      // And a "Not found" error
       expect(result.body).to.have.nested.property(
         'errors[0].extensions.code',
-        'FORBIDDEN'
+        'NOT_FOUND'
       );
     });
 
     it('should not create a new item for a list that has been taken down', async () => {
-      list.moderationStatus = ModerationStatus.HIDDEN;
+      const hiddenList = await createShareableListHelper(db, {
+        userId: parseInt(headers.userId),
+        title: 'This List Has Been Removed',
+        moderationStatus: ModerationStatus.HIDDEN,
+      });
 
       const data: CreateShareableListItemInput = {
-        listExternalId: list.externalId,
+        listExternalId: hiddenList.externalId,
         url: 'https://getpocket.com/discover',
         sortOrder: 5,
       };
 
       const result = await request(app)
         .post(graphQLUrl)
+        .set(headers)
         .send({
           query: print(CREATE_SHAREABLE_LIST_ITEM),
           variables: { data },
@@ -98,10 +104,10 @@ describe('public mutations: ShareableListItem', () => {
       // There should be nothing in results
       expect(result.body.data.createShareableListItem).to.be.null;
 
-      // And a "Forbidden" error
+      // And a "Not found" error
       expect(result.body).to.have.nested.property(
         'errors[0].extensions.code',
-        'FORBIDDEN'
+        'NOT_FOUND'
       );
     });
 
@@ -159,6 +165,7 @@ describe('public mutations: ShareableListItem', () => {
 
       const result = await request(app)
         .post(graphQLUrl)
+        .set(headers)
         .send({
           query: print(CREATE_SHAREABLE_LIST_ITEM),
           variables: { data },
@@ -167,10 +174,10 @@ describe('public mutations: ShareableListItem', () => {
       // There should be nothing in results
       expect(result.body.data.createShareableListItem).to.be.null;
 
-      // And a "Forbidden" error
+      // And a "Bad user input" error
       expect(result.body).to.have.nested.property(
         'errors[0].extensions.code',
-        'FORBIDDEN'
+        'BAD_USER_INPUT'
       );
     });
 
