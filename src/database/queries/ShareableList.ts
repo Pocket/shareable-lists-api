@@ -14,14 +14,16 @@ export async function getPublicShareableList(
   userId: number | bigint,
   slug: string
 ): Promise<ShareableList> {
-  // Work out the value of the slug that is stored in the DB
-  const storedSlug = /
-
+  // Work out the value of the slug that is stored in the DB.
+  // Note that this is dependent on the implementation of the slug
+  // returned in `shareableListFieldResolvers`.
+  const matches = slug.match(/^(.+?)-[a-z\d]{8}$/i);
+  const storedSlug = matches[0];
 
   return db.list.findFirst({
     where: {
       userId,
-      slug,
+      slug: storedSlug,
       moderationStatus: ModerationStatus.VISIBLE,
     },
     include: {

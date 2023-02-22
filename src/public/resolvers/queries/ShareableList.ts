@@ -8,17 +8,20 @@ import { ShareableList } from '../../../database/types';
 
 /**
  * Resolver for the `publicShareableList` query.
+ * Note the userId for this query comes from a request variable
+ * and not authentication headers.
  *
  * @param parent
  * @param slug
+ * @param userId
  * @param db
  */
 export async function getPublicShareableList(
   parent,
-  { slug },
+  { slug, userId },
   { db }
 ): Promise<ShareableList> {
-  const list = await dbGetPublicShareableList(db, slug);
+  const list = await dbGetPublicShareableList(db, userId, slug);
 
   if (!list) {
     throw new NotFoundError(slug);
