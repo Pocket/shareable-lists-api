@@ -5,7 +5,10 @@ import {
 } from '@pocket-tools/apollo-utils';
 import { ModerationStatus, PrismaClient } from '@prisma/client';
 import { CreateShareableListItemInput, ShareableListItem } from '../types';
-import { ACCESS_DENIED_ERROR } from '../../shared/constants';
+import {
+  ACCESS_DENIED_ERROR,
+  PRISMA_RECORD_NOT_FOUND,
+} from '../../shared/constants';
 
 /**
  * This mutation creates a shareable list item.
@@ -104,10 +107,17 @@ export async function deleteShareableListItem(
     throw new ForbiddenError(ACCESS_DENIED_ERROR);
   }
   // delete ListItem
-  await db.listItem.delete({
-    where: {
-      externalId: listItem.externalId,
-    },
-  });
+  await db.listItem
+    .delete({
+      where: { externalId: listItem.externalId },
+    })
+    .catch((error) => {
+      if (error.code === PRISMA_RECORD_NOT_FOUND) {
+        throw new NotFoundError(`List Item ${externalId} cannot be found.`);
+      } else {
+        // some unexpected DB error
+        throw error;
+      }
+    });
   return listItem;
 }

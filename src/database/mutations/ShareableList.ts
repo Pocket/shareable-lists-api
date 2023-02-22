@@ -10,11 +10,12 @@ import {
   ShareableList,
   UpdateShareableListInput,
 } from '../types';
-import { ACCESS_DENIED_ERROR } from '../../shared/constants';
+import {
+  ACCESS_DENIED_ERROR,
+  PRISMA_RECORD_NOT_FOUND,
+} from '../../shared/constants';
 import { getShareableList } from '../queries';
 import config from '../../config';
-
-const PRISMA_RECORD_NOT_FOUND = 'P2025';
 
 /**
  * This mutation creates a shareable list, and _only_ a shareable list
