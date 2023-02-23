@@ -58,6 +58,7 @@ describe('public mutations: ShareableListItem', () => {
     it("should not create a new item for a list that doesn't exist", async () => {
       const data: CreateShareableListItemInput = {
         listExternalId: 'this-list-does-not-even-exist',
+        itemId: 1,
         url: 'https://getpocket.com/discover',
         sortOrder: 1,
       };
@@ -89,6 +90,7 @@ describe('public mutations: ShareableListItem', () => {
 
       const data: CreateShareableListItemInput = {
         listExternalId: hiddenList.externalId,
+        itemId: 1,
         url: 'https://getpocket.com/discover',
         sortOrder: 5,
       };
@@ -114,6 +116,7 @@ describe('public mutations: ShareableListItem', () => {
     it('should not create a list item in a list that belongs to another user', async () => {
       const data: CreateShareableListItemInput = {
         listExternalId: list.externalId,
+        itemId: 1,
         url: 'https://www.test.com/this-is-a-story',
         title: 'This Story Is Trying to Sneak In',
         sortOrder: 20,
@@ -140,6 +143,7 @@ describe('public mutations: ShareableListItem', () => {
     it('should create a new list item', async () => {
       const data: CreateShareableListItemInput = {
         listExternalId: list.externalId,
+        itemId: 1,
         url: 'https://www.test.com/this-is-a-story',
         title: 'A story is a story',
         excerpt: 'The best story ever told',
@@ -165,6 +169,7 @@ describe('public mutations: ShareableListItem', () => {
       // Assert that all props are returned
       const listItem = result.body.data.createShareableListItem;
       expect(listItem.externalId).not.to.be.empty;
+      expect(listItem.itemId).to.equal(1);
       expect(listItem.url).to.equal(data.url);
       expect(listItem.title).to.equal(data.title);
       expect(listItem.excerpt).to.equal(data.excerpt);
@@ -185,6 +190,7 @@ describe('public mutations: ShareableListItem', () => {
 
       const data: CreateShareableListItemInput = {
         listExternalId: list.externalId,
+        itemId: 1,
         url: 'https://www.test.com/duplicate-url',
         sortOrder: 5,
       };
@@ -223,6 +229,7 @@ describe('public mutations: ShareableListItem', () => {
 
       const data: CreateShareableListItemInput = {
         listExternalId: list.externalId,
+        itemId: 1,
         url: 'https://www.test.com/another-duplicate-url',
         title: 'A story is a story',
         excerpt: 'The best story ever told',
@@ -248,6 +255,7 @@ describe('public mutations: ShareableListItem', () => {
       // Assert that all props are returned
       const listItem = result.body.data.createShareableListItem;
       expect(listItem.externalId).not.to.be.empty;
+      expect(listItem.itemId).to.equal(1);
       expect(listItem.url).to.equal(data.url);
       expect(listItem.title).to.equal(data.title);
       expect(listItem.excerpt).to.equal(data.excerpt);

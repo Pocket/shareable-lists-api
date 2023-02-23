@@ -56,6 +56,7 @@ export async function createShareableListItem(
   }
 
   const input = {
+    itemId: data.itemId,
     url: data.url,
     title: data.title ?? undefined,
     excerpt: data.excerpt ?? undefined,

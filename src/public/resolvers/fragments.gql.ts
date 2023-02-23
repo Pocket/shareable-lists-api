@@ -7,6 +7,7 @@ import { gql } from 'graphql-tag';
 export const ShareableListItemPublicProps = gql`
   fragment ShareableListItemPublicProps on ShareableListItem {
     externalId
+    itemId
     url
     title
     excerpt

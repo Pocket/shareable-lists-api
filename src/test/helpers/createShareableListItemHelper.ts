@@ -4,6 +4,7 @@ import { faker } from '@faker-js/faker';
 interface ListItemHelperInput {
   // Provide the parent list Prisma object to be able to link the item to it
   list: List;
+  itemId?: number;
   url?: string;
   title?: string;
   excerpt?: string;
@@ -25,6 +26,7 @@ export async function createShareableListItemHelper(
 ): Promise<ListItem> {
   const input = {
     listId: data.list.id,
+    itemId: data.itemId ?? faker.datatype.number(),
     url: data.url ?? `${faker.internet.url()}/${faker.lorem.slug(5)}`,
     title: data.title ?? faker.random.words(5),
     excerpt: data.excerpt ?? faker.lorem.sentences(2),
