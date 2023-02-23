@@ -1,3 +1,4 @@
+import { PocketDefaultScalars } from '@pocket-tools/apollo-utils';
 import { getShareableList, getShareableLists } from './queries/ShareableList';
 import {
   createShareableList,
@@ -11,6 +12,7 @@ import {
 import { shareableListFieldResolvers } from './fieldResolvers';
 
 export const resolvers = {
+  ...PocketDefaultScalars,
   ShareableList: shareableListFieldResolvers,
   Mutation: {
     createShareableList,
