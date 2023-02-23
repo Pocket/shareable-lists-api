@@ -10,6 +10,7 @@ import {
   ShareableList,
   UpdateShareableListInput,
 } from '../types';
+import { deleteAllListItemsForList } from './ShareableListItem';
 import {
   ACCESS_DENIED_ERROR,
   PRISMA_RECORD_NOT_FOUND,
@@ -122,6 +123,23 @@ export async function deleteShareableList(
   } else if (deleteList.userId !== BigInt(userId)) {
     throw new ForbiddenError(ACCESS_DENIED_ERROR);
   }
+  // This delete must occur before the list is actually deleted,
+  // due to a foreign key constraint on ListIitems. We should remove this
+  // foreign key constraint for a number of reasons.
+  // In the small context here of deletes, the foreign key constraint makes
+  // this action both less safe and slower:
+  // Less safe: If the list item deletion encounters a failure partway through
+  // the list will remain in place, and will also be mangled. In this case it
+  // would be far preferable to guarantee deletion of the list entity -- thus removing
+  // it from userspace -- first. It is not critical that the list item table be
+  // consistent; there is no harm (other than disk space) in orphaned list item rows,
+  // and we're eventually going to need to clean things up anyway.
+  // Slower: Without the foreign key constraint, we do not need to `await` the result
+  // of the list item deletion, it could happen asynchronously
+  // For these and similar reasons foreign keys are typically not used in environments
+  // running at high scale (e.g. Etsy, etc)
+  // Leaving this in now so we can discuss and circle back and keep moving :)
+  await deleteAllListItemsForList(db, deleteList.id);
 
   // Now that we've checked that we can delete the list, let's delete it.
   // We'll catch the case where the list has been deleted under us, to

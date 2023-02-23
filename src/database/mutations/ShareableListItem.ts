@@ -121,3 +121,20 @@ export async function deleteShareableListItem(
     });
   return listItem;
 }
+
+/**
+ * Deletes all list items for a list.
+ * NB: userId is not checked here, as this method is called
+ * @param db
+ * @param listId
+ * @returns
+ */
+export async function deleteAllListItemsForList(
+  db: PrismaClient,
+  listId: bigint
+): Promise<number> {
+  const batchResult = await db.listItem.deleteMany({
+    where: { listId: listId },
+  });
+  return batchResult.count;
+}
