@@ -378,13 +378,8 @@ describe('public mutations: ShareableList', () => {
       expect(updatedList.slug).not.to.be.empty;
 
       // Does the slug match the current title?
-      expect(updatedList.slug).to.contain(
+      expect(updatedList.slug).to.equal(
         slugify(updatedList.title, config.slugify)
-      );
-
-      // Does the slug contain the first 8 characters of the externalId?
-      expect(updatedList.slug).to.contain(
-        updatedList.externalId.substring(0, updatedList.externalId.indexOf('-'))
       );
     });
 
@@ -415,12 +410,7 @@ describe('public mutations: ShareableList', () => {
       expect(updatedList.slug).not.to.be.empty;
 
       // Does the slug match the updated title?
-      expect(updatedList.slug).to.contain(slugify(data.title, config.slugify));
-
-      // Does the slug contain the first 8 characters of the externalId?
-      expect(updatedList.slug).to.contain(
-        updatedList.externalId.substring(0, updatedList.externalId.indexOf('-'))
-      );
+      expect(updatedList.slug).to.equal(slugify(data.title, config.slugify));
     });
 
     it('should not update the slug once set if any other updates are made', async () => {
