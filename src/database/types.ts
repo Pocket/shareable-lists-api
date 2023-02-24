@@ -4,10 +4,7 @@ import { List, ListItem, ListStatus } from '@prisma/client';
  * These are the properties of list items exposed on the public Pocket Graph -
  * props meant for the Admin Graph are omitted.
  */
-export type ShareableListItem = Omit<
-  ListItem,
-  'id' | 'externalId' | 'listId' | 'itemId'
->;
+export type ShareableListItem = Omit<ListItem, 'id' | 'externalId' | 'listId'>;
 
 /**
  * This is the shape of a shareable list object on the public Pocket Graph -
@@ -37,6 +34,7 @@ export type UpdateShareableListInput = {
 
 export type CreateShareableListItemInput = {
   listExternalId: string;
+  itemId?: number;
   url: string;
   title?: string;
   excerpt?: string;

@@ -11,7 +11,8 @@ A URL to a web page or image
 scalar Url
 
 type ShareableListItem {
-  externalId: ID!
+	externalId: ID!
+	itemId: Int
 	url: Url!
 	title: String
 	excerpt: String
@@ -47,13 +48,14 @@ input UpdateShareableListInput {
 }
 
 input CreateShareableListItemInput {
-  listExternalId: ID!
-  url: Url!
-  title: String
-  excerpt: String
-  imageUrl: Url
-  authors: String
-  sortOrder: Int!
+	listExternalId: ID!
+	itemId: Int
+	url: Url!
+	title: String
+	excerpt: String
+	imageUrl: Url
+	authors: String
+	sortOrder: Int!
 }
 
 type Query {
@@ -76,18 +78,20 @@ type Mutation {
 	"""
 	createShareableList(data: CreateShareableListInput!): ShareableList
 	"""
-	Deletes a Shareable List
+	Deletes a Shareable List.
 	"""
 	deleteShareableList(externalId: ID!): ShareableList!
-  	"""
-  	Updates a Shareable List. This includes making it public.
-  	"""
-  	updateShareableList(data: UpdateShareableListInput!): ShareableList!
-  	"""
-  	Creates a Shareable List Item.
-  	"""
-  	createShareableListItem(data: CreateShareableListItemInput!): ShareableListItem
-  	"""
+	"""
+	Updates a Shareable List. This includes making it public.
+	"""
+	updateShareableList(data: UpdateShareableListInput!): ShareableList!
+	"""
+	Creates a Shareable List Item.
+	"""
+	createShareableListItem(
+		data: CreateShareableListItemInput!
+	): ShareableListItem
+	"""
 	Deletes a Shareable List Item. HIDDEN Lists cannot have their items deleted.
 	"""
 	deleteShareableListItem(externalId: ID!): ShareableListItem!
