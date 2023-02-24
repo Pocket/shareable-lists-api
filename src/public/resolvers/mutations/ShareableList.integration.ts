@@ -13,7 +13,6 @@ import slugify from 'slugify';
 import { startServer } from '../../../express';
 import { IPublicContext } from '../../context';
 import { client } from '../../../database/client';
-
 import {
   CreateShareableListInput,
   UpdateShareableListInput,
@@ -23,7 +22,11 @@ import {
   DELETE_SHAREABLE_LIST,
   UPDATE_SHAREABLE_LIST,
 } from './sample-mutations.gql';
-import { clearDb, createShareableListHelper } from '../../../test/helpers';
+import {
+  clearDb,
+  createShareableListHelper,
+  createShareableListItemHelper,
+} from '../../../test/helpers';
 import config from '../../../config';
 import { ACCESS_DENIED_ERROR } from '../../../shared/constants';
 
@@ -240,6 +243,38 @@ describe('public mutations: ShareableList', () => {
       expect(result.body.data.deleteShareableList.title).to.equal(
         theList.title
       );
+    });
+    it('will  clear all items from a list', async () => {
+      // first make a list
+      const theList = await createShareableListHelper(db, {
+        title: `A list to be deleted`,
+        userId: BigInt(headers.userId),
+      });
+      // then create some list items
+      const makeItems = Math.floor(Math.random() * 4) + 1;
+      for (let i = 0; i < makeItems; i++) {
+        await createShareableListItemHelper(db, {
+          list: theList,
+        });
+      }
+      //make sure that that worked
+      let itemCount = await db.listItem.count({
+        where: { listId: theList.id },
+      });
+      expect(itemCount).to.equal(makeItems);
+      // now clear the list and check the result
+      const result = await request(app)
+        .post(graphQLUrl)
+        .set(headers)
+        .send({
+          query: print(DELETE_SHAREABLE_LIST),
+          variables: { externalId: theList.externalId },
+        });
+      expect(result.body.errors).to.be.undefined;
+      itemCount = await db.listItem.count({
+        where: { listId: theList.id },
+      });
+      expect(itemCount).to.equal(0);
     });
   });
 
