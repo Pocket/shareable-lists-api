@@ -78,7 +78,7 @@ type Mutation {
 	"""
 	createShareableList(data: CreateShareableListInput!): ShareableList
 	"""
-	Deletes a Shareable List
+	Deletes a Shareable List.
 	"""
 	deleteShareableList(externalId: ID!): ShareableList!
 	"""
