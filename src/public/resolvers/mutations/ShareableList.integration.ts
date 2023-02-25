@@ -518,7 +518,7 @@ describe('public mutations: ShareableList', () => {
         userId: BigInt(headers.userId),
       });
       // make list 2 PUBLIC
-      let dataList2 = {
+      const dataList2 = {
         externalId: secondList.externalId,
         status: ListStatus.PUBLIC,
       };
