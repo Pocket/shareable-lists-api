@@ -418,7 +418,7 @@ describe('public mutations: ShareableList', () => {
       );
     });
 
-    it('should generate a slug from updated title if one is provided', async () => {
+    it('should generate a slug from updated title if one is provided and made public for the first time', async () => {
       const data: UpdateShareableListInput = {
         externalId: listToUpdate.externalId,
         title: 'This Title is Different',
@@ -446,6 +446,103 @@ describe('public mutations: ShareableList', () => {
 
       // Does the slug match the updated title?
       expect(updatedList.slug).to.equal(slugify(data.title, config.slugify));
+    });
+
+    it('should append next consectuive number to generated slug for list made public for the first time if slug contaning list title already exists', async () => {
+      let dataList1: UpdateShareableListInput;
+      // create list 1
+      const firstList = await createShareableListHelper(db, {
+        title: `Hangover Hotel`,
+        userId: BigInt(headers.userId),
+      });
+      // make list 1 PUBLIC
+      dataList1 = {
+        externalId: firstList.externalId,
+        status: ListStatus.PUBLIC,
+      };
+
+      let result = await request(app)
+        .post(graphQLUrl)
+        .set(headers)
+        .send({
+          query: print(UPDATE_SHAREABLE_LIST),
+          variables: { data: dataList1 },
+        });
+
+      // There should be no errors
+      expect(result.body.errors).to.be.undefined;
+
+      // A result should be returned
+      expect(result.body.data.updateShareableList).not.to.be.null;
+
+      // Verify that the updates have taken place
+      const updatedList = result.body.data.updateShareableList;
+      expect(updatedList.status).to.equal(ListStatus.PUBLIC);
+      expect(updatedList.slug).not.to.be.empty;
+
+      // Does the slug match the list 1 title?
+      expect(updatedList.slug).to.equal(
+        slugify(firstList.title, config.slugify)
+      );
+
+      // Update list 1 title
+      dataList1 = {
+        externalId: firstList.externalId,
+        title: 'Sugar and Sunshine',
+      };
+
+      result = await request(app)
+        .post(graphQLUrl)
+        .set(headers)
+        .send({
+          query: print(UPDATE_SHAREABLE_LIST),
+          variables: { data: dataList1 },
+        });
+
+      // There should be no errors
+      expect(result.body.errors).to.be.undefined;
+
+      // A result should be returned
+      expect(result.body.data.updateShareableList).not.to.be.null;
+
+      // Verify that the updates have taken place
+      const updatedList1a = result.body.data.updateShareableList;
+      expect(updatedList1a.status).to.equal(ListStatus.PUBLIC);
+      expect(updatedList1a.title).to.equal(dataList1.title);
+      // We don't expect the slug to be updated. Tt should match the original generated slug (hangover-hotel).
+      expect(updatedList1a.slug).to.equal(updatedList.slug);
+
+      // Now create a new list 2 with List 1 original title (Hangover Hotel)
+      const secondList = await createShareableListHelper(db, {
+        title: `Hangover Hotel`,
+        userId: BigInt(headers.userId),
+      });
+      // make list 2 PUBLIC
+      let dataList2 = {
+        externalId: secondList.externalId,
+        status: ListStatus.PUBLIC,
+      };
+
+      result = await request(app)
+        .post(graphQLUrl)
+        .set(headers)
+        .send({
+          query: print(UPDATE_SHAREABLE_LIST),
+          variables: { data: dataList2 },
+        });
+
+      // There should be no errors
+      expect(result.body.errors).to.be.undefined;
+
+      // A result should be returned
+      expect(result.body.data.updateShareableList).not.to.be.null;
+
+      // Verify that the updates have taken place
+      const updatedList2 = result.body.data.updateShareableList;
+      expect(updatedList2.status).to.equal(ListStatus.PUBLIC);
+      expect(updatedList2.title).to.equal(secondList.title);
+      // Expect the slug to equal hangover-hotel-2
+      expect(updatedList2.slug).to.equal('hangover-hotel-2');
     });
 
     it('should not update the slug once set if any other updates are made', async () => {
