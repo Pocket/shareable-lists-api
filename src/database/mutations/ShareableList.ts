@@ -83,12 +83,26 @@ export async function updateShareableList(
   }
 
   // If there is no slug and the list is being shared with the world,
-  // let's generate a slug from the title. Once set, it will not be
+  // let's generate a unique slug from the title. Once set, it will not be
   // updated to sync with any further title edits.
   if (data.status === ListStatus.PUBLIC && !list.slug) {
-    // If an updated title is provided, generate the slug from that,
-    // otherwise default to the title saved previously.
-    data.slug = slugify(data.title ?? list.title, config.slugify);
+    // First check how many slugs containing the list title already exist in the db
+    const slugCount = await db.list.count({
+      where: {
+        slug: { contains: slugify(data.title ?? list.title, config.slugify) },
+      },
+    });
+    // if there is at least 1 slug containing title of list to update,
+    // append next consecutive # of slugCount to data.slug
+    if (slugCount) {
+      data.slug =
+        slugify(data.title ?? list.title, config.slugify) +
+        ('-' + (slugCount + 1));
+    } else {
+      // If an updated title is provided, generate the slug from that,
+      // otherwise default to the title saved previously.
+      data.slug = slugify(data.title ?? list.title, config.slugify);
+    }
   }
 
   return db.list.update({
