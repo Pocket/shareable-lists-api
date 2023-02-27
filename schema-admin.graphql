@@ -6,7 +6,7 @@ See Section 5.6 of the RFC 3339 profile of the ISO 8601 standard: https://www.ie
 scalar ISOString
 
 type ShareableList {
-  id: ID!
+  id: Float!
   externalId: ID!
   """
   UserId is of Float type as GraphQL does not support BigInt.
@@ -23,4 +23,11 @@ type ShareableList {
   moderationReason: String
   createdAt: ISOString!
   updatedAt: ISOString!
+}
+
+type Query {
+  """
+  Looks up and returns a Shareable List with a given external ID for any user.
+  """
+  searchShareableList(externalId: ID!): ShareableList
 }

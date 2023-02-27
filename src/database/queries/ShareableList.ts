@@ -1,9 +1,10 @@
 import { ModerationStatus, PrismaClient } from '@prisma/client';
-import { ShareableList } from '../types';
+import { ShareableList, ShareableListComplete } from '../types';
 
 /**
  * This is a public query, which is why we only return
  * a subset of ShareableList properties.
+ * Retrieves a single list for a given userId from the datastore.
  *
  * @param db
  * @param userId
@@ -29,6 +30,7 @@ export async function getShareableList(
 }
 
 /**
+ * This is a public query.
  * Retrieves all available shareable lists for a given userId from the datastore.
  *
  * @param db
@@ -46,6 +48,24 @@ export async function getShareableLists(
     orderBy: { updatedAt: 'desc' },
     include: {
       listItems: true,
+    },
+  });
+}
+
+/**
+ * This is an admin query.
+ * Searches for a single list by externalId for any user from the datastore.
+ *
+ * @param db
+ * @param externalId
+ */
+export async function searchShareableList(
+  db: PrismaClient,
+  externalId: string
+): Promise<ShareableListComplete> {
+  return db.list.findUnique({
+    where: {
+      externalId,
     },
   });
 }

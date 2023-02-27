@@ -448,7 +448,7 @@ describe('public mutations: ShareableList', () => {
       expect(updatedList.slug).to.equal(slugify(data.title, config.slugify));
     });
 
-    it('should append next consectuive number to generated slug for list made public for the first time if slug contaning list title already exists', async () => {
+    it('should append next consectuive number to generated slug for list made public for the first time if slug contaning list title already exists for a single user', async () => {
       let dataList1: UpdateShareableListInput;
       // create list 1
       const firstList = await createShareableListHelper(db, {
@@ -543,6 +543,79 @@ describe('public mutations: ShareableList', () => {
       expect(updatedList2.title).to.equal(secondList.title);
       // Expect the slug to equal hangover-hotel-2
       expect(updatedList2.slug).to.equal('hangover-hotel-2');
+    });
+
+    it('should generate two identical slugs but for two different users', async () => {
+      // create list 1
+      const firstList = await createShareableListHelper(db, {
+        title: `Hangover Hotel`,
+        userId: BigInt(headers.userId),
+      });
+      // make list 1 PUBLIC
+      const dataList1 = {
+        externalId: firstList.externalId,
+        status: ListStatus.PUBLIC,
+      };
+
+      let result = await request(app)
+        .post(graphQLUrl)
+        .set(headers)
+        .send({
+          query: print(UPDATE_SHAREABLE_LIST),
+          variables: { data: dataList1 },
+        });
+
+      // There should be no errors
+      expect(result.body.errors).to.be.undefined;
+
+      // A result should be returned
+      expect(result.body.data.updateShareableList).not.to.be.null;
+
+      // Verify that the updates have taken place
+      const updatedList = result.body.data.updateShareableList;
+      expect(updatedList.status).to.equal(ListStatus.PUBLIC);
+      expect(updatedList.slug).not.to.be.empty;
+
+      // Does the slug match the list 1 title (hangove-hotel)?
+      expect(updatedList.slug).to.equal(
+        slugify(firstList.title, config.slugify)
+      );
+
+      const headersUser2 = {
+        userId: '98765',
+      };
+      const secondList = await createShareableListHelper(db, {
+        title: `Hangover Hotel`,
+        userId: BigInt(headersUser2.userId),
+      });
+      // make list 2 PUBLIC
+      const dataList2 = {
+        externalId: secondList.externalId,
+        status: ListStatus.PUBLIC,
+      };
+
+      result = await request(app)
+        .post(graphQLUrl)
+        .set(headersUser2)
+        .send({
+          query: print(UPDATE_SHAREABLE_LIST),
+          variables: { data: dataList2 },
+        });
+
+      // There should be no errors
+      expect(result.body.errors).to.be.undefined;
+
+      // A result should be returned
+      expect(result.body.data.updateShareableList).not.to.be.null;
+
+      // Verify that the updates have taken place
+      const updatedList2 = result.body.data.updateShareableList;
+      expect(updatedList2.status).to.equal(ListStatus.PUBLIC);
+      expect(updatedList2.title).to.equal(secondList.title);
+      // Expect the slug to equal hangover-hotel
+      expect(updatedList2.slug).to.equal(
+        slugify(secondList.title, config.slugify)
+      );
     });
 
     it('should not update the slug once set if any other updates are made', async () => {

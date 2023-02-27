@@ -32,6 +32,30 @@ Start Docker container:
 
 After Docker completes, you should be able to access the GraphQL playground at `http://localhost:4029`.
 
+### Admin API Authorization
+
+The admin API requires HTTP headers be set to authorize operations.
+
+To run queries _against the `/admin` API_ in the GraphQL playground, you'll need to specify some HTTP headers. To do so:
+
+1. Open up the GraphQL playground at `http://localhost:4029` and make sure your playground tab's address is `http://localhost:4029/admin`.
+2. Click the **HTTP HEADERS** link at the bottom of the left hand side of the playground to reveal a text box.
+3. Enter the necessary headers (see sample below) into the box and try an operation - it should work!
+
+The sample headers below allow full access to all queries and mutations:
+
+```typescript
+{
+  "groups": "mozilliansorg_pocket_moderation_full",
+  "name": "Matt McPockets",
+  "username": "ad|Mozilla-LDAP|mmcpockets"
+}
+```
+
+Note that the `groups` header can contain mulitple values separated by commas (but still in a single string).
+
+If you'd like to experiment with different levels of authorization, you can find the full list of Mozillian groups on our [Shared Data document](https://getpocket.atlassian.net/wiki/spaces/PE/pages/2584150049/Pocket+Shared+Data#Source-of-Truth.3).
+
 ### Testing Sentry
 
 To test Sentry within a local instance of the API:
