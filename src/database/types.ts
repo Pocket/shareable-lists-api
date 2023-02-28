@@ -17,6 +17,11 @@ export type ShareableList = Omit<
   listItems?: ShareableListItem[];
 };
 
+/**
+ * This is the shape of a shareable list object on the admin Pocket Graph.
+ */
+export type ShareableListComplete = Omit<List, 'id'>;
+
 export type CreateShareableListInput = {
   title: string;
   description?: string;

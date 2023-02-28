@@ -2,7 +2,7 @@ import { gql } from 'graphql-tag';
 
 /**
  * This GraphQL fragment contains all the properties that must be available
- * in the Pocket Graph for a Shareable List Item.
+ * in the Public Pocket Graph for a Shareable List Item.
  */
 export const ShareableListItemPublicProps = gql`
   fragment ShareableListItemPublicProps on ShareableListItem {
@@ -21,7 +21,7 @@ export const ShareableListItemPublicProps = gql`
 
 /**
  * This GraphQL fragment contains all the properties that must be available
- * in the Pocket Graph for a Shareable List.
+ * in the Public Pocket Graph for a Shareable List.
  */
 export const ShareableListPublicProps = gql`
   fragment ShareableListPublicProps on ShareableList {

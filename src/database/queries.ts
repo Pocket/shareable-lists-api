@@ -1,3 +1,6 @@
 // provide a single file to use for imports
-export { getShareableList } from './queries/ShareableList';
-export { getShareableLists } from './queries/ShareableList';
+export {
+  getShareableList,
+  getShareableLists,
+  searchShareableList,
+} from './queries/ShareableList';

@@ -9,10 +9,6 @@ scalar ISOString
 A user-created list of Pocket saves that can be shared publicly.
 """
 type ShareableList {
-  id: ID!
-  """
-  A unique string identifier in UUID format.
-  """
   externalId: ID!
   """
   Pocket User ID.
@@ -60,4 +56,11 @@ type ShareableList {
   or a member of the moderation team.
   """
   updatedAt: ISOString!
+}
+
+type Query {
+  """
+  Looks up and returns a Shareable List with a given external ID for any user.
+  """
+  searchShareableList(externalId: ID!): ShareableList
 }

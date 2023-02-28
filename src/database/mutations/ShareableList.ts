@@ -89,6 +89,7 @@ export async function updateShareableList(
     // First check how many slugs containing the list title already exist in the db
     const slugCount = await db.list.count({
       where: {
+        userId,
         slug: { contains: slugify(data.title ?? list.title, config.slugify) },
       },
     });
