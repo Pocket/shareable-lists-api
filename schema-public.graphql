@@ -42,6 +42,10 @@ type ShareableListItem {
   """
 	imageUrl: Url
   """
+  The name of the publisher for this story. Supplied by the Parser.
+  """
+  publisher: String
+  """
   A comma-separated list of story authors. Supplied by the Parser.
   """
 	authors: String
@@ -137,6 +141,7 @@ input CreateShareableListItemInput {
 	title: String
 	excerpt: String
 	imageUrl: Url
+  publisher: String
 	authors: String
 	sortOrder: Int!
 }

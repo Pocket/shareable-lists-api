@@ -9,6 +9,7 @@ interface ListItemHelperInput {
   title?: string;
   excerpt?: string;
   imageUrl?: string;
+  publisher?: string;
   authors?: string;
   sortOrder?: number;
 }
@@ -31,6 +32,7 @@ export async function createShareableListItemHelper(
     title: data.title ?? faker.random.words(5),
     excerpt: data.excerpt ?? faker.lorem.sentences(2),
     imageUrl: data.imageUrl ?? faker.image.cats(),
+    publisher: data.publisher ?? faker.company.name(),
     authors: data.authors ?? faker.name.fullName(),
     sortOrder: data.sortOrder ?? faker.datatype.number(),
   };

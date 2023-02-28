@@ -148,6 +148,7 @@ describe('public mutations: ShareableListItem', () => {
         title: 'A story is a story',
         excerpt: 'The best story ever told',
         imageUrl: 'https://www.test.com/thumbnail.jpg',
+        publisher: 'The London Times',
         authors: 'Charles Dickens, Mark Twain',
         sortOrder: 10,
       };
@@ -174,6 +175,7 @@ describe('public mutations: ShareableListItem', () => {
       expect(listItem.title).to.equal(data.title);
       expect(listItem.excerpt).to.equal(data.excerpt);
       expect(listItem.imageUrl).to.equal(data.imageUrl);
+      expect(listItem.publisher).to.equal(data.publisher);
       expect(listItem.authors).to.equal(data.authors);
       expect(listItem.sortOrder).to.equal(data.sortOrder);
       expect(listItem.createdAt).not.to.be.empty;
@@ -234,6 +236,7 @@ describe('public mutations: ShareableListItem', () => {
         title: 'A story is a story',
         excerpt: 'The best story ever told',
         imageUrl: 'https://www.test.com/thumbnail.jpg',
+        publisher: 'The Hogwarts Express',
         authors: 'Charles Dickens, Mark Twain',
         sortOrder: 5,
       };
@@ -260,6 +263,7 @@ describe('public mutations: ShareableListItem', () => {
       expect(listItem.title).to.equal(data.title);
       expect(listItem.excerpt).to.equal(data.excerpt);
       expect(listItem.imageUrl).to.equal(data.imageUrl);
+      expect(listItem.publisher).to.equal(data.publisher);
       expect(listItem.authors).to.equal(data.authors);
       expect(listItem.sortOrder).to.equal(data.sortOrder);
       expect(listItem.createdAt).not.to.be.empty;

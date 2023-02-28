@@ -158,6 +158,7 @@ describe('public queries: ShareableList', () => {
         expect(listItem.title).not.to.be.empty;
         expect(listItem.excerpt).not.to.be.empty;
         expect(listItem.imageUrl).not.to.be.empty;
+        expect(listItem.publisher).not.to.be.empty;
         expect(listItem.authors).not.to.be.empty;
         expect(listItem.sortOrder).to.be.a('number');
         expect(listItem.createdAt).not.to.be.empty;
@@ -269,6 +270,7 @@ describe('public queries: ShareableList', () => {
         expect(listItem.title).not.to.be.empty;
         expect(listItem.excerpt).not.to.be.empty;
         expect(listItem.imageUrl).not.to.be.empty;
+        expect(listItem.publisher).not.to.be.empty;
         expect(listItem.authors).not.to.be.empty;
         expect(listItem.sortOrder).to.be.a('number');
         expect(listItem.createdAt).not.to.be.empty;
@@ -282,6 +284,7 @@ describe('public queries: ShareableList', () => {
         expect(listItem.title).not.to.be.empty;
         expect(listItem.excerpt).not.to.be.empty;
         expect(listItem.imageUrl).not.to.be.empty;
+        expect(listItem.publisher).not.to.be.empty;
         expect(listItem.authors).not.to.be.empty;
         expect(listItem.sortOrder).to.be.a('number');
         expect(listItem.createdAt).not.to.be.empty;

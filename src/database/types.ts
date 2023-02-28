@@ -44,6 +44,7 @@ export type CreateShareableListItemInput = {
   title?: string;
   excerpt?: string;
   imageUrl?: string;
+  publisher?: string;
   authors?: string;
   sortOrder: number;
 };

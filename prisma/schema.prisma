@@ -59,6 +59,7 @@ model ListItem {
   title      String?  @db.VarChar(300)
   excerpt    String?  @db.Text
   imageUrl   String?  @db.VarChar(1000)
+  publisher  String?  @db.VarChar(300)
   authors    String?  @db.VarChar(1000)
   sortOrder  Int      @default(0)
   createdAt  DateTime @default(now()) @db.DateTime(0)
