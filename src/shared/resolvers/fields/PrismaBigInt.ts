@@ -17,5 +17,6 @@ function parseFieldToInt(field: string) {
   if (!field) {
     return null;
   }
-  return parseInt(field);
+  const parsedField = parseInt(field);
+  return isNaN(parsedField) ? null : parsedField;
 }
