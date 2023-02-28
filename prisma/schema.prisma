@@ -42,6 +42,7 @@ model List {
   // *** Additional indexes and constraints ***
   @@unique([externalId])
   @@unique([userId, slug])
+  @@index([userId, moderationStatus, updatedAt])
 }
 
 model ListItem {

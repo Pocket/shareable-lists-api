@@ -16,9 +16,6 @@
     "migrate:deploy": "prisma migrate deploy",
     "migrate:reset": "prisma migrate reset"
   },
-  "prisma": {
-    "seed": "ts-node --emit=false prisma/seed.ts"
-  },
   "dependencies": {
     "@apollo/server": "4.2.2",
     "@apollo/server-plugin-landing-page-graphql-playground": "4.0.0",
