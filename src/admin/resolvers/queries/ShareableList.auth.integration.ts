@@ -60,7 +60,7 @@ describe('auth: ShareableList', () => {
       const badHeaders = {
         name: 'Test User',
         username: 'test.user@test.com',
-        // missing any collection/readoly group
+        // missing any moderation/read-only group
         groups: `group1,group2`,
       };
       // Run the query we're testing

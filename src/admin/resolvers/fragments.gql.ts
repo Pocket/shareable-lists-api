@@ -6,7 +6,6 @@ import { gql } from 'graphql-tag';
  */
 export const ShareableListPublicProps = gql`
   fragment ShareableListPublicProps on ShareableList {
-    id
     externalId
     userId
     title

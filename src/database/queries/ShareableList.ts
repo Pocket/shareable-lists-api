@@ -67,5 +67,8 @@ export async function searchShareableList(
     where: {
       externalId,
     },
+    include: {
+      listItems: true,
+    },
   });
 }
