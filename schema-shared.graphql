@@ -1,9 +1,28 @@
+"""
+The status of a Shareable List. Defaults to PRIVATE - visible only to its owner.
+"""
 enum ShareableListStatus {
+  """
+  The list is only visible to its owner - the Pocket user who created it.
+  """
   PRIVATE
+  """
+  The list has been shared and can be viewed by anyone in the world.
+  """
   PUBLIC
 }
 
+"""
+The moderation status of a Shareable List. Defaults to VISIBLE.
+"""
 enum ShareableListModerationStatus {
+  """
+  The list and its contents abide by the Pocket content moderation policy.
+  """
   VISIBLE
+  """
+  The list and its contents have been removed from view and further editing
+  by its owner as it violated the Pocket content moderation policy.
+  """
   HIDDEN
 }
