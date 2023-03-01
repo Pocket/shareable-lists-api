@@ -28,7 +28,11 @@ import {
   createShareableListItemHelper,
 } from '../../../test/helpers';
 import config from '../../../config';
-import { ACCESS_DENIED_ERROR } from '../../../shared/constants';
+import {
+  ACCESS_DENIED_ERROR,
+  LIST_TITLE_MAX_CHARS,
+  LIST_DESCRIPTION_MAX_CHARS,
+} from '../../../shared/constants';
 
 describe('public mutations: ShareableList', () => {
   let app: Express.Application;
@@ -137,7 +141,7 @@ describe('public mutations: ShareableList', () => {
 
     it('should not create List with a title of more than 100 chars', async () => {
       const data: CreateShareableListInput = {
-        title: faker.random.alpha(101),
+        title: faker.random.alpha(LIST_TITLE_MAX_CHARS + 1),
         description: faker.lorem.sentences(2),
       };
       const result = await request(app)
@@ -158,7 +162,7 @@ describe('public mutations: ShareableList', () => {
     it('should not create List with a description of more than 200 chars', async () => {
       const data: CreateShareableListInput = {
         title: `Katerina's List`,
-        description: faker.random.alpha(201),
+        description: faker.random.alpha(LIST_DESCRIPTION_MAX_CHARS + 1),
       };
       const result = await request(app)
         .post(graphQLUrl)
@@ -714,6 +718,60 @@ describe('public mutations: ShareableList', () => {
 
       // Is the slug unchanged? It should be!
       expect(updatedList.slug).to.equal(listWithSlugSet.slug);
+    });
+
+    it('should not update List with a title of more than 100 chars', async () => {
+      const data: UpdateShareableListInput = {
+        externalId: listToUpdate.externalId,
+        title: faker.random.alpha(LIST_TITLE_MAX_CHARS + 1),
+      };
+
+      const result = await request(app)
+        .post(graphQLUrl)
+        .set(headers)
+        .send({
+          query: print(UPDATE_SHAREABLE_LIST),
+          variables: { data },
+        });
+
+      // There should be nothing in results
+      expect(result.body.data).to.be.null;
+
+      // And a "Bad user input" error
+      expect(result.body).to.have.nested.property(
+        'errors[0].extensions.code',
+        'BAD_USER_INPUT'
+      );
+      expect(result.body.errors[0].message).to.equal(
+        `List title must not be longer than 100 characters`
+      );
+    });
+
+    it('should not update List with a description of more than 200 chars', async () => {
+      const data: UpdateShareableListInput = {
+        externalId: listToUpdate.externalId,
+        description: faker.random.alpha(LIST_DESCRIPTION_MAX_CHARS + 1),
+      };
+
+      const result = await request(app)
+        .post(graphQLUrl)
+        .set(headers)
+        .send({
+          query: print(UPDATE_SHAREABLE_LIST),
+          variables: { data },
+        });
+
+      // There should be nothing in results
+      expect(result.body.data).to.be.null;
+
+      // And a "Bad user input" error
+      expect(result.body).to.have.nested.property(
+        'errors[0].extensions.code',
+        'BAD_USER_INPUT'
+      );
+      expect(result.body.errors[0].message).to.equal(
+        `List description must not be longer than 200 characters`
+      );
     });
   });
 });
