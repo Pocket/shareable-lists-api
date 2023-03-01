@@ -17,30 +17,30 @@ type ShareableListItem {
   """
   A unique string identifier in UUID format.
   """
-	externalId: ID!
+  externalId: ID!
   """
   The Parser Item ID.
   """
-	itemId: Int
+  itemId: Float
   """
   The URL of the story saved to a list.
   """
-	url: Url!
+  url: Url!
   """
   The title of the story. Supplied by the Parser.
   May not be available for URLs that cannot be resolved.
   Not editable by the Pocket user, as are all the other
   Parser-supplied story properties below.
   """
-	title: String
+  title: String
   """
   The excerpt of the story. Supplied by the Parser.
   """
-	excerpt: String
+  excerpt: String
   """
   The URL of the thumbnail image illustrating the story. Supplied by the Parser.
   """
-	imageUrl: Url
+  imageUrl: Url
   """
   The name of the publisher for this story. Supplied by the Parser.
   """
@@ -48,11 +48,11 @@ type ShareableListItem {
   """
   A comma-separated list of story authors. Supplied by the Parser.
   """
-	authors: String
+  authors: String
   """
   The custom sort order of stories within a list. Defaults to 1.
   """
-	sortOrder: Int!
+  sortOrder: Int!
   """
   The timestamp of when this story was added to the list by its owner.
   """
@@ -117,70 +117,70 @@ type ShareableList {
 Input data for creating a Shareable List.
 """
 input CreateShareableListInput {
-	title: String!
-	description: String
+  title: String!
+  description: String
 }
 
 """
 Input data for updating a Shareable List.
 """
 input UpdateShareableListInput {
-	externalId: ID!
-	title: String
-	description: String
-	status: ShareableListStatus
+  externalId: ID!
+  title: String
+  description: String
+  status: ShareableListStatus
 }
 
 """
 Input data for creating a Shareable List Item.
 """
 input CreateShareableListItemInput {
-	listExternalId: ID!
-	itemId: Int
-	url: Url!
-	title: String
-	excerpt: String
-	imageUrl: Url
+  listExternalId: ID!
+  itemId: Float
+  url: Url!
+  title: String
+  excerpt: String
+  imageUrl: Url
   publisher: String
-	authors: String
-	sortOrder: Int!
+  authors: String
+  sortOrder: Int!
 }
 
 type Query {
-	"""
-	Looks up and returns a Shareable List with a given external ID for a given user.
-	(the user ID will be coming through with the headers)
-	"""
-	shareableList(externalId: ID!): ShareableList
+  """
+  Looks up and returns a Shareable List with a given external ID for a given user.
+  (the user ID will be coming through with the headers)
+  """
+  shareableList(externalId: ID!): ShareableList
 
-	"""
-	Looks up and returns an array of Shareable Lists for a given user ID for a given user.
-	(the user ID will be coming through with the headers)
-	"""
-	shareableLists: [ShareableList!]!
+  """
+  Looks up and returns an array of Shareable Lists for a given user ID for a given user.
+  (the user ID will be coming through with the headers)
+  """
+  shareableLists: [ShareableList!]!
 }
 
 type Mutation {
-	"""
-	Creates a Shareable List.
-	"""
-	createShareableList(data: CreateShareableListInput!): ShareableList
-	"""
-	Deletes a Shareable List.
-	"""
-	deleteShareableList(externalId: ID!): ShareableList!
-	"""
-	Updates a Shareable List. This includes making it public.
-	"""
-	updateShareableList(data: UpdateShareableListInput!): ShareableList!
-	"""
-	Creates a Shareable List Item.
-	"""
-	createShareableListItem(
-		data: CreateShareableListItemInput!
-	): ShareableListItem
-	"""
-	Deletes a Shareable List Item. HIDDEN Lists cannot have their items deleted.
-	"""
-	deleteShareableListItem(externalId: ID!): ShareableListItem!
+  """
+  Creates a Shareable List.
+  """
+  createShareableList(data: CreateShareableListInput!): ShareableList
+  """
+  Deletes a Shareable List.
+  """
+  deleteShareableList(externalId: ID!): ShareableList!
+  """
+  Updates a Shareable List. This includes making it public.
+  """
+  updateShareableList(data: UpdateShareableListInput!): ShareableList!
+  """
+  Creates a Shareable List Item.
+  """
+  createShareableListItem(
+    data: CreateShareableListItemInput!
+  ): ShareableListItem
+  """
+  Deletes a Shareable List Item. HIDDEN Lists cannot have their items deleted.
+  """
+  deleteShareableListItem(externalId: ID!): ShareableListItem!
 }
