@@ -13,6 +13,8 @@ import {
 import { deleteAllListItemsForList } from './ShareableListItem';
 import {
   ACCESS_DENIED_ERROR,
+  LIST_TITLE_MAX_CHARS,
+  LIST_DESCRIPTION_MAX_CHARS,
   PRISMA_RECORD_NOT_FOUND,
 } from '../../shared/constants';
 import { getShareableList } from '../queries';
@@ -38,6 +40,23 @@ export async function createShareableList(
   if (titleExists) {
     throw new UserInputError(
       `A list with the title "${data.title}" already exists`
+    );
+  }
+
+  // check the length of the title (fail if title > 100 chars)
+  if (data.title.length > LIST_TITLE_MAX_CHARS) {
+    throw new UserInputError(
+      'List title must not be longer than 100 characters'
+    );
+  }
+
+  // check the length of the description (fail if description > 200 chars)
+  if (
+    data.description &&
+    data.description.length > LIST_DESCRIPTION_MAX_CHARS
+  ) {
+    throw new UserInputError(
+      'List description must not be longer than 200 characters'
     );
   }
 
