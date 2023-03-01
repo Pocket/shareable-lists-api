@@ -240,6 +240,10 @@ class ShareableListsAPI extends TerraformStack {
               name: 'ENVIRONMENT',
               value: process.env.NODE_ENV, // this gives us a nice lowercase production and development
             },
+            {
+              name: 'EVENT_BUS_NAME',
+              value: config.eventBusName,
+            },
             // {
             //   name: 'REDIS_PRIMARY_ENDPOINT',
             //   value: cache.primaryEndpoint,
@@ -326,6 +330,13 @@ class ShareableListsAPI extends TerraformStack {
               'xray:GetSamplingStatisticSummaries',
             ],
             resources: ['*'],
+            effect: 'Allow',
+          },
+          {
+            actions: ['events:PutEvents'],
+            resources: [
+              `arn:aws:events:${region.name}:${caller.accountId}:event-bus/${config.eventBusName}`,
+            ],
             effect: 'Allow',
           },
         ],

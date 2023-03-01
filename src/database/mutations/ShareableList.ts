@@ -8,6 +8,7 @@ import slugify from 'slugify';
 import {
   CreateShareableListInput,
   ShareableList,
+  ShareableListComplete,
   UpdateShareableListInput,
 } from '../types';
 import { deleteAllListItemsForList } from './ShareableListItem';
@@ -19,6 +20,8 @@ import {
 } from '../../shared/constants';
 import { getShareableList } from '../queries';
 import config from '../../config';
+import { sendEventHelper as sendEvent } from '../../snowplow/events';
+import { EventBridgeEventType } from '../../snowplow/types';
 
 /**
  * This mutation creates a shareable list, and _only_ a shareable list
@@ -60,12 +63,20 @@ export async function createShareableList(
     );
   }
 
-  return db.list.create({
+  const list = await db.list.create({
     data: { ...data, userId },
     include: {
       listItems: true,
     },
   });
+
+  //send event bridge event for shareable-list-created event type
+  await sendEvent(EventBridgeEventType.SHAREABLE_LIST_CREATED, {
+    shareableList: list as ShareableListComplete,
+    isShareableListEventType: true,
+  });
+
+  return list;
 }
 
 /**
@@ -124,14 +135,40 @@ export async function updateShareableList(
       data.slug = slugify(data.title ?? list.title, config.slugify);
     }
   }
-
-  return db.list.update({
+  const updatedList = await db.list.update({
     data,
     where: { externalId: data.externalId },
     include: {
       listItems: true,
     },
   });
+
+  // this mutation does a lot of things so we need to break down the operations to determine
+  // what events to send to snowplow
+
+  // if list was published, send event bridge event for shareable-list-published event type
+  if (data.status === ListStatus.PUBLIC) {
+    await sendEvent(EventBridgeEventType.SHAREABLE_LIST_PUBLISHED, {
+      shareableList: updatedList as ShareableListComplete,
+      isShareableListEventType: true,
+    });
+  }
+  // if list was unpublished, send event bridge event for shareable-list-unpublished event type
+  if (data.status === ListStatus.PRIVATE) {
+    await sendEvent(EventBridgeEventType.SHAREABLE_LIST_UNPUBLISHED, {
+      shareableList: updatedList as ShareableListComplete,
+      isShareableListEventType: true,
+    });
+  }
+  // if only list title or description are updated, send event bridge event for shareable-list-updated event type
+  if (data.title || data.description) {
+    await sendEvent(EventBridgeEventType.SHAREABLE_LIST_UPDATED, {
+      shareableList: updatedList as ShareableListComplete,
+      isShareableListEventType: true,
+    });
+  }
+
+  return updatedList;
 }
 
 /**
@@ -199,5 +236,11 @@ export async function deleteShareableList(
         throw error;
       }
     });
+
+  //send event bridge event for shareable-list-deleted event type
+  await sendEvent(EventBridgeEventType.SHAREABLE_LIST_DELETED, {
+    shareableList: deleteList as ShareableListComplete,
+    isShareableListEventType: true,
+  });
   return deleteList;
 }
