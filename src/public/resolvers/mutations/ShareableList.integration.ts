@@ -135,6 +135,46 @@ describe('public mutations: ShareableList', () => {
       );
     });
 
+    it('should not create List with a title of more than 100 chars', async () => {
+      const data: CreateShareableListInput = {
+        title: faker.random.alpha(101),
+        description: faker.lorem.sentences(2),
+      };
+      const result = await request(app)
+        .post(graphQLUrl)
+        .set(headers)
+        .send({
+          query: print(CREATE_SHAREABLE_LIST),
+          variables: { data },
+        });
+      expect(result.body.data.createShareableList).not.to.exist;
+      expect(result.body.errors.length).to.equal(1);
+      expect(result.body.errors[0].extensions.code).to.equal('BAD_USER_INPUT');
+      expect(result.body.errors[0].message).to.equal(
+        `List title must not be longer than 100 characters`
+      );
+    });
+
+    it('should not create List with a description of more than 200 chars', async () => {
+      const data: CreateShareableListInput = {
+        title: `Katerina's List`,
+        description: faker.random.alpha(201),
+      };
+      const result = await request(app)
+        .post(graphQLUrl)
+        .set(headers)
+        .send({
+          query: print(CREATE_SHAREABLE_LIST),
+          variables: { data },
+        });
+      expect(result.body.data.createShareableList).not.to.exist;
+      expect(result.body.errors.length).to.equal(1);
+      expect(result.body.errors[0].extensions.code).to.equal('BAD_USER_INPUT');
+      expect(result.body.errors[0].message).to.equal(
+        `List description must not be longer than 200 characters`
+      );
+    });
+
     it('should create List with existing title in db but for different userId', async () => {
       const list1 = await createShareableListHelper(db, {
         title: `Best Abstraction Art List`,
