@@ -1,5 +1,7 @@
 import { ModerationStatus, PrismaClient } from '@prisma/client';
 import { ShareableList, ShareableListComplete } from '../types';
+import { ForbiddenError, NotFoundError } from '@pocket-tools/apollo-utils';
+import { ACCESS_DENIED_ERROR } from '../../shared/constants';
 
 /**
  * This is a public query, which is why we only return
@@ -27,6 +29,42 @@ export async function getShareableList(
       listItems: true,
     },
   });
+}
+
+/**
+ * This query returns a publicly viewable Shareable List,
+ * retrieved by its slug and user ID.
+ *
+ * @param db
+ * @param userId
+ * @param slug
+ */
+export async function getShareableListPublic(
+  db: PrismaClient,
+  userId: number | bigint,
+  slug: string
+): Promise<ShareableList> {
+  const list = await db.list.findFirst({
+    where: {
+      userId,
+      slug,
+    },
+    include: {
+      listItems: true,
+    },
+  });
+
+  // For mistyped URLs or lists that were switched from public back to private.
+  if (!list) {
+    throw new NotFoundError(`A list by that URL could not be found`);
+  }
+
+  // For lists taken down for violating the Pocket content moderation policies.
+  if (list.moderationStatus === ModerationStatus.HIDDEN) {
+    throw new ForbiddenError(ACCESS_DENIED_ERROR);
+  }
+
+  return list;
 }
 
 /**
