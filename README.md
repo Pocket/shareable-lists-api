@@ -69,7 +69,7 @@ environment:
 ```
 
 - Add a `try/catch` block in a query / mutation, throw an error and capture it with `Sentry.captureException(err)`
-- In `src/server.ts` replace `nonProdPlugins` with:
+- In `src/public/server.ts` and or `src/admin/server.ts` replace `nonProdPlugins` with:
 
 ```
 const nonProdPlugins = [
@@ -125,3 +125,82 @@ If tests don't rely on other services:
 ```
 npm run test-integrations
 ```
+
+### Snowplow Events
+
+This API sends two kinds of events to the Pocket Event Bridge --> Snowplow: `shareable-list` and `shareable-list-item` events.
+
+The following are event types defined for the `shareable-list` event:
+
+- `shareable-list-created`
+- `shareable-list-updated`
+- `shareable-list-deleted`
+- `shareable-list-published`
+- `shareable-list-unpublished`
+- `shareable-list-hidden`
+
+The Snowplow schema for a `shareable-list` event looks like the following:
+
+```
+shareable_list {
+  shareable_list_external_id: string;
+  slug: string;
+  title: string;
+  description?: string;
+  status: ListStatus;
+  moderation_status: ModerationStatus;
+  moderated_by?: string;
+  moderation_reason?: string;
+  created_at: number; // snowplow schema requires this field in seconds
+  updated_at?: number; // snowplow schema requires this field in seconds
+}
+```
+
+The following are event types defined for the `shareable-list-item` event:
+
+- `shareable-list-item-created`
+- `shareable-list-item-deleted`
+
+The Snowplow schema for a `shareable-list-item` event looks like the following:
+
+```
+shareable_list_item {
+  shareable_list_item_external_id: string;
+  shareable_list_external_id: string;
+  given_url: string;
+  title?: string;
+  excerpt?: string;
+  image_url?: string;
+  authors?: string[];
+  publisher?: string;
+  sort_order: number;
+  created_at: number; // snowplow schema requires this field in seconds
+  updated_at?: number; // snowplow schema requires this field in seconds
+}
+```
+
+The API maps the GraphQL API types to the Snowplow types and sends both events to the Pocket Event Bridge. The core logic happens in `src/snowplow/events.ts` where the `sendEvent` function takes in a payload and sends it to the Pocket Bridge.
+
+### To setup a new Snowplow event:
+
+In `src/aws/config/index.ts`:
+
+1. Add a new event to `eventBridge` and define the source.
+
+In `src/snowplow/types.ts` do the following:
+
+1. Add the expected Snowplow type.
+2. Add the event bridge event type to `EventBridgeEventType` enum.
+3. Add an `EventBusPayload` for your type.
+4. To the `EventBridgeEventOptions` interface, add your event type and a boolean to indicate what event you are passing.
+
+In `src/snowplow/types.ts` do the following:
+
+1. Add your transformer function which maps the GraphQL API type to the expected Snowplow type.
+2. Add the function which generates the Snowplow type payload.
+3. In `sendEventHelper` function, add a conditional for what event option you are passing and call `sendEvent` function and pass the payload.
+4. Finally, in the `sendEvent` function, based on the boolean flag, set the event bridge source.
+
+### Unit tests
+
+The unit tests for snowlpow events are defined in `src/snowplow/events.spec.ts`. [https://sinonjs.org/](Sinon JS)is used for test spies and stubs.

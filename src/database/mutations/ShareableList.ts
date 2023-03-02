@@ -1,5 +1,5 @@
 import { NotFoundError, UserInputError } from '@pocket-tools/apollo-utils';
-import { ListStatus, PrismaClient } from '@prisma/client';
+import { ListStatus, ModerationStatus, PrismaClient } from '@prisma/client';
 import slugify from 'slugify';
 import {
   CreateShareableListInput,
@@ -196,6 +196,14 @@ export async function moderateShareableList(
         throw error;
       }
     });
+
+  // for now, we only support snowplow events for taking down a list (shareable-list-hidden trigger)
+  if (data.moderationStatus === ModerationStatus.HIDDEN) {
+    await sendEvent(EventBridgeEventType.SHAREABLE_LIST_HIDDEN, {
+      shareableList: list as ShareableListComplete,
+      isShareableListEventType: true,
+    });
+  }
   return list;
 }
 

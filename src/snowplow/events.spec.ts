@@ -10,14 +10,7 @@ import {
   sendEvent,
   sendEventHelper,
 } from './events';
-import {
-  EventBridgeEventType,
-  EventBridgeEventOptions,
-  SnowplowShareableList,
-  SnowplowShareableListItem,
-  ShareableListEventBusPayload,
-  ShareableListItemEventBusPayload,
-} from './types';
+import { EventBridgeEventType } from './types';
 import { faker } from '@faker-js/faker';
 
 describe('Snowplow event helpers', () => {
@@ -73,6 +66,7 @@ describe('Snowplow event helpers', () => {
   });
 
   it('generateShareableListEventBridgePayload function', async () => {
+    // SHAREABLE_LIST_CREATED
     let payload = await generateShareableListEventBridgePayload(
       EventBridgeEventType.SHAREABLE_LIST_CREATED,
       shareableList
@@ -106,10 +100,12 @@ describe('Snowplow event helpers', () => {
       Math.floor(shareableList.updatedAt.getTime() / 1000)
     );
 
+    // SHAREABLE_LIST_UPDATED
     // update some properties
     shareableList.title = 'Updated random title';
     shareableList.description = 'updated description';
     shareableList.updatedAt = new Date('2023-02-01 10:15:15');
+    let newUpdatedAt = shareableList.updatedAt;
     payload = await generateShareableListEventBridgePayload(
       EventBridgeEventType.SHAREABLE_LIST_UPDATED,
       shareableList
@@ -124,12 +120,16 @@ describe('Snowplow event helpers', () => {
     expect(payload.shareableList.title).to.equal('Updated random title');
     // check that description was updated
     expect(payload.shareableList.description).to.equal('updated description');
-    // updatedAt -> updated_at in second == 1675275315
-    expect(payload.shareableList.updated_at).to.equal(1675275315);
+    // updatedAt -> updated_at in seconds
+    expect(payload.shareableList.updated_at).to.equal(
+      Math.floor(newUpdatedAt.getTime() / 1000)
+    );
 
+    // SHAREABLE_LIST_PUBLISHED
     // update some properties
     shareableList.status = ListStatus.PUBLIC;
     shareableList.updatedAt = new Date('2023-02-01 10:15:45');
+    newUpdatedAt = shareableList.updatedAt;
     payload = await generateShareableListEventBridgePayload(
       EventBridgeEventType.SHAREABLE_LIST_PUBLISHED,
       shareableList
@@ -142,12 +142,16 @@ describe('Snowplow event helpers', () => {
     );
     // check that status was updated to PUBLIC
     expect(payload.shareableList.status).to.equal(ListStatus.PUBLIC);
-    // updatedAt -> updated_at in second == 1675275345
-    expect(payload.shareableList.updated_at).to.equal(1675275345);
+    // updatedAt -> updated_at in seconds
+    expect(payload.shareableList.updated_at).to.equal(
+      Math.floor(newUpdatedAt.getTime() / 1000)
+    );
 
+    // SHAREABLE_LIST_UNPUBLISHED
     // update some properties
     shareableList.status = ListStatus.PRIVATE;
     shareableList.updatedAt = new Date('2023-02-02 10:15:07');
+    newUpdatedAt = shareableList.updatedAt;
     payload = await generateShareableListEventBridgePayload(
       EventBridgeEventType.SHAREABLE_LIST_UNPUBLISHED,
       shareableList
@@ -160,9 +164,12 @@ describe('Snowplow event helpers', () => {
     );
     // check that status was updated to PUBLIC
     expect(payload.shareableList.status).to.equal(ListStatus.PRIVATE);
-    // updatedAt -> updated_at in second == 1675361707
-    expect(payload.shareableList.updated_at).to.equal(1675361707);
+    // updatedAt -> updated_at in seconds
+    expect(payload.shareableList.updated_at).to.equal(
+      Math.floor(newUpdatedAt.getTime() / 1000)
+    );
 
+    // SHAREABLE_LIST_DELETED
     // simulate shareable-list-deleted event
     payload = await generateShareableListEventBridgePayload(
       EventBridgeEventType.SHAREABLE_LIST_DELETED,
@@ -175,7 +182,29 @@ describe('Snowplow event helpers', () => {
       EventBridgeEventType.SHAREABLE_LIST_DELETED
     );
 
-    // TO-DO: after https://getpocket.atlassian.net/browse/OSL-126 is complete, test for shareable-list-hidden event
+    // SHAREABLE_LIST_HIDDEN
+    // update some properties
+    shareableList.moderationStatus = ModerationStatus.HIDDEN;
+    shareableList.updatedAt = new Date('2023-02-03 05:15:43');
+    newUpdatedAt = shareableList.updatedAt;
+    payload = await generateShareableListEventBridgePayload(
+      EventBridgeEventType.SHAREABLE_LIST_HIDDEN,
+      shareableList
+    );
+    // shareableList obj must not be null
+    expect(payload.shareableList).to.not.be.null;
+    // check that the payload event type is for shareable-list-unpublished
+    expect(payload.eventType).to.equal(
+      EventBridgeEventType.SHAREABLE_LIST_HIDDEN
+    );
+    // check that moderation_status was updated to HIDDEN
+    expect(payload.shareableList.moderation_status).to.equal(
+      ModerationStatus.HIDDEN
+    );
+    // updatedAt -> updated_at in seconds
+    expect(payload.shareableList.updated_at).to.equal(
+      Math.floor(newUpdatedAt.getTime() / 1000)
+    );
   });
 
   it('generateShareableListItemEventBridgePayload function', async () => {
@@ -295,7 +324,7 @@ describe('Snowplow event helpers', () => {
   describe('sendEvent function', () => {
     it('should send shareable-list event to event bus with proper event data', async () => {
       // let's first generate a payload to send to the event bridge
-      let payload = await generateShareableListEventBridgePayload(
+      const payload = await generateShareableListEventBridgePayload(
         EventBridgeEventType.SHAREABLE_LIST_CREATED,
         shareableList
       );
@@ -313,7 +342,7 @@ describe('Snowplow event helpers', () => {
     });
     it('should send shareable-list-item event to event bus with proper event data', async () => {
       // let's first generate a payload to send to the event bridge
-      let payload = await generateShareableListItemEventBridgePayload(
+      const payload = await generateShareableListItemEventBridgePayload(
         EventBridgeEventType.SHAREABLE_LIST_ITEM_CREATED,
         shareableListItem,
         shareableListItemExternalId,
@@ -338,7 +367,7 @@ describe('Snowplow event helpers', () => {
         .resolves({ FailedEntryCount: 1 });
 
       // let's first generate a payload to send to the event bridge
-      let payload = await generateShareableListEventBridgePayload(
+      const payload = await generateShareableListEventBridgePayload(
         EventBridgeEventType.SHAREABLE_LIST_CREATED,
         shareableList
       );
@@ -367,7 +396,7 @@ describe('Snowplow event helpers', () => {
         .resolves({ FailedEntryCount: 1 });
 
       // let's first generate a payload to send to the event bridge
-      let payload = await generateShareableListItemEventBridgePayload(
+      const payload = await generateShareableListItemEventBridgePayload(
         EventBridgeEventType.SHAREABLE_LIST_ITEM_CREATED,
         shareableListItem,
         shareableListItemExternalId,
