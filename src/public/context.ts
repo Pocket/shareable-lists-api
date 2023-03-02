@@ -31,6 +31,7 @@ export class PublicContextManager implements IPublicContext {
     if (!userId) {
       throw new ForbiddenError(ACCESS_DENIED_ERROR);
     }
+
     return userId instanceof Array ? parseInt(userId[0]) : parseInt(userId);
   }
 }
