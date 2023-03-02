@@ -91,7 +91,7 @@ describe('public mutations: ShareableList', () => {
     });
 
     it('should create a new List', async () => {
-      const title = faker.random.words(2);
+      const title = 'My list to share<script>alert("Hello World!")</script>';
       const data: CreateShareableListInput = {
         title: title,
         description: faker.lorem.sentences(2),
@@ -104,7 +104,9 @@ describe('public mutations: ShareableList', () => {
           variables: { data },
         });
       expect(result.body.data).to.exist;
-      expect(result.body.data.createShareableList.title).to.equal(title);
+      expect(result.body.data.createShareableList.title).to.equal(
+        'My list to share&lt;script&gt;alert("Hello World!")&lt;/script&gt;'
+      );
       expect(result.body.data.createShareableList.status).to.equal(
         ListStatus.PRIVATE
       );
@@ -329,7 +331,7 @@ describe('public mutations: ShareableList', () => {
       // Create a List
       listToUpdate = await createShareableListHelper(db, {
         userId: parseInt(headers.userId),
-        title: 'The Most Shareable List',
+        title: '<marquee>The Most Shareable List</marquee>',
       });
     });
 

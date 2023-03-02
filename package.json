@@ -34,7 +34,8 @@
     "graphql-tag": "2.12.6",
     "graphql-upload": "15.0.2",
     "slugify": "1.6.5",
-    "uuid": "9.0.0"
+    "uuid": "9.0.0",
+    "xss": "^1.0.14"
   },
   "devDependencies": {
     "@faker-js/faker": "7.6.0",
