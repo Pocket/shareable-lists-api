@@ -146,7 +146,7 @@ describe('public mutations: ShareableListItem', () => {
         itemId: 3789538749,
         url: 'https://www.test.com/this-is-a-story',
         title: 'A story is a story',
-        excerpt: 'The best story ever told',
+        excerpt: '<blink>The best story ever told</blink>',
         imageUrl: 'https://www.test.com/thumbnail.jpg',
         publisher: 'The London Times',
         authors: 'Charles Dickens, Mark Twain',
@@ -173,7 +173,9 @@ describe('public mutations: ShareableListItem', () => {
       expect(listItem.itemId).to.equal(3789538749);
       expect(listItem.url).to.equal(data.url);
       expect(listItem.title).to.equal(data.title);
-      expect(listItem.excerpt).to.equal(data.excerpt);
+      expect(listItem.excerpt).to.equal(
+        '&lt;blink&gt;The best story ever told&lt;/blink&gt;'
+      );
       expect(listItem.imageUrl).to.equal(data.imageUrl);
       expect(listItem.publisher).to.equal(data.publisher);
       expect(listItem.authors).to.equal(data.authors);
