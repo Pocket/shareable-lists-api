@@ -307,8 +307,10 @@ describe('public mutations: ShareableListItem', () => {
         });
       expect(result.body.data).not.to.exist;
       expect(result.body.errors.length).to.equal(1);
-      expect(result.body.errors[0].extensions.code).to.equal('FORBIDDEN');
-      expect(result.body.errors[0].message).to.equal(ACCESS_DENIED_ERROR);
+      expect(result.body.errors[0].extensions.code).to.equal('NOT_FOUND');
+      expect(result.body.errors[0].message).to.equal(
+        'Error - Not Found: A list item by that ID could not be found'
+      );
     });
 
     it('should not delete a list item without userId in header', async () => {
@@ -363,8 +365,10 @@ describe('public mutations: ShareableListItem', () => {
         });
       expect(result.body.data).not.to.exist;
       expect(result.body.errors.length).to.equal(1);
-      expect(result.body.errors[0].extensions.code).to.equal('FORBIDDEN');
-      expect(result.body.errors[0].message).to.equal(ACCESS_DENIED_ERROR);
+      expect(result.body.errors[0].extensions.code).to.equal('NOT_FOUND');
+      expect(result.body.errors[0].message).to.equal(
+        'Error - Not Found: A list item by that ID could not be found'
+      );
     });
 
     it('should successfully delete a list item', async () => {

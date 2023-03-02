@@ -1,8 +1,4 @@
-import {
-  ForbiddenError,
-  NotFoundError,
-  UserInputError,
-} from '@pocket-tools/apollo-utils';
+import { NotFoundError, UserInputError } from '@pocket-tools/apollo-utils';
 import { ListStatus, PrismaClient } from '@prisma/client';
 import slugify from 'slugify';
 import {
@@ -14,7 +10,6 @@ import {
 } from '../types';
 import { deleteAllListItemsForList } from './ShareableListItem';
 import {
-  ACCESS_DENIED_ERROR,
   LIST_TITLE_MAX_CHARS,
   LIST_DESCRIPTION_MAX_CHARS,
   PRISMA_RECORD_NOT_FOUND,
@@ -186,10 +181,12 @@ export async function deleteShareableList(
     where: { externalId: externalId },
     include: { listItems: true },
   });
-  if (deleteList === null) {
+
+  // if the list can't be found, or a user is trying to delete someone else's
+  // list, throw a not found error. (we don't need to let the malicious user
+  // know they found someone else's list id.)
+  if (deleteList === null || deleteList.userId !== BigInt(userId)) {
     throw new NotFoundError(`List ${externalId} cannot be found.`);
-  } else if (deleteList.userId !== BigInt(userId)) {
-    throw new ForbiddenError(ACCESS_DENIED_ERROR);
   }
   // This delete must occur before the list is actually deleted,
   // due to a foreign key constraint on ListIitems. We should remove this

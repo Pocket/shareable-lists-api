@@ -1,14 +1,7 @@
-import {
-  ForbiddenError,
-  NotFoundError,
-  UserInputError,
-} from '@pocket-tools/apollo-utils';
+import { NotFoundError, UserInputError } from '@pocket-tools/apollo-utils';
 import { ModerationStatus, PrismaClient } from '@prisma/client';
 import { CreateShareableListItemInput, ShareableListItem } from '../types';
-import {
-  ACCESS_DENIED_ERROR,
-  PRISMA_RECORD_NOT_FOUND,
-} from '../../shared/constants';
+import { PRISMA_RECORD_NOT_FOUND } from '../../shared/constants';
 
 /**
  * This mutation creates a shareable list item.
@@ -31,6 +24,9 @@ export async function createShareableListItem(
       userId,
       moderationStatus: ModerationStatus.VISIBLE,
     },
+    include: {
+      listItems: true,
+    },
   });
 
   if (!list) {
@@ -39,14 +35,9 @@ export async function createShareableListItem(
     );
   }
 
-  // Check that the userId in the headers matches the userId of the List
-  if (Number(list.userId) !== userId) {
-    throw new ForbiddenError(ACCESS_DENIED_ERROR);
-  }
-
   // check if an item with this URL already exists in this list
-  const itemExists = await db.listItem.count({
-    where: { listId: list.id, url: data.url },
+  const itemExists = list.listItems.find((item) => {
+    return item.url === data.url;
   });
 
   if (itemExists) {
@@ -94,20 +85,20 @@ export async function deleteShareableListItem(
     },
   });
 
-  // Check if the ListItem was found
-  if (!listItem) {
+  // a not found error should be throw if:
+  // - the list item wasn't found
+  // - the owner of the associated list does not match the user making the
+  //   request (could be a malicious deletion attmept)
+  // - the associated list has been removed due to moderation (in which case
+  //   the user cannot modify any part of the list)
+  if (
+    !listItem ||
+    Number(listItem.list.userId) !== userId ||
+    listItem.list.moderationStatus == 'HIDDEN'
+  ) {
     throw new NotFoundError('A list item by that ID could not be found');
   }
 
-  // Check that the userId in the headers matches the userId of the List
-  if (Number(listItem.list.userId) !== userId) {
-    throw new ForbiddenError(ACCESS_DENIED_ERROR);
-  }
-
-  // Check first the List moderation status. If HIDDEN, do not allow to delete
-  if (listItem.list.moderationStatus == 'HIDDEN') {
-    throw new ForbiddenError(ACCESS_DENIED_ERROR);
-  }
   // delete ListItem
   await db.listItem
     .delete({

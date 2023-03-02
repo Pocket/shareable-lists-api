@@ -249,7 +249,7 @@ describe('public mutations: ShareableList', () => {
         });
       expect(result.body.data).to.be.null;
       expect(result.body.errors.length).to.equal(1);
-      expect(result.body.errors[0].extensions.code).to.equal('FORBIDDEN');
+      expect(result.body.errors[0].extensions.code).to.equal('NOT_FOUND');
     });
 
     it('cannot delete a list that does not exist', async () => {
