@@ -1,19 +1,15 @@
-import {
-  ForbiddenError,
-  NotFoundError,
-  UserInputError,
-} from '@pocket-tools/apollo-utils';
+import { NotFoundError, UserInputError } from '@pocket-tools/apollo-utils';
 import { ListStatus, PrismaClient } from '@prisma/client';
 import slugify from 'slugify';
 import {
   CreateShareableListInput,
+  ModerateShareableListInput,
   ShareableList,
   ShareableListComplete,
   UpdateShareableListInput,
 } from '../types';
 import { deleteAllListItemsForList } from './ShareableListItem';
 import {
-  ACCESS_DENIED_ERROR,
   LIST_TITLE_MAX_CHARS,
   LIST_DESCRIPTION_MAX_CHARS,
   PRISMA_RECORD_NOT_FOUND,
@@ -167,6 +163,43 @@ export async function updateShareableList(
 }
 
 /**
+ * Apply moderation to a ShareableList.
+ *
+ * @param db
+ * @param data
+ * @throws { NotFoundError } if the list does not exist
+ */
+export async function moderateShareableList(
+  db: PrismaClient,
+  data: ModerateShareableListInput
+): Promise<ShareableListComplete> {
+  const exists = await db.list.count({
+    where: { externalId: data.externalId },
+  });
+  if (!exists) {
+    throw new NotFoundError(`List ${data.externalId} cannot be found.`);
+  }
+  // The update is safe to do even in the case where the record does not exist --
+  // Prisma will throw a predictable error here. However, Prisma will also log that
+  // error, which feels confusing, so we'll add the count query above to make sure we
+  // don't have confusing logged errors, and leads to this kind of ugly block below
+  const list = await db.list
+    .update({
+      data: data,
+      where: { externalId: data.externalId },
+      include: { listItems: true },
+    })
+    .catch((error) => {
+      if (error.code === PRISMA_RECORD_NOT_FOUND) {
+        throw new NotFoundError(`List ${data.externalId} cannot be found.`);
+      } else {
+        throw error;
+      }
+    });
+  return list;
+}
+
+/**
  * This method deletes a shareable list, if the owner of the list
  * represented by externalId matches the owner of the list.
  *
@@ -184,10 +217,12 @@ export async function deleteShareableList(
     where: { externalId: externalId },
     include: { listItems: true },
   });
-  if (deleteList === null) {
+
+  // if the list can't be found, or a user is trying to delete someone else's
+  // list, throw a not found error. (we don't need to let the malicious user
+  // know they found someone else's list id.)
+  if (deleteList === null || deleteList.userId !== BigInt(userId)) {
     throw new NotFoundError(`List ${externalId} cannot be found.`);
-  } else if (deleteList.userId !== BigInt(userId)) {
-    throw new ForbiddenError(ACCESS_DENIED_ERROR);
   }
   // This delete must occur before the list is actually deleted,
   // due to a foreign key constraint on ListIitems. We should remove this

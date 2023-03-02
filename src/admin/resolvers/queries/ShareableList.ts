@@ -16,9 +16,11 @@ export async function searchShareableList(
   { externalId },
   { authenticatedUser, db }
 ): Promise<ShareableListComplete> {
+  // access denied if a user cannot access this admin tool
   if (!authenticatedUser.canRead) {
     throw new ForbiddenError(ACCESS_DENIED_ERROR);
   }
+
   const list = await dbSearchShareableList(db, externalId);
 
   if (!list) {
