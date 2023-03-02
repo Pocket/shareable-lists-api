@@ -1,4 +1,4 @@
-import { List, ListItem, ListStatus } from '@prisma/client';
+import { List, ListItem, ListStatus, ModerationStatus } from '@prisma/client';
 
 /**
  * These are the properties of list items exposed on the public Pocket Graph -
@@ -35,6 +35,14 @@ export type UpdateShareableListInput = {
   // Not in the public schema but here in the DB input type
   // because it's generated in the DB resolver if required.
   slug?: string;
+};
+
+export type ModerateShareableListInput = {
+  externalId: string;
+  moderationStatus: ModerationStatus;
+  moderationReason: string;
+  // not in the schema, copied from the request user data when updating
+  moderatedBy: string;
 };
 
 export type CreateShareableListItemInput = {

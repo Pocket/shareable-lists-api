@@ -3,7 +3,9 @@ import { ListStatus, PrismaClient } from '@prisma/client';
 import slugify from 'slugify';
 import {
   CreateShareableListInput,
+  ModerateShareableListInput,
   ShareableList,
+  ShareableListComplete,
   UpdateShareableListInput,
 } from '../types';
 import { deleteAllListItemsForList } from './ShareableListItem';
@@ -122,6 +124,43 @@ export async function updateShareableList(
       listItems: true,
     },
   });
+}
+
+/**
+ * Apply moderation to a ShareableList.
+ *
+ * @param db
+ * @param data
+ * @throws { NotFoundError } if the list does not exist
+ */
+export async function moderateShareableList(
+  db: PrismaClient,
+  data: ModerateShareableListInput
+): Promise<ShareableListComplete> {
+  const exists = await db.list.count({
+    where: { externalId: data.externalId },
+  });
+  if (!exists) {
+    throw new NotFoundError(`List ${data.externalId} cannot be found.`);
+  }
+  // The update is safe to do even in the case where the record does not exist --
+  // Prisma will throw a predictable error here. However, Prisma will also log that
+  // error, which feels confusing, so we'll add the count query above to make sure we
+  // don't have confusing logged errors, and leads to this kind of ugly block below
+  const list = await db.list
+    .update({
+      data: data,
+      where: { externalId: data.externalId },
+      include: { listItems: true },
+    })
+    .catch((error) => {
+      if (error.code === PRISMA_RECORD_NOT_FOUND) {
+        throw new NotFoundError(`List ${data.externalId} cannot be found.`);
+      } else {
+        throw error;
+      }
+    });
+  return list;
 }
 
 /**
