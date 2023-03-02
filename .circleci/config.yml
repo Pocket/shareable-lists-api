@@ -46,7 +46,7 @@ only_dev: &only_dev
 jobs:
   apollo:
     docker:
-      - image: node:18@sha256:b7483c70b94e9fbb68e91d64456ee147d120488f876d69efeae815ba164e8b54
+      - image: node:18@sha256:077e885f214f445f0d2cb25ba2105f8965f89f4f334cae7d31c29c5bd06a8381
     steps:
       - checkout
       - run:
@@ -108,7 +108,7 @@ jobs:
 
   build:
     docker:
-      - image: node:18@sha256:b7483c70b94e9fbb68e91d64456ee147d120488f876d69efeae815ba164e8b54
+      - image: node:18@sha256:077e885f214f445f0d2cb25ba2105f8965f89f4f334cae7d31c29c5bd06a8381
     steps:
       - checkout
       # Define the working directory for this job
@@ -157,7 +157,7 @@ jobs:
         type: string
     docker:
       # The application
-      - image: node:18@sha256:b7483c70b94e9fbb68e91d64456ee147d120488f876d69efeae815ba164e8b54
+      - image: node:18@sha256:077e885f214f445f0d2cb25ba2105f8965f89f4f334cae7d31c29c5bd06a8381
         auth:
           username: $DOCKERHUB_USERNAME
           password: $DOCKERHUB_PASSWORD

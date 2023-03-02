@@ -143,7 +143,7 @@ describe('public mutations: ShareableListItem', () => {
     it('should create a new list item', async () => {
       const data: CreateShareableListItemInput = {
         listExternalId: list.externalId,
-        itemId: 1,
+        itemId: 3789538749,
         url: 'https://www.test.com/this-is-a-story',
         title: 'A story is a story',
         excerpt: 'The best story ever told',
@@ -170,7 +170,7 @@ describe('public mutations: ShareableListItem', () => {
       // Assert that all props are returned
       const listItem = result.body.data.createShareableListItem;
       expect(listItem.externalId).not.to.be.empty;
-      expect(listItem.itemId).to.equal(1);
+      expect(listItem.itemId).to.equal(3789538749);
       expect(listItem.url).to.equal(data.url);
       expect(listItem.title).to.equal(data.title);
       expect(listItem.excerpt).to.equal(data.excerpt);
@@ -231,7 +231,7 @@ describe('public mutations: ShareableListItem', () => {
 
       const data: CreateShareableListItemInput = {
         listExternalId: list.externalId,
-        itemId: 1,
+        itemId: 3789538749,
         url: 'https://www.test.com/another-duplicate-url',
         title: 'A story is a story',
         excerpt: 'The best story ever told',
@@ -258,7 +258,7 @@ describe('public mutations: ShareableListItem', () => {
       // Assert that all props are returned
       const listItem = result.body.data.createShareableListItem;
       expect(listItem.externalId).not.to.be.empty;
-      expect(listItem.itemId).to.equal(1);
+      expect(listItem.itemId).to.equal(3789538749);
       expect(listItem.url).to.equal(data.url);
       expect(listItem.title).to.equal(data.title);
       expect(listItem.excerpt).to.equal(data.excerpt);
