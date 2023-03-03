@@ -10,6 +10,15 @@ export const GET_SHAREABLE_LIST = gql`
   ${ShareableListPublicProps}
 `;
 
+export const GET_SHAREABLE_LIST_PUBLIC = gql`
+  query shareableListPublic($slug: String!, $userId: Float!) {
+    shareableListPublic(slug: $slug, userId: $userId) {
+      ...ShareableListPublicProps
+    }
+  }
+  ${ShareableListPublicProps}
+`;
+
 export const GET_SHAREABLE_LISTS = gql`
   query shareableLists {
     shareableLists {
