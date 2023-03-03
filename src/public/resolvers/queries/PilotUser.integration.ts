@@ -6,7 +6,7 @@ import { IPublicContext } from '../../context';
 import { startServer } from '../../../express';
 import { client } from '../../../database/client';
 import { clearDb, createPilotUserHelper } from '../../../test/helpers';
-import { IS_PILOT_USER } from './sample-queries.gql';
+import { SHAREABLE_LISTS_PILOT_USER } from './sample-queries.gql';
 import { expect } from 'chai';
 
 describe('public queries: PilotUser', () => {
@@ -48,10 +48,10 @@ describe('public queries: PilotUser', () => {
           userId: pilotUser.userId.toString(),
         })
         .send({
-          query: print(IS_PILOT_USER),
+          query: print(SHAREABLE_LISTS_PILOT_USER),
         });
 
-      expect(result.body.data.isPilotUser).to.be.true;
+      expect(result.body.data.shareableListsPilotUser).to.be.true;
     });
 
     it('should return false if user is not in the pilot', async () => {
@@ -62,10 +62,10 @@ describe('public queries: PilotUser', () => {
           userId: '7732025862',
         })
         .send({
-          query: print(IS_PILOT_USER),
+          query: print(SHAREABLE_LISTS_PILOT_USER),
         });
 
-      expect(result.body.data.isPilotUser).to.be.false;
+      expect(result.body.data.shareableListsPilotUser).to.be.false;
     });
   });
 });
