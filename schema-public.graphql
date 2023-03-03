@@ -162,7 +162,7 @@ type Query {
   """
   Determines if the userid passed in the headers has access to the pilot program.
   """
-  isPilotUser: Boolean!
+  shareableListsPilotUser: Boolean!
 }
 
 type Mutation {

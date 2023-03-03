@@ -85,9 +85,13 @@ export async function updateShareableList(
 
   // If the title is getting updated, check if the user already has a list
   // with the same title.
-  if (data.title) {
+  if (data.title && data.title !== list.title) {
     const titleExists = await db.list.count({
-      where: { title: data.title, userId: userId },
+      where: {
+        title: data.title,
+        userId: userId,
+        externalId: { not: data.externalId },
+      },
     });
 
     if (titleExists) {
