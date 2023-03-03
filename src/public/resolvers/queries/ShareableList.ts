@@ -5,6 +5,7 @@ import {
   getShareableLists as dbGetShareableLists,
 } from '../../../database/queries';
 import { ShareableList } from '../../../database/types';
+import { validateUserId } from '../utils';
 
 /**
  * Resolver for the public 'shareableList` query.
@@ -19,7 +20,7 @@ export async function getShareableList(
   { externalId },
   { userId, db }
 ): Promise<ShareableList> {
-  const list = await dbGetShareableList(db, userId, externalId);
+  const list = await dbGetShareableList(db, validateUserId(userId), externalId);
 
   if (!list) {
     throw new NotFoundError(externalId);
@@ -64,5 +65,5 @@ export async function getShareableLists(
   _,
   { userId, db }
 ): Promise<ShareableList[]> {
-  return await dbGetShareableLists(db, userId);
+  return await dbGetShareableLists(db, validateUserId(userId));
 }
