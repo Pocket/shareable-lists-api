@@ -212,7 +212,7 @@ describe('public queries: ShareableList', () => {
           query: print(GET_SHAREABLE_LIST_PUBLIC),
           variables: {
             slug: list.slug,
-            userId: list.userId,
+            userId: Number(list.userId),
           },
         });
 
@@ -242,7 +242,7 @@ describe('public queries: ShareableList', () => {
           query: print(GET_SHAREABLE_LIST_PUBLIC),
           variables: {
             slug: newList.slug,
-            userId: newList.userId,
+            userId: Number(newList.userId),
           },
         });
 
@@ -253,14 +253,13 @@ describe('public queries: ShareableList', () => {
       expect(result.body.errors).to.be.undefined;
 
       // Now onto verifying individual list props
-      const list = result.body.data.shareableList;
-
+      const list = result.body.data.shareableListPublic;
       // Values we know as we've assigned them manually
       expect(list.title).to.equal(newList.title);
       expect(list.description).to.equal(newList.description);
 
       // Default status values
-      expect(list.status).to.equal(ListStatus.PRIVATE);
+      expect(list.status).to.equal(ListStatus.PUBLIC);
       expect(list.moderationStatus).to.equal(ModerationStatus.VISIBLE);
 
       // Variable values that just need to be non-null - we know Prisma
@@ -270,7 +269,7 @@ describe('public queries: ShareableList', () => {
       expect(list.externalId).not.to.be.empty;
 
       // Empty slug - it's not generated on creation
-      expect(list.slug).to.be.null;
+      expect(list.slug).to.not.be.empty;
 
       // Empty list items array
       expect(list.listItems).to.have.lengthOf(0);
