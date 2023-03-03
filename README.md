@@ -130,54 +130,9 @@ npm run test-integrations
 
 This API sends two kinds of events to the Pocket Event Bridge --> Snowplow: `shareable-list` and `shareable-list-item` events.
 
-The following are event types defined for the `shareable-list` event:
-
-- `shareable-list-created`
-- `shareable-list-updated`
-- `shareable-list-deleted`
-- `shareable-list-published`
-- `shareable-list-unpublished`
-- `shareable-list-hidden`
-
-The Snowplow schema for a `shareable-list` event looks like the following:
-
-```
-shareable_list {
-  shareable_list_external_id: string;
-  slug: string;
-  title: string;
-  description?: string;
-  status: ListStatus;
-  moderation_status: ModerationStatus;
-  moderated_by?: string;
-  moderation_reason?: string;
-  created_at: number; // snowplow schema requires this field in seconds
-  updated_at?: number; // snowplow schema requires this field in seconds
-}
-```
-
-The following are event types defined for the `shareable-list-item` event:
-
-- `shareable-list-item-created`
-- `shareable-list-item-deleted`
-
-The Snowplow schema for a `shareable-list-item` event looks like the following:
-
-```
-shareable_list_item {
-  shareable_list_item_external_id: string;
-  shareable_list_external_id: string;
-  given_url: string;
-  title?: string;
-  excerpt?: string;
-  image_url?: string;
-  authors?: string[];
-  publisher?: string;
-  sort_order: number;
-  created_at: number; // snowplow schema requires this field in seconds
-  updated_at?: number; // snowplow schema requires this field in seconds
-}
-```
+- `shareable_list` JSON schema: [Snowplow schema](https://console.snowplowanalytics.com/cf0fba6b-23b3-49a0-9d79-7ce18b8f9618/data-structures/7b895f09809942a835587b02a58b7a835f92e16a726f5d224a43b90d219ae9c4)
+- `shareable_list_item` JSON schema: [Snowplow schema] (https://console.snowplowanalytics.com/cf0fba6b-23b3-49a0-9d79-7ce18b8f9618/data-structures/5c6a2540cd75d3baef34f659a7902732616502c996e513770d7e2c8bad926fc6)
+- event triggers: [object_update Snowplow schema](https://console.snowplowanalytics.com/cf0fba6b-23b3-49a0-9d79-7ce18b8f9618/data-structures/a30c8f05ecf12d2b53202ed1cf161a4c578fab653f846550a20392659449dbad)
 
 The API maps the GraphQL API types to the Snowplow types and sends both events to the Pocket Event Bridge. The core logic happens in `src/snowplow/events.ts` where the `sendEvent` function takes in a payload and sends it to the Pocket Bridge.
 

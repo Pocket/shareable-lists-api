@@ -152,7 +152,7 @@ export async function updateShareableList(
     });
   }
   // if only list title or description are updated, send event bridge event for shareable-list-updated event type
-  if (data.title || data.description) {
+  if ((data.title || data.description) && !data.status) {
     await sendEvent(EventBridgeEventType.SHAREABLE_LIST_UPDATED, {
       shareableList: updatedList as ShareableListComplete,
       isShareableListEventType: true,

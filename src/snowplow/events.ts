@@ -146,7 +146,6 @@ export async function sendEventHelper(
       options.listExternalId
     );
   }
-
   // Send payload to Event Bridge.
   try {
     await sendEvent(
