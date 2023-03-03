@@ -4,3 +4,5 @@ export {
   getShareableLists,
   searchShareableList,
 } from './queries/ShareableList';
+
+export { isPilotUser } from './queries/PilotUser';
