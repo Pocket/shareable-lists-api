@@ -158,6 +158,11 @@ type Query {
   (the user ID will be coming through with the headers)
   """
   shareableLists: [ShareableList!]!
+
+  """
+  Determines if the userid passed in the headers has access to the pilot program.
+  """
+  isPilotUser: Boolean!
 }
 
 type Mutation {
