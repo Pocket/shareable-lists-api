@@ -143,10 +143,10 @@ describe('public mutations: ShareableListItem', () => {
     it('should create a new list item', async () => {
       const data: CreateShareableListItemInput = {
         listExternalId: list.externalId,
-        itemId: 1,
+        itemId: 3789538749,
         url: 'https://www.test.com/this-is-a-story',
         title: 'A story is a story',
-        excerpt: 'The best story ever told',
+        excerpt: '<blink>The best story ever told</blink>',
         imageUrl: 'https://www.test.com/thumbnail.jpg',
         publisher: 'The London Times',
         authors: 'Charles Dickens, Mark Twain',
@@ -170,10 +170,12 @@ describe('public mutations: ShareableListItem', () => {
       // Assert that all props are returned
       const listItem = result.body.data.createShareableListItem;
       expect(listItem.externalId).not.to.be.empty;
-      expect(listItem.itemId).to.equal(1);
+      expect(listItem.itemId).to.equal(3789538749);
       expect(listItem.url).to.equal(data.url);
       expect(listItem.title).to.equal(data.title);
-      expect(listItem.excerpt).to.equal(data.excerpt);
+      expect(listItem.excerpt).to.equal(
+        '&lt;blink&gt;The best story ever told&lt;/blink&gt;'
+      );
       expect(listItem.imageUrl).to.equal(data.imageUrl);
       expect(listItem.publisher).to.equal(data.publisher);
       expect(listItem.authors).to.equal(data.authors);
@@ -231,7 +233,7 @@ describe('public mutations: ShareableListItem', () => {
 
       const data: CreateShareableListItemInput = {
         listExternalId: list.externalId,
-        itemId: 1,
+        itemId: 3789538749,
         url: 'https://www.test.com/another-duplicate-url',
         title: 'A story is a story',
         excerpt: 'The best story ever told',
@@ -258,7 +260,7 @@ describe('public mutations: ShareableListItem', () => {
       // Assert that all props are returned
       const listItem = result.body.data.createShareableListItem;
       expect(listItem.externalId).not.to.be.empty;
-      expect(listItem.itemId).to.equal(1);
+      expect(listItem.itemId).to.equal(3789538749);
       expect(listItem.url).to.equal(data.url);
       expect(listItem.title).to.equal(data.title);
       expect(listItem.excerpt).to.equal(data.excerpt);
@@ -307,8 +309,10 @@ describe('public mutations: ShareableListItem', () => {
         });
       expect(result.body.data).not.to.exist;
       expect(result.body.errors.length).to.equal(1);
-      expect(result.body.errors[0].extensions.code).to.equal('FORBIDDEN');
-      expect(result.body.errors[0].message).to.equal(ACCESS_DENIED_ERROR);
+      expect(result.body.errors[0].extensions.code).to.equal('NOT_FOUND');
+      expect(result.body.errors[0].message).to.equal(
+        'Error - Not Found: A list item by that ID could not be found'
+      );
     });
 
     it('should not delete a list item without userId in header', async () => {
@@ -363,8 +367,10 @@ describe('public mutations: ShareableListItem', () => {
         });
       expect(result.body.data).not.to.exist;
       expect(result.body.errors.length).to.equal(1);
-      expect(result.body.errors[0].extensions.code).to.equal('FORBIDDEN');
-      expect(result.body.errors[0].message).to.equal(ACCESS_DENIED_ERROR);
+      expect(result.body.errors[0].extensions.code).to.equal('NOT_FOUND');
+      expect(result.body.errors[0].message).to.equal(
+        'Error - Not Found: A list item by that ID could not be found'
+      );
     });
 
     it('should successfully delete a list item', async () => {

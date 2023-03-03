@@ -64,3 +64,19 @@ type Query {
   """
   searchShareableList(externalId: ID!): ShareableList
 }
+
+"""
+Input data for removing (moderating) a ShareableList
+"""
+input ModerateShareableListInput {
+  externalId: ID!
+  moderationStatus: ShareableListModerationStatus!
+  moderationReason: String!
+}
+
+type Mutation {
+	"""
+	Removes (moderates) a Shareable List.
+	"""
+	moderateShareableList(data: ModerateShareableListInput!): ShareableList
+}

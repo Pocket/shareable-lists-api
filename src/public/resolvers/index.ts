@@ -4,6 +4,7 @@ import {
   getShareableListPublic,
   getShareableLists,
 } from './queries/ShareableList';
+import { PrismaBigIntResolver } from '../../shared/resolvers/fields/PrismaBigInt';
 import {
   createShareableList,
   deleteShareableList,
@@ -13,12 +14,15 @@ import {
   createShareableListItem,
   deleteShareableListItem,
 } from './mutations/ShareableListItem';
-import { PrismaBigIntResolver } from '../../shared/resolvers/fields/PrismaBigInt';
 
 export const resolvers = {
   ...PocketDefaultScalars,
+
   ShareableList: {
     userId: PrismaBigIntResolver,
+  },
+  ShareableListItem: {
+    itemId: PrismaBigIntResolver,
   },
   Mutation: {
     createShareableList,

@@ -48,7 +48,7 @@ The sample headers below allow full access to all queries and mutations:
 {
   "groups": "mozilliansorg_pocket_moderation_full",
   "name": "Matt McPockets",
-  "username": "ad|Mozilla-LDAP|mmcpockets"
+  "username": "mmcpockets"
 }
 ```
 

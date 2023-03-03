@@ -54,7 +54,7 @@ model ListItem {
   // The link to the parent List
   listId     BigInt
   // Optional ID of Parser Item and Item props outside of this subgraph's control
-  itemId     Int?
+  itemId     BigInt?
   url        String?  @db.VarChar(1000)
   title      String?  @db.VarChar(300)
   excerpt    String?  @db.Text
@@ -70,4 +70,13 @@ model ListItem {
 
   // *** Additional indexes and constraints ***
   @@unique([externalId])
+}
+
+model PilotUser {
+  userId          BigInt    @id
+  // is the user a mozilla employee?
+  mozillaEmployee Boolean   @default(false)
+  // who added this user?
+  createdBy       String?
+  createdAt       DateTime  @default(now()) @db.DateTime(0)
 }

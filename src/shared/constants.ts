@@ -7,3 +7,9 @@ export const ACCESS_DENIED_ERROR =
   'You do not have access to perform this action.';
 
 export const PRISMA_RECORD_NOT_FOUND = 'P2025';
+
+export const MODERATION_REASON_REQUIRED_ERROR =
+  'A reason for this moderation entry is required';
+export const LIST_TITLE_MAX_CHARS = 100;
+
+export const LIST_DESCRIPTION_MAX_CHARS = 200;
