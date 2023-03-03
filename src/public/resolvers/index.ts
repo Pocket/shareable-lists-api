@@ -27,6 +27,6 @@ export const resolvers = {
   Query: {
     shareableList: getShareableList,
     shareableLists: getShareableLists,
-    isPilotUser,
+    shareableListsPilotUser: isPilotUser,
   },
 };
