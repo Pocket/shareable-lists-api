@@ -2,7 +2,7 @@ import { expect } from 'chai';
 import {
   CreateShareableListInput,
   CreateShareableListItemInput,
-} from '../../../database/types';
+} from '../../database/types';
 import { sanitizeMutationInput } from './utils';
 
 describe('utility functions', () => {

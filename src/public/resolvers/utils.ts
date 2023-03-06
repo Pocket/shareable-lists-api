@@ -1,5 +1,7 @@
-import { IPublicContext } from '../../context';
+import { IPublicContext } from '../context';
 import xss from 'xss';
+import { ForbiddenError } from '@pocket-tools/apollo-utils';
+import { ACCESS_DENIED_ERROR } from '../../shared/constants';
 
 /**
  * Executes a mutation, catches exceptions and records to sentry and console
@@ -14,7 +16,9 @@ export async function executeMutation<T, U>(
 ): Promise<U> {
   const { db, userId } = context;
 
-  return await callback(db, sanitizeMutationInput(data), userId);
+  const validatedUserId = validateUserId(userId);
+
+  return await callback(db, sanitizeMutationInput(data), validatedUserId);
 }
 
 /**
@@ -38,4 +42,18 @@ export function sanitizeMutationInput<InputType>(input: InputType): InputType {
   }
 
   return sanitizedInput;
+}
+
+/**
+ * Checks that the Pocket user ID is present.
+ *
+ * @param userId
+ */
+export function validateUserId(userId: number | bigint): number | bigint {
+  // We need this check for nearly every query and mutation on the public graph
+  if (!userId) {
+    throw new ForbiddenError(ACCESS_DENIED_ERROR);
+  }
+
+  return userId;
 }

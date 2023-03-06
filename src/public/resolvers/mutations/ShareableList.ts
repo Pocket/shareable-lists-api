@@ -9,7 +9,7 @@ import {
   updateShareableList as dbUpdateShareableList,
 } from '../../../database/mutations';
 import { IPublicContext } from '../../context';
-import { executeMutation } from './utils';
+import { executeMutation } from '../utils';
 
 /**
  * @param parent

@@ -1,4 +1,5 @@
 import { isPilotUser as dbIsPilotUser } from '../../../database/queries';
+import { validateUserId } from '../utils';
 
 /**
  * Resolver for the public 'isPilotUser` query.
@@ -9,5 +10,5 @@ import { isPilotUser as dbIsPilotUser } from '../../../database/queries';
  * @param db // in context
  */
 export async function isPilotUser(parent, _, { userId, db }): Promise<boolean> {
-  return (await dbIsPilotUser(db, userId)) > 0 ? true : false;
+  return (await dbIsPilotUser(db, validateUserId(userId))) > 0 ? true : false;
 }

@@ -7,7 +7,7 @@ import {
   createShareableListItem as dbCreateShareableListItem,
   deleteShareableListItem as dbDeleteShareableListItem,
 } from '../../../database/mutations';
-import { executeMutation } from './utils';
+import { executeMutation } from '../utils';
 
 /**
  * @param parent
