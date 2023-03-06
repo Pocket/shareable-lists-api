@@ -66,7 +66,7 @@ export async function createShareableListItem(
   });
 
   //send event bridge event for shareable-list-item-created event type
-  await sendEvent(EventBridgeEventType.SHAREABLE_LIST_ITEM_CREATED, {
+  sendEvent(EventBridgeEventType.SHAREABLE_LIST_ITEM_CREATED, {
     shareableListItem: listItem,
     shareableListItemExternalId: listItem.externalId,
     listExternalId: list.externalId,
@@ -127,7 +127,7 @@ export async function deleteShareableListItem(
     });
 
   //send event bridge event for shareable-list-item-deleted event type
-  await sendEvent(EventBridgeEventType.SHAREABLE_LIST_ITEM_DELETED, {
+  sendEvent(EventBridgeEventType.SHAREABLE_LIST_ITEM_DELETED, {
     shareableListItem: listItem,
     shareableListItemExternalId: listItem.externalId,
     listExternalId: listItem.list.externalId,

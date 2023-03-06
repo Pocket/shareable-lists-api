@@ -56,7 +56,7 @@ export async function createShareableList(
   });
 
   //send event bridge event for shareable-list-created event type
-  await sendEvent(EventBridgeEventType.SHAREABLE_LIST_CREATED, {
+  sendEvent(EventBridgeEventType.SHAREABLE_LIST_CREATED, {
     shareableList: list as ShareableListComplete,
     isShareableListEventType: true,
   });
@@ -138,30 +138,8 @@ export async function updateShareableList(
     },
   });
 
-  // this mutation does a lot of things so we need to break down the operations to determine
-  // what events to send to snowplow
-
-  // if list was published, send event bridge event for shareable-list-published event type
-  if (data.status === ListStatus.PUBLIC) {
-    await sendEvent(EventBridgeEventType.SHAREABLE_LIST_PUBLISHED, {
-      shareableList: updatedList as ShareableListComplete,
-      isShareableListEventType: true,
-    });
-  }
-  // if list was unpublished, send event bridge event for shareable-list-unpublished event type
-  if (data.status === ListStatus.PRIVATE) {
-    await sendEvent(EventBridgeEventType.SHAREABLE_LIST_UNPUBLISHED, {
-      shareableList: updatedList as ShareableListComplete,
-      isShareableListEventType: true,
-    });
-  }
-  // if only list title or description are updated, send event bridge event for shareable-list-updated event type
-  if ((data.title || data.description) && !data.status) {
-    await sendEvent(EventBridgeEventType.SHAREABLE_LIST_UPDATED, {
-      shareableList: updatedList as ShareableListComplete,
-      isShareableListEventType: true,
-    });
-  }
+  // send update event to event bridge
+  sendEventHelper(data, updatedList, list);
 
   return updatedList;
 }
@@ -203,7 +181,7 @@ export async function moderateShareableList(
 
   // for now, we only support snowplow events for taking down a list (shareable-list-hidden trigger)
   if (data.moderationStatus === ModerationStatus.HIDDEN) {
-    await sendEvent(EventBridgeEventType.SHAREABLE_LIST_HIDDEN, {
+    sendEvent(EventBridgeEventType.SHAREABLE_LIST_HIDDEN, {
       shareableList: list as ShareableListComplete,
       isShareableListEventType: true,
     });
@@ -306,5 +284,41 @@ function shareableListTitleDescriptionValidation(
     throw new UserInputError(
       'List description must not be longer than 200 characters'
     );
+  }
+}
+
+/**
+ * updateShareableList mutation does a lot of things so we need to break down the operations in a helper function
+ * to determine what events to send to snowplow
+ **/
+function sendEventHelper(
+  data: UpdateShareableListInput,
+  updatedList: ShareableListComplete,
+  list: ShareableList
+) {
+  // if list was published, send event bridge event for shareable-list-published event type
+  if (data.status !== list.status && data.status === ListStatus.PUBLIC) {
+    sendEvent(EventBridgeEventType.SHAREABLE_LIST_PUBLISHED, {
+      shareableList: updatedList as ShareableListComplete,
+      isShareableListEventType: true,
+    });
+  }
+  // if list was unpublished, send event bridge event for shareable-list-unpublished event type
+  if (data.status !== list.status && data.status === ListStatus.PRIVATE) {
+    sendEvent(EventBridgeEventType.SHAREABLE_LIST_UNPUBLISHED, {
+      shareableList: updatedList as ShareableListComplete,
+      isShareableListEventType: true,
+    });
+  }
+  // if only list title or description are updated, send event bridge event for shareable-list-updated event type
+  if (
+    ((data.title && data.title !== list.title) ||
+      (data.description && data.description !== list.description)) &&
+    !data.status
+  ) {
+    sendEvent(EventBridgeEventType.SHAREABLE_LIST_UPDATED, {
+      shareableList: updatedList as ShareableListComplete,
+      isShareableListEventType: true,
+    });
   }
 }
