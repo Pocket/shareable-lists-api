@@ -125,7 +125,7 @@ describe('public mutations: ShareableList', () => {
         description: faker.lorem.sentences(2),
       };
 
-      const listItemData: CreateShareableListItemInput = {
+      const listItemData = {
         itemId: 3789538749,
         url: 'https://www.test.com/this-is-a-story',
         title: 'A story is a story',

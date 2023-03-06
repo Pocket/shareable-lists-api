@@ -47,7 +47,7 @@ export type ModerateShareableListInput = {
 };
 
 export type CreateShareableListItemInput = {
-  listExternalId?: string;
+  listExternalId: string;
   itemId?: number;
   url: string;
   title?: string;

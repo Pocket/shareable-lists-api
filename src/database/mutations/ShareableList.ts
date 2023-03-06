@@ -71,9 +71,13 @@ export async function createShareableList(
     // first set the list external id
     listItemData['listExternalId'] = list.externalId;
     // create the ShareableListItem
-    await createShareableListItem(db, listItemData, userId);
-    // look up the ShareableList with the created ShareableListItem included in the result
-    list = getShareableList(db, userId, list.externalId);
+    const createdListItem = await createShareableListItem(
+      db,
+      listItemData,
+      userId
+    );
+    // add the created ShareableListItem to the created ShareableList
+    list['listItems'] = [createdListItem];
   }
   return list;
 }
