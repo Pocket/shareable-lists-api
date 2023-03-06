@@ -179,8 +179,7 @@ describe('public queries: ShareableList', () => {
         .send({
           query: print(GET_SHAREABLE_LIST_PUBLIC),
           variables: {
-            slug: 'this-list-does-not-exist',
-            userId: 12345,
+            externalId: '1234-abcd',
           },
         });
 
@@ -211,8 +210,7 @@ describe('public queries: ShareableList', () => {
         .send({
           query: print(GET_SHAREABLE_LIST_PUBLIC),
           variables: {
-            slug: list.slug,
-            userId: Number(list.userId),
+            externalId: list.externalId,
           },
         });
 
@@ -241,8 +239,7 @@ describe('public queries: ShareableList', () => {
         .send({
           query: print(GET_SHAREABLE_LIST_PUBLIC),
           variables: {
-            slug: newList.slug,
-            userId: Number(newList.userId),
+            externalId: newList.externalId,
           },
         });
 
@@ -275,7 +272,54 @@ describe('public queries: ShareableList', () => {
       expect(list.listItems).to.have.lengthOf(0);
     });
 
-    it.todo('should return a list with list items');
+    it('should return a list with list items', async () => {
+      const newList = await createShareableListHelper(db, {
+        userId: parseInt(headers.userId),
+        title: 'This is a new list',
+        slug: 'the-slug',
+        status: ListStatus.PUBLIC,
+        moderationStatus: ModerationStatus.VISIBLE,
+      });
+
+      // Create a couple of list items
+      await createShareableListItemHelper(db, { list: newList });
+      await createShareableListItemHelper(db, { list: newList });
+
+      // Run the query we're testing
+      const result = await request(app)
+        .post(graphQLUrl)
+        .send({
+          query: print(GET_SHAREABLE_LIST_PUBLIC),
+          variables: {
+            externalId: newList.externalId,
+          },
+        });
+
+      // A result should be returned
+      expect(result.body.data.shareableListPublic).not.to.be.null;
+
+      // There should be no errors
+      expect(result.body.errors).to.be.undefined;
+
+      // There should be two list items
+      expect(result.body.data.shareableListPublic.listItems).to.have.lengthOf(
+        2
+      );
+
+      // Let's run through the visible props of each item
+      // to make sure they're all there
+      result.body.data.shareableListPublic.listItems.forEach((listItem) => {
+        expect(listItem.url).not.to.be.empty;
+        expect(listItem.title).not.to.be.empty;
+        expect(listItem.excerpt).not.to.be.empty;
+        expect(listItem.imageUrl).not.to.be.empty;
+        expect(listItem.publisher).not.to.be.empty;
+        expect(listItem.authors).not.to.be.empty;
+        expect(listItem.sortOrder).to.be.a('number');
+        expect(listItem.createdAt).not.to.be.empty;
+        expect(listItem.updatedAt).not.to.be.empty;
+      });
+    });
   });
 
   describe('shareableLists query', () => {

@@ -45,16 +45,15 @@ export function sanitizeMutationInput<InputType>(input: InputType): InputType {
 }
 
 /**
- * Checks that the Pocket user ID is present and makes sure it is
- * returned as a numeric value.
+ * Checks that the Pocket user ID is present.
  *
  * @param userId
  */
-export function validateUserId(userId: string | string[]): number | bigint {
+export function validateUserId(userId: number | bigint): number | bigint {
   // We need this check for nearly every query and mutation on the public graph
   if (!userId) {
     throw new ForbiddenError(ACCESS_DENIED_ERROR);
   }
 
-  return userId instanceof Array ? parseInt(userId[0]) : parseInt(userId);
+  return userId;
 }

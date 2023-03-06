@@ -155,7 +155,7 @@ type Query {
   """
   Returns a publicly-shared Shareable List. Note: this query does not require user authentication.
   """
-  shareableListPublic(slug: String!, userId: Float!): ShareableList
+  shareableListPublic(externalId: ID!): ShareableList
   """
   Looks up and returns an array of Shareable Lists for a given user ID for a given user.
   (the user ID will be coming through with the headers)

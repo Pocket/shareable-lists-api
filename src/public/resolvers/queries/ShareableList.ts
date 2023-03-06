@@ -41,13 +41,13 @@ export async function getShareableList(
  */
 export async function getShareableListPublic(
   parent,
-  { slug, userId },
+  { externalId },
   { db }
 ): Promise<ShareableList> {
-  const list = await dbGetShareableListPublic(db, userId, slug);
+  const list = await dbGetShareableListPublic(db, externalId);
 
   if (!list) {
-    throw new NotFoundError(slug);
+    throw new NotFoundError(externalId);
   }
 
   return list;

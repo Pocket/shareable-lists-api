@@ -41,13 +41,11 @@ export function getShareableList(
  */
 export async function getShareableListPublic(
   db: PrismaClient,
-  userId: number | bigint,
-  slug: string
+  externalId: string
 ): Promise<ShareableList> {
-  const list = await db.list.findFirst({
+  const list = await db.list.findUnique({
     where: {
-      userId,
-      slug,
+      externalId,
     },
     include: {
       listItems: true,
