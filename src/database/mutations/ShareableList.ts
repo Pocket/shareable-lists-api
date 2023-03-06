@@ -16,7 +16,7 @@ import {
 } from '../../shared/constants';
 import { getShareableList } from '../queries';
 import config from '../../config';
-import { sendEventHelper as sendEvent } from '../../snowplow/events';
+import { sendEventHelper } from '../../snowplow/events';
 import { EventBridgeEventType } from '../../snowplow/types';
 
 /**
@@ -56,7 +56,7 @@ export async function createShareableList(
   });
 
   //send event bridge event for shareable-list-created event type
-  sendEvent(EventBridgeEventType.SHAREABLE_LIST_CREATED, {
+  sendEventHelper(EventBridgeEventType.SHAREABLE_LIST_CREATED, {
     shareableList: list as ShareableListComplete,
     isShareableListEventType: true,
   });
@@ -139,7 +139,7 @@ export async function updateShareableList(
   });
 
   // send update event to event bridge
-  sendEventHelper(data, updatedList, list);
+  updateShareableListBridgeEventHelper(data, updatedList, list);
 
   return updatedList;
 }
@@ -181,7 +181,7 @@ export async function moderateShareableList(
 
   // for now, we only support snowplow events for taking down a list (shareable-list-hidden trigger)
   if (data.moderationStatus === ModerationStatus.HIDDEN) {
-    sendEvent(EventBridgeEventType.SHAREABLE_LIST_HIDDEN, {
+    sendEventHelper(EventBridgeEventType.SHAREABLE_LIST_HIDDEN, {
       shareableList: list as ShareableListComplete,
       isShareableListEventType: true,
     });
@@ -258,7 +258,7 @@ export async function deleteShareableList(
     });
 
   //send event bridge event for shareable-list-deleted event type
-  await sendEvent(EventBridgeEventType.SHAREABLE_LIST_DELETED, {
+  sendEventHelper(EventBridgeEventType.SHAREABLE_LIST_DELETED, {
     shareableList: deleteList as ShareableListComplete,
     isShareableListEventType: true,
   });
@@ -291,32 +291,34 @@ function shareableListTitleDescriptionValidation(
  * updateShareableList mutation does a lot of things so we need to break down the operations in a helper function
  * to determine what events to send to snowplow
  **/
-function sendEventHelper(
+function updateShareableListBridgeEventHelper(
   data: UpdateShareableListInput,
   updatedList: ShareableListComplete,
   list: ShareableList
 ) {
-  // if list was published, send event bridge event for shareable-list-published event type
-  if (data.status !== list.status && data.status === ListStatus.PUBLIC) {
-    sendEvent(EventBridgeEventType.SHAREABLE_LIST_PUBLISHED, {
-      shareableList: updatedList as ShareableListComplete,
-      isShareableListEventType: true,
-    });
+  // check if list status was updated
+  if (data.status !== list.status) {
+    // if list was published, send event bridge event for shareable-list-published event type
+    if (data.status === ListStatus.PUBLIC) {
+      sendEventHelper(EventBridgeEventType.SHAREABLE_LIST_PUBLISHED, {
+        shareableList: updatedList as ShareableListComplete,
+        isShareableListEventType: true,
+      });
+    }
+    // else if list was unpublished, send event bridge event for shareable-list-unpublished event type
+    else if (data.status === ListStatus.PRIVATE) {
+      sendEventHelper(EventBridgeEventType.SHAREABLE_LIST_UNPUBLISHED, {
+        shareableList: updatedList as ShareableListComplete,
+        isShareableListEventType: true,
+      });
+    }
   }
-  // if list was unpublished, send event bridge event for shareable-list-unpublished event type
-  if (data.status !== list.status && data.status === ListStatus.PRIVATE) {
-    sendEvent(EventBridgeEventType.SHAREABLE_LIST_UNPUBLISHED, {
-      shareableList: updatedList as ShareableListComplete,
-      isShareableListEventType: true,
-    });
-  }
-  // if only list title or description are updated, send event bridge event for shareable-list-updated event type
+  // if list title or description are updated, send event bridge event for shareable-list-updated event type
   if (
-    ((data.title && data.title !== list.title) ||
-      (data.description && data.description !== list.description)) &&
-    !data.status
+    (data.title && data.title !== list.title) ||
+    (data.description && data.description !== list.description)
   ) {
-    sendEvent(EventBridgeEventType.SHAREABLE_LIST_UPDATED, {
+    sendEventHelper(EventBridgeEventType.SHAREABLE_LIST_UPDATED, {
       shareableList: updatedList as ShareableListComplete,
       isShareableListEventType: true,
     });
