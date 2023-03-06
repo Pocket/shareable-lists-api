@@ -12,7 +12,7 @@ import { ACCESS_DENIED_ERROR } from '../../shared/constants';
  * @param userId
  * @param externalId
  */
-export async function getShareableList(
+export function getShareableList(
   db: PrismaClient,
   userId: number | bigint,
   externalId: string
@@ -74,7 +74,7 @@ export async function getShareableListPublic(
  * @param db
  * @param userId
  */
-export async function getShareableLists(
+export function getShareableLists(
   db: PrismaClient,
   userId: number | bigint
 ): Promise<ShareableList[]> {
@@ -97,7 +97,7 @@ export async function getShareableLists(
  * @param db
  * @param externalId
  */
-export async function searchShareableList(
+export function searchShareableList(
   db: PrismaClient,
   externalId: string
 ): Promise<ShareableListComplete> {

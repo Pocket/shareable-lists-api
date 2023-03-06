@@ -331,7 +331,7 @@ describe('public mutations: ShareableList', () => {
       // Create a List
       listToUpdate = await createShareableListHelper(db, {
         userId: parseInt(headers.userId),
-        title: '<marquee>The Most Shareable List</marquee>',
+        title: 'The Most Shareable List',
       });
     });
 
@@ -431,6 +431,31 @@ describe('public mutations: ShareableList', () => {
         'errors[0].extensions.code',
         'BAD_USER_INPUT'
       );
+    });
+
+    it('should allow the update if the existing title is passed', async () => {
+      const data: UpdateShareableListInput = {
+        externalId: listToUpdate.externalId,
+        title: listToUpdate.title, // send the existing title
+        description: 'my b i forgot the description last time',
+      };
+
+      const result = await request(app)
+        .post(graphQLUrl)
+        .set(headers)
+        .send({
+          query: print(UPDATE_SHAREABLE_LIST),
+          variables: { data },
+        });
+
+      // There should be no errors
+      expect(result.body.errors).to.be.undefined;
+
+      // A result should be returned
+      expect(result.body.data.updateShareableList).not.to.be.null;
+
+      // the title should remain unchanged
+      expect(result.body.data.updateShareableList.title).to.equal(data.title);
     });
 
     it('should generate a slug if a list is being made public for the first time', async () => {

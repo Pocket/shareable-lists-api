@@ -27,3 +27,9 @@ export const GET_SHAREABLE_LISTS = gql`
   }
   ${ShareableListPublicProps}
 `;
+
+export const SHAREABLE_LISTS_PILOT_USER = gql`
+  query shareableListsPilotUser {
+    shareableListsPilotUser
+  }
+`;
