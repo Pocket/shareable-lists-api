@@ -33,11 +33,10 @@ export function getShareableList(
 
 /**
  * This query returns a publicly viewable Shareable List,
- * retrieved by its slug and user ID.
+ * retrieved by its external ID
  *
  * @param db
- * @param userId
- * @param slug
+ * @param externalId
  */
 export async function getShareableListPublic(
   db: PrismaClient,

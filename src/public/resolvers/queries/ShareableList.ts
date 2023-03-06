@@ -31,12 +31,9 @@ export async function getShareableList(
 
 /**
  * Resolver for the `shareableListPublic` query.
- * Note the userId for this query comes from a request variable
- * and not authentication headers.
  *
  * @param parent
- * @param slug
- * @param userId
+ * @param externalId
  * @param db
  */
 export async function getShareableListPublic(
