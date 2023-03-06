@@ -25,6 +25,7 @@ export type ShareableListComplete = Omit<List, 'id'>;
 export type CreateShareableListInput = {
   title: string;
   description?: string;
+  listItem?: CreateShareableListItemInput;
 };
 
 export type UpdateShareableListInput = {
@@ -46,7 +47,7 @@ export type ModerateShareableListInput = {
 };
 
 export type CreateShareableListItemInput = {
-  listExternalId: string;
+  listExternalId?: string;
   itemId?: number;
   url: string;
   title?: string;
