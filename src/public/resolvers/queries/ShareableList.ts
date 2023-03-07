@@ -1,9 +1,11 @@
 import { NotFoundError } from '@pocket-tools/apollo-utils';
 import {
   getShareableList as dbGetShareableList,
+  getShareableListPublic as dbGetShareableListPublic,
   getShareableLists as dbGetShareableLists,
 } from '../../../database/queries';
 import { ShareableList } from '../../../database/types';
+import { validateUserId } from '../utils';
 
 /**
  * Resolver for the public 'shareableList` query.
@@ -18,7 +20,28 @@ export async function getShareableList(
   { externalId },
   { userId, db }
 ): Promise<ShareableList> {
-  const list = await dbGetShareableList(db, userId, externalId);
+  const list = await dbGetShareableList(db, validateUserId(userId), externalId);
+
+  if (!list) {
+    throw new NotFoundError(externalId);
+  }
+
+  return list;
+}
+
+/**
+ * Resolver for the `shareableListPublic` query.
+ *
+ * @param parent
+ * @param externalId
+ * @param db
+ */
+export async function getShareableListPublic(
+  parent,
+  { externalId },
+  { db }
+): Promise<ShareableList> {
+  const list = await dbGetShareableListPublic(db, externalId);
 
   if (!list) {
     throw new NotFoundError(externalId);
@@ -39,5 +62,5 @@ export async function getShareableLists(
   _,
   { userId, db }
 ): Promise<ShareableList[]> {
-  return await dbGetShareableLists(db, userId);
+  return await dbGetShareableLists(db, validateUserId(userId));
 }
