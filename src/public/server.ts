@@ -10,17 +10,30 @@ import {
 } from '@apollo/server/plugin/disabled';
 import { ApolloServerPluginInlineTrace } from '@apollo/server/plugin/inlineTrace';
 import { ApolloServerPluginDrainHttpServer } from '@apollo/server/plugin/drainHttpServer';
+import {
+  createApollo4QueryValidationPlugin,
+  constraintDirectiveTypeDefs,
+} from 'graphql-constraint-directive/apollo4';
 
 import { typeDefsPublic } from '../typeDefs';
 import { resolvers } from './resolvers';
 import { IPublicContext } from './context';
+import { gql } from 'graphql-tag';
 
 export function getPublicServer(
   httpServer: Server
 ): ApolloServer<IPublicContext> {
+  // Add @constraint directive to the schema
+  const schema = buildSubgraphSchema({
+    typeDefs: [gql(constraintDirectiveTypeDefs), typeDefsPublic],
+  });
+
   const defaultPlugins = [
     sentryPlugin,
     ApolloServerPluginDrainHttpServer({ httpServer }),
+    createApollo4QueryValidationPlugin({
+      schema,
+    }),
   ];
   const prodPlugins = [
     ApolloServerPluginLandingPageDisabled(),
