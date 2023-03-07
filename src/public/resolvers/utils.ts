@@ -1,7 +1,11 @@
-import { IPublicContext } from '../context';
 import xss from 'xss';
+
+import { PrismaClient } from '@prisma/client';
 import { ForbiddenError } from '@pocket-tools/apollo-utils';
+
+import { IPublicContext } from '../context';
 import { ACCESS_DENIED_ERROR } from '../../shared/constants';
+import { isPilotUser } from '../../database/queries';
 
 /**
  * Executes a mutation, catches exceptions and records to sentry and console
@@ -16,7 +20,7 @@ export async function executeMutation<T, U>(
 ): Promise<U> {
   const { db, userId } = context;
 
-  const validatedUserId = validateUserId(userId);
+  const validatedUserId = await validateUserId(db, userId);
 
   return await callback(db, sanitizeMutationInput(data), validatedUserId);
 }
@@ -49,9 +53,18 @@ export function sanitizeMutationInput<InputType>(input: InputType): InputType {
  *
  * @param userId
  */
-export function validateUserId(userId: number | bigint): number | bigint {
+export async function validateUserId(
+  db: PrismaClient,
+  userId: number | bigint
+): Promise<number | bigint> {
   // We need this check for nearly every query and mutation on the public graph
   if (!userId) {
+    throw new ForbiddenError(ACCESS_DENIED_ERROR);
+  }
+
+  const isInPilot = await isPilotUser(db, userId);
+
+  if (isInPilot <= 0) {
     throw new ForbiddenError(ACCESS_DENIED_ERROR);
   }
 

@@ -20,7 +20,11 @@ export async function getShareableList(
   { externalId },
   { userId, db }
 ): Promise<ShareableList> {
-  const list = await dbGetShareableList(db, validateUserId(userId), externalId);
+  const list = await dbGetShareableList(
+    db,
+    await validateUserId(db, userId),
+    externalId
+  );
 
   if (!list) {
     throw new NotFoundError(externalId);
@@ -62,5 +66,5 @@ export async function getShareableLists(
   _,
   { userId, db }
 ): Promise<ShareableList[]> {
-  return await dbGetShareableLists(db, validateUserId(userId));
+  return await dbGetShareableLists(db, await validateUserId(db, userId));
 }

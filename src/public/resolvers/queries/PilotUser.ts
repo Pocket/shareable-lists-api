@@ -10,5 +10,9 @@ import { validateUserId } from '../utils';
  * @param db // in context
  */
 export async function isPilotUser(parent, _, { userId, db }): Promise<boolean> {
-  return (await dbIsPilotUser(db, validateUserId(userId))) > 0 ? true : false;
+  if (isNaN(userId)) {
+    return false;
+  }
+
+  return (await dbIsPilotUser(db, userId)) > 0 ? true : false;
 }

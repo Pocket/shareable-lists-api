@@ -7,6 +7,7 @@ import {
   List,
   ListStatus,
   ModerationStatus,
+  PilotUser,
   PrismaClient,
 } from '@prisma/client';
 import { EventBridgeClient } from '@aws-sdk/client-eventbridge';
@@ -26,6 +27,7 @@ import {
 } from './sample-mutations.gql';
 import {
   clearDb,
+  createPilotUserHelper,
   createShareableListHelper,
   createShareableListItemHelper,
 } from '../../../test/helpers';
@@ -42,9 +44,11 @@ describe('public mutations: ShareableList', () => {
   let graphQLUrl: string;
   let db: PrismaClient;
   let eventBridgeClientStub: sinon.SinonStub;
+  let pilotUser1: PilotUser;
+  let pilotUser2: PilotUser;
 
   const headers = {
-    userId: '12345',
+    userId: '8009882300',
   };
 
   beforeAll(async () => {
@@ -69,6 +73,15 @@ describe('public mutations: ShareableList', () => {
 
   beforeEach(async () => {
     await clearDb(db);
+
+    // create pilot users
+    pilotUser1 = await createPilotUserHelper(db, {
+      userId: parseInt(headers.userId),
+    });
+
+    pilotUser2 = await createPilotUserHelper(db, {
+      userId: 7732025862,
+    });
   });
 
   describe('createShareableList', () => {
@@ -88,6 +101,27 @@ describe('public mutations: ShareableList', () => {
       };
       const result = await request(app)
         .post(graphQLUrl)
+        .send({
+          query: print(CREATE_SHAREABLE_LIST),
+          variables: { listData: data },
+        });
+      expect(result.body.data.createShareableList).not.to.exist;
+      expect(result.body.errors.length).to.equal(1);
+      expect(result.body.errors[0].extensions.code).to.equal('FORBIDDEN');
+      expect(result.body.errors[0].message).to.equal(ACCESS_DENIED_ERROR);
+    });
+
+    it('should not create a new List for a non-pilot user', async () => {
+      const title = faker.random.words(2);
+      const data: CreateShareableListInput = {
+        title: title,
+        description: faker.lorem.sentences(2),
+      };
+      const result = await request(app)
+        .post(graphQLUrl)
+        .set({
+          userId: '848135',
+        })
         .send({
           query: print(CREATE_SHAREABLE_LIST),
           variables: { listData: data },
@@ -449,10 +483,7 @@ describe('public mutations: ShareableList', () => {
       expect(result.body.data).to.be.null;
 
       // And a "Not found" error
-      expect(result.body).to.have.nested.property(
-        'errors[0].extensions.code',
-        'NOT_FOUND'
-      );
+      expect(result.body.errors[0].extensions.code).to.equal('NOT_FOUND');
     });
 
     it('should reject the update if user already has a list with the same title', async () => {
@@ -479,10 +510,7 @@ describe('public mutations: ShareableList', () => {
       expect(result.body.data).to.be.null;
 
       // And a "Bad user input" error
-      expect(result.body).to.have.nested.property(
-        'errors[0].extensions.code',
-        'BAD_USER_INPUT'
-      );
+      expect(result.body.errors[0].extensions.code).to.equal('BAD_USER_INPUT');
     });
 
     it('should allow the update if the existing title is passed', async () => {
@@ -705,7 +733,7 @@ describe('public mutations: ShareableList', () => {
       );
 
       const headersUser2 = {
-        userId: '98765',
+        userId: pilotUser2.userId,
       };
       const secondList = await createShareableListHelper(db, {
         title: `Hangover Hotel`,
@@ -817,10 +845,7 @@ describe('public mutations: ShareableList', () => {
       expect(result.body.data).to.be.null;
 
       // And a "Bad user input" error
-      expect(result.body).to.have.nested.property(
-        'errors[0].extensions.code',
-        'BAD_USER_INPUT'
-      );
+      expect(result.body.errors[0].extensions.code).to.equal('BAD_USER_INPUT');
       expect(result.body.errors[0].message).to.equal(
         `List title must not be longer than 100 characters`
       );
@@ -844,10 +869,7 @@ describe('public mutations: ShareableList', () => {
       expect(result.body.data).to.be.null;
 
       // And a "Bad user input" error
-      expect(result.body).to.have.nested.property(
-        'errors[0].extensions.code',
-        'BAD_USER_INPUT'
-      );
+      expect(result.body.errors[0].extensions.code).to.equal('BAD_USER_INPUT');
       expect(result.body.errors[0].message).to.equal(
         `List description must not be longer than 200 characters`
       );
