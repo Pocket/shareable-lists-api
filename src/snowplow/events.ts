@@ -19,9 +19,9 @@ import {
  * This function takes in the API Shareable List object and transforms it into a Snowplow Shareable List object
  * @param shareableList
  */
-async function transformAPIShareableListToSnowplowShareableList(
+function transformAPIShareableListToSnowplowShareableList(
   shareableList: ShareableListComplete
-): Promise<SnowplowShareableList> {
+): SnowplowShareableList {
   return {
     shareable_list_external_id: shareableList.externalId,
     slug: shareableList.slug,
@@ -48,11 +48,11 @@ async function transformAPIShareableListToSnowplowShareableList(
  * This function takes in the API Shareable List Item object and transforms it into a Snowplow Shareable List Item object
  * @param shareableListItem
  */
-async function transformAPIShareableListItemToSnowplowShareableListItem(
+function transformAPIShareableListItemToSnowplowShareableListItem(
   shareableListItem: ShareableListItem,
   externalId: string,
   listExternalId: string
-): Promise<SnowplowShareableListItem> {
+): SnowplowShareableListItem {
   return {
     shareable_list_item_external_id: externalId,
     shareable_list_external_id: listExternalId,
@@ -82,14 +82,13 @@ async function transformAPIShareableListItemToSnowplowShareableListItem(
  * @param eventType
  * @param shareableList
  */
-export async function generateShareableListEventBridgePayload(
+export function generateShareableListEventBridgePayload(
   eventType: EventBridgeEventType,
   shareableList: ShareableListComplete
-): Promise<ShareableListEventBusPayload> {
+): ShareableListEventBusPayload {
   return {
-    shareableList: await transformAPIShareableListToSnowplowShareableList(
-      shareableList
-    ),
+    shareableList:
+      transformAPIShareableListToSnowplowShareableList(shareableList),
     eventType: eventType,
   };
 }
@@ -102,19 +101,18 @@ export async function generateShareableListEventBridgePayload(
  * @param externalId
  * @param listExternalId
  */
-export async function generateShareableListItemEventBridgePayload(
+export function generateShareableListItemEventBridgePayload(
   eventType: EventBridgeEventType,
   shareableListItem: ShareableListItem,
   externalId: string,
   listExternalId: string
-): Promise<ShareableListItemEventBusPayload> {
+): ShareableListItemEventBusPayload {
   return {
-    shareableListItem:
-      await transformAPIShareableListItemToSnowplowShareableListItem(
-        shareableListItem,
-        externalId,
-        listExternalId
-      ),
+    shareableListItem: transformAPIShareableListItemToSnowplowShareableListItem(
+      shareableListItem,
+      externalId,
+      listExternalId
+    ),
     eventType: eventType,
   };
 }
@@ -132,14 +130,14 @@ export async function sendEventHelper(
   let payload;
 
   if (options.shareableList) {
-    payload = await generateShareableListEventBridgePayload(
+    payload = generateShareableListEventBridgePayload(
       eventType,
       options.shareableList
     );
   }
 
   if (options.shareableListItem) {
-    payload = await generateShareableListItemEventBridgePayload(
+    payload = generateShareableListItemEventBridgePayload(
       eventType,
       options.shareableListItem,
       options.shareableListItemExternalId,

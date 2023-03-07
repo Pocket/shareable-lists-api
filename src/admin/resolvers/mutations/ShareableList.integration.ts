@@ -28,20 +28,20 @@ describe('admin mutations: ShareableList', () => {
   let server: ApolloServer<IAdminContext>;
   let graphQLUrl: string;
   let db: PrismaClient;
-  let s3Stub: sinon.SinonStub;
+  let eventBridgeClientStub: sinon.SinonStub;
 
   beforeAll(async () => {
     ({ app, adminServer: server, adminUrl: graphQLUrl } = await startServer(0));
     db = client();
     // we mock the send method on EventBridgeClient
-    s3Stub = sinon
+    eventBridgeClientStub = sinon
       .stub(EventBridgeClient.prototype, 'send')
       .resolves({ FailedEntryCount: 0 });
     await clearDb(db);
   });
 
   afterAll(async () => {
-    s3Stub.restore();
+    eventBridgeClientStub.restore();
     await db.$disconnect();
     await server.stop();
   });

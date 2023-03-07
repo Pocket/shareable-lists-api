@@ -14,7 +14,7 @@ import { EventBridgeEventType } from './types';
 import { faker } from '@faker-js/faker';
 
 describe('Snowplow event helpers', () => {
-  let s3Stub: sinon.SinonStub;
+  let eventBridgeClientStub: sinon.SinonStub;
   let sentryStub;
   let crumbStub;
   let consoleSpy;
@@ -50,7 +50,7 @@ describe('Snowplow event helpers', () => {
 
   beforeEach(() => {
     // we mock the send method on EventBridgeClient
-    s3Stub = sinon
+    eventBridgeClientStub = sinon
       .stub(EventBridgeClient.prototype, 'send')
       .resolves({ FailedEntryCount: 0 });
     sentryStub = sinon.stub(Sentry, 'captureException').resolves();
@@ -59,7 +59,7 @@ describe('Snowplow event helpers', () => {
   });
 
   afterEach(() => {
-    s3Stub.restore();
+    eventBridgeClientStub.restore();
     sentryStub.restore();
     consoleSpy.restore();
     crumbStub.restore();
@@ -265,8 +265,8 @@ describe('Snowplow event helpers', () => {
   });
   describe('sendEventHelper function', () => {
     it('should log error if send call throws error for shareable-list event', async () => {
-      s3Stub.restore();
-      s3Stub = sinon
+      eventBridgeClientStub.restore();
+      eventBridgeClientStub = sinon
         .stub(EventBridgeClient.prototype, 'send')
         .rejects(new Error('boo!'));
 
@@ -292,8 +292,8 @@ describe('Snowplow event helpers', () => {
       );
     });
     it('should log error if send call throws error for shareable-list-item event', async () => {
-      s3Stub.restore();
-      s3Stub = sinon
+      eventBridgeClientStub.restore();
+      eventBridgeClientStub = sinon
         .stub(EventBridgeClient.prototype, 'send')
         .rejects(new Error('boo!'));
 
@@ -361,8 +361,8 @@ describe('Snowplow event helpers', () => {
       expect(consoleSpy.callCount).to.equal(0);
     });
     it('should log error if send call throws error for shareable-list event', async () => {
-      s3Stub.restore();
-      s3Stub = sinon
+      eventBridgeClientStub.restore();
+      eventBridgeClientStub = sinon
         .stub(EventBridgeClient.prototype, 'send')
         .resolves({ FailedEntryCount: 1 });
 
@@ -390,8 +390,8 @@ describe('Snowplow event helpers', () => {
       );
     });
     it('should log error if send call throws error for shareable-list-item event', async () => {
-      s3Stub.restore();
-      s3Stub = sinon
+      eventBridgeClientStub.restore();
+      eventBridgeClientStub = sinon
         .stub(EventBridgeClient.prototype, 'send')
         .resolves({ FailedEntryCount: 1 });
 
