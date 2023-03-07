@@ -372,6 +372,7 @@ describe('public mutations: ShareableList', () => {
         listToUpdate.createdAt.toISOString()
       );
       expect(updatedList.listItems).to.have.lengthOf(0);
+      expect(updatedList.userId).to.equal(parseInt(headers.userId));
 
       // The `updatedAt` timestamp should change
       expect(updatedList.updatedAt).not.to.equal(
@@ -519,7 +520,7 @@ describe('public mutations: ShareableList', () => {
       expect(updatedList.slug).to.equal(slugify(data.title, config.slugify));
     });
 
-    it('should append next consectuive number to generated slug for list made public for the first time if slug contaning list title already exists for a single user', async () => {
+    it('should append next consecutive number to generated slug for list made public for the first time if slug containing list title already exists for a single user', async () => {
       let dataList1: UpdateShareableListInput;
       // create list 1
       const firstList = await createShareableListHelper(db, {
@@ -647,7 +648,7 @@ describe('public mutations: ShareableList', () => {
       expect(updatedList.status).to.equal(ListStatus.PUBLIC);
       expect(updatedList.slug).not.to.be.empty;
 
-      // Does the slug match the list 1 title (hangove-hotel)?
+      // Does the slug match the list 1 title (hangover-hotel)?
       expect(updatedList.slug).to.equal(
         slugify(firstList.title, config.slugify)
       );
