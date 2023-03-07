@@ -4,6 +4,21 @@ export default {
     environment: process.env.NODE_ENV || 'development',
     defaultMaxAge: 86400,
   },
+  aws: {
+    region: process.env.AWS_DEFAULT_REGION || 'us-east-1',
+    eventBus: {
+      name:
+        process.env.EVENT_BUS_NAME || 'PocketEventBridge-Dev-Shared-Event-Bus',
+      eventBridge: {
+        shareableList: {
+          source: 'shareable-list-events',
+        },
+        shareableListItem: {
+          source: 'shareable-list-item-events',
+        },
+      },
+    },
+  },
   // TODO: Update example cache configuration below if necessary.
   // redis: {
   //   primaryEndpoint: process.env.REDIS_PRIMARY_ENDPOINT || 'redis',

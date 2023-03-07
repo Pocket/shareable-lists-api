@@ -3,6 +3,9 @@ import { ModerationStatus, PrismaClient } from '@prisma/client';
 import { CreateShareableListItemInput, ShareableListItem } from '../types';
 import { PRISMA_RECORD_NOT_FOUND } from '../../shared/constants';
 
+import { sendEventHelper as sendEvent } from '../../snowplow/events';
+import { EventBridgeEventType } from '../../snowplow/types';
+
 /**
  * This mutation creates a shareable list item.
  *
@@ -58,9 +61,19 @@ export async function createShareableListItem(
     listId: list.id,
   };
 
-  return db.listItem.create({
+  const listItem = await db.listItem.create({
     data: input,
   });
+
+  //send event bridge event for shareable-list-item-created event type
+  sendEvent(EventBridgeEventType.SHAREABLE_LIST_ITEM_CREATED, {
+    shareableListItem: listItem,
+    shareableListItemExternalId: listItem.externalId,
+    listExternalId: list.externalId,
+    isShareableListItemEventType: true,
+  });
+
+  return listItem;
 }
 
 /**
@@ -112,6 +125,15 @@ export async function deleteShareableListItem(
         throw error;
       }
     });
+
+  //send event bridge event for shareable-list-item-deleted event type
+  sendEvent(EventBridgeEventType.SHAREABLE_LIST_ITEM_DELETED, {
+    shareableListItem: listItem,
+    shareableListItemExternalId: listItem.externalId,
+    listExternalId: listItem.list.externalId,
+    isShareableListItemEventType: true,
+  });
+
   return listItem;
 }
 
@@ -129,5 +151,6 @@ export async function deleteAllListItemsForList(
   const batchResult = await db.listItem.deleteMany({
     where: { listId: listId },
   });
+
   return batchResult.count;
 }

@@ -215,11 +215,6 @@ jobs:
 workflows:
   all:
     jobs:
-      # UNCOMMENT WHEN ADDING FIRST UNIT TEST
-      # - pocket/node_mocha_ts_test:
-      #     <<: *not_main
-      #     name: test_specs
-
       - test_integrations:
           <<: *not_main
           context: pocket

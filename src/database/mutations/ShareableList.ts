@@ -1,5 +1,5 @@
 import { NotFoundError, UserInputError } from '@pocket-tools/apollo-utils';
-import { ListStatus, PrismaClient } from '@prisma/client';
+import { ListStatus, ModerationStatus, PrismaClient } from '@prisma/client';
 import slugify from 'slugify';
 import {
   CreateShareableListInput,
@@ -19,6 +19,8 @@ import {
 } from '../../shared/constants';
 import { getShareableList } from '../queries';
 import config from '../../config';
+import { sendEventHelper } from '../../snowplow/events';
+import { EventBridgeEventType } from '../../snowplow/types';
 
 /**
  * This mutation creates a shareable list, and _only_ a shareable list
@@ -33,7 +35,6 @@ export async function createShareableList(
   userId: number | bigint
 ): Promise<ShareableList> {
   let listItemData;
-  // let list;
 
   // check if the title already exists for this user
   const titleExists = await db.list.count({
@@ -66,6 +67,7 @@ export async function createShareableList(
       listItems: true,
     },
   });
+
   // if ShareableListItem was passed in the request, create it in the db
   if (listItemData) {
     // first set the list external id
@@ -79,6 +81,13 @@ export async function createShareableList(
     // add the created ShareableListItem to the created ShareableList
     list.listItems = [createdListItem];
   }
+
+  //send event bridge event for shareable-list-created event type
+  sendEventHelper(EventBridgeEventType.SHAREABLE_LIST_CREATED, {
+    shareableList: list as ShareableListComplete,
+    isShareableListEventType: true,
+  });
+
   return list;
 }
 
@@ -148,14 +157,18 @@ export async function updateShareableList(
       data.slug = slugify(data.title ?? list.title, config.slugify);
     }
   }
-
-  return db.list.update({
+  const updatedList = await db.list.update({
     data,
     where: { externalId: data.externalId },
     include: {
       listItems: true,
     },
   });
+
+  // send update event to event bridge
+  updateShareableListBridgeEventHelper(data, updatedList, list);
+
+  return updatedList;
 }
 
 /**
@@ -192,6 +205,14 @@ export async function moderateShareableList(
         throw error;
       }
     });
+
+  // for now, we only support snowplow events for taking down a list (shareable-list-hidden trigger)
+  if (data.moderationStatus === ModerationStatus.HIDDEN) {
+    sendEventHelper(EventBridgeEventType.SHAREABLE_LIST_HIDDEN, {
+      shareableList: list as ShareableListComplete,
+      isShareableListEventType: true,
+    });
+  }
   return list;
 }
 
@@ -262,6 +283,12 @@ export async function deleteShareableList(
         throw error;
       }
     });
+
+  //send event bridge event for shareable-list-deleted event type
+  sendEventHelper(EventBridgeEventType.SHAREABLE_LIST_DELETED, {
+    shareableList: deleteList as ShareableListComplete,
+    isShareableListEventType: true,
+  });
   return deleteList;
 }
 
@@ -284,5 +311,43 @@ function shareableListTitleDescriptionValidation(
     throw new UserInputError(
       'List description must not be longer than 200 characters'
     );
+  }
+}
+
+/**
+ * updateShareableList mutation does a lot of things so we need to break down the operations in a helper function
+ * to determine what events to send to snowplow
+ **/
+function updateShareableListBridgeEventHelper(
+  data: UpdateShareableListInput,
+  updatedList: ShareableListComplete,
+  list: ShareableList
+) {
+  // check if list status was updated
+  if (data.status !== list.status) {
+    // if list was published, send event bridge event for shareable-list-published event type
+    if (data.status === ListStatus.PUBLIC) {
+      sendEventHelper(EventBridgeEventType.SHAREABLE_LIST_PUBLISHED, {
+        shareableList: updatedList as ShareableListComplete,
+        isShareableListEventType: true,
+      });
+    }
+    // else if list was unpublished, send event bridge event for shareable-list-unpublished event type
+    else if (data.status === ListStatus.PRIVATE) {
+      sendEventHelper(EventBridgeEventType.SHAREABLE_LIST_UNPUBLISHED, {
+        shareableList: updatedList as ShareableListComplete,
+        isShareableListEventType: true,
+      });
+    }
+  }
+  // if list title or description are updated, send event bridge event for shareable-list-updated event type
+  if (
+    (data.title && data.title !== list.title) ||
+    (data.description && data.description !== list.description)
+  ) {
+    sendEventHelper(EventBridgeEventType.SHAREABLE_LIST_UPDATED, {
+      shareableList: updatedList as ShareableListComplete,
+      isShareableListEventType: true,
+    });
   }
 }

@@ -69,7 +69,7 @@ environment:
 ```
 
 - Add a `try/catch` block in a query / mutation, throw an error and capture it with `Sentry.captureException(err)`
-- In `src/server.ts` replace `nonProdPlugins` with:
+- In `src/public/server.ts` and or `src/admin/server.ts` replace `nonProdPlugins` with:
 
 ```
 const nonProdPlugins = [
@@ -125,3 +125,37 @@ If tests don't rely on other services:
 ```
 npm run test-integrations
 ```
+
+### Snowplow Events
+
+This API sends two kinds of events to the Pocket Event Bridge --> Snowplow: `shareable-list` and `shareable-list-item` events.
+
+- `shareable_list` JSON schema: [Snowplow schema](https://console.snowplowanalytics.com/cf0fba6b-23b3-49a0-9d79-7ce18b8f9618/data-structures/7b895f09809942a835587b02a58b7a835f92e16a726f5d224a43b90d219ae9c4)
+- `shareable_list_item` JSON schema: [Snowplow schema] (https://console.snowplowanalytics.com/cf0fba6b-23b3-49a0-9d79-7ce18b8f9618/data-structures/5c6a2540cd75d3baef34f659a7902732616502c996e513770d7e2c8bad926fc6)
+- event triggers: [object_update Snowplow schema](https://console.snowplowanalytics.com/cf0fba6b-23b3-49a0-9d79-7ce18b8f9618/data-structures/a30c8f05ecf12d2b53202ed1cf161a4c578fab653f846550a20392659449dbad)
+
+The API maps the GraphQL API types to the Snowplow types and sends both events to the Pocket Event Bridge. The core logic happens in `src/snowplow/events.ts` where the `sendEvent` function takes in a payload and sends it to the Pocket Bridge.
+
+### To setup a new Snowplow event:
+
+In `src/aws/config/index.ts`:
+
+1. Add a new event to `eventBridge` and define the source.
+
+In `src/snowplow/types.ts` do the following:
+
+1. Add the expected Snowplow type.
+2. Add the event bridge event type to `EventBridgeEventType` enum.
+3. Add an `EventBusPayload` for your type.
+4. To the `EventBridgeEventOptions` interface, add your event type and a boolean to indicate what event you are passing.
+
+In `src/snowplow/types.ts` do the following:
+
+1. Add your transformer function which maps the GraphQL API type to the expected Snowplow type.
+2. Add the function which generates the Snowplow type payload.
+3. In `sendEventHelper` function, add a conditional for what event option you are passing and call `sendEvent` function and pass the payload.
+4. Finally, in the `sendEvent` function, based on the boolean flag, set the event bridge source.
+
+### Unit tests
+
+The unit tests for snowlpow events are defined in `src/snowplow/events.spec.ts`. [https://sinonjs.org/](Sinon JS)is used for test spies and stubs.

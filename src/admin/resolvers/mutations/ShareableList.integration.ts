@@ -1,6 +1,8 @@
 import { ApolloServer } from '@apollo/server';
 import { PrismaClient } from '@prisma/client';
+import { EventBridgeClient } from '@aws-sdk/client-eventbridge';
 import { print } from 'graphql';
+import sinon from 'sinon';
 import request from 'supertest';
 import { IAdminContext } from '../../context';
 import { startServer } from '../../../express';
@@ -26,14 +28,20 @@ describe('admin mutations: ShareableList', () => {
   let server: ApolloServer<IAdminContext>;
   let graphQLUrl: string;
   let db: PrismaClient;
+  let eventBridgeClientStub: sinon.SinonStub;
 
   beforeAll(async () => {
     ({ app, adminServer: server, adminUrl: graphQLUrl } = await startServer(0));
     db = client();
+    // we mock the send method on EventBridgeClient
+    eventBridgeClientStub = sinon
+      .stub(EventBridgeClient.prototype, 'send')
+      .resolves({ FailedEntryCount: 0 });
     await clearDb(db);
   });
 
   afterAll(async () => {
+    eventBridgeClientStub.restore();
     await db.$disconnect();
     await server.stop();
   });

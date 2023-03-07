@@ -1,4 +1,5 @@
 import { expect } from 'chai';
+import sinon from 'sinon';
 import { print } from 'graphql';
 import request from 'supertest';
 import { ApolloServer } from '@apollo/server';
@@ -8,6 +9,7 @@ import {
   ModerationStatus,
   PrismaClient,
 } from '@prisma/client';
+import { EventBridgeClient } from '@aws-sdk/client-eventbridge';
 import { faker } from '@faker-js/faker';
 import slugify from 'slugify';
 import { startServer } from '../../../express';
@@ -39,6 +41,7 @@ describe('public mutations: ShareableList', () => {
   let server: ApolloServer<IPublicContext>;
   let graphQLUrl: string;
   let db: PrismaClient;
+  let eventBridgeClientStub: sinon.SinonStub;
 
   const headers = {
     userId: '12345',
@@ -52,9 +55,14 @@ describe('public mutations: ShareableList', () => {
       publicUrl: graphQLUrl,
     } = await startServer(0));
     db = client();
+    // we mock the send method on EventBridgeClient
+    eventBridgeClientStub = sinon
+      .stub(EventBridgeClient.prototype, 'send')
+      .resolves({ FailedEntryCount: 0 });
   });
 
   afterAll(async () => {
+    eventBridgeClientStub.restore();
     await db.$disconnect();
     await server.stop();
   });
