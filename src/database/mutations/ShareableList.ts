@@ -8,7 +8,10 @@ import {
   ShareableListComplete,
   UpdateShareableListInput,
 } from '../types';
-import { deleteAllListItemsForList } from './ShareableListItem';
+import {
+  createShareableListItem,
+  deleteAllListItemsForList,
+} from './ShareableListItem';
 import {
   LIST_TITLE_MAX_CHARS,
   LIST_DESCRIPTION_MAX_CHARS,
@@ -28,32 +31,56 @@ import { EventBridgeEventType } from '../../snowplow/types';
  */
 export async function createShareableList(
   db: PrismaClient,
-  data: CreateShareableListInput,
+  listData: CreateShareableListInput,
   userId: number | bigint
 ): Promise<ShareableList> {
+  let listItemData;
+
   // check if the title already exists for this user
   const titleExists = await db.list.count({
-    where: { title: data.title, userId: userId },
+    where: { title: listData.title, userId: userId },
   });
 
   if (titleExists) {
     throw new UserInputError(
-      `A list with the title "${data.title}" already exists`
+      `A list with the title "${listData.title}" already exists`
     );
   }
 
   // check list title and descipriotn length
   shareableListTitleDescriptionValidation(
-    data.title,
-    data.description ? data.description : null
+    listData.title,
+    listData.description ? listData.description : null
   );
 
-  const list = await db.list.create({
-    data: { ...data, userId },
+  // check if listItem data is passed
+  if (listData.listItem) {
+    listItemData = listData.listItem;
+    //remove it from listData so that we can create the ShareableList first
+    delete listData.listItem;
+  }
+
+  // create ShareableList in db
+  const list: ShareableList = await db.list.create({
+    data: { ...listData, userId },
     include: {
       listItems: true,
     },
   });
+
+  // if ShareableListItem was passed in the request, create it in the db
+  if (listItemData) {
+    // first set the list external id
+    listItemData['listExternalId'] = list.externalId;
+    // create the ShareableListItem
+    const createdListItem = await createShareableListItem(
+      db,
+      listItemData,
+      userId
+    );
+    // add the created ShareableListItem to the created ShareableList
+    list.listItems = [createdListItem];
+  }
 
   //send event bridge event for shareable-list-created event type
   sendEventHelper(EventBridgeEventType.SHAREABLE_LIST_CREATED, {

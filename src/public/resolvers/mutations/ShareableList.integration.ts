@@ -90,7 +90,7 @@ describe('public mutations: ShareableList', () => {
         .post(graphQLUrl)
         .send({
           query: print(CREATE_SHAREABLE_LIST),
-          variables: { data },
+          variables: { listData: data },
         });
       expect(result.body.data.createShareableList).not.to.exist;
       expect(result.body.errors.length).to.equal(1);
@@ -98,7 +98,7 @@ describe('public mutations: ShareableList', () => {
       expect(result.body.errors[0].message).to.equal(ACCESS_DENIED_ERROR);
     });
 
-    it('should create a new List', async () => {
+    it('should create a new List without ListItem', async () => {
       const title = 'My list to share<script>alert("Hello World!")</script>';
       const data: CreateShareableListInput = {
         title: title,
@@ -109,7 +109,7 @@ describe('public mutations: ShareableList', () => {
         .set(headers)
         .send({
           query: print(CREATE_SHAREABLE_LIST),
-          variables: { data },
+          variables: { listData: data },
         });
       expect(result.body.data).to.exist;
       expect(result.body.data.createShareableList.title).to.equal(
@@ -120,6 +120,49 @@ describe('public mutations: ShareableList', () => {
       );
       expect(result.body.data.createShareableList.moderationStatus).to.equal(
         ModerationStatus.VISIBLE
+      );
+      // expect no listItems in result
+      expect(result.body.data.createShareableList.listItems.length).to.equal(0);
+    });
+
+    it('should create a new List with a ListItem', async () => {
+      const title = 'My list to share<script>alert("Hello World!")</script>';
+      const listData: CreateShareableListInput = {
+        title: title,
+        description: faker.lorem.sentences(2),
+      };
+
+      const listItemData = {
+        itemId: 3789538749,
+        url: 'https://www.test.com/this-is-a-story',
+        title: 'A story is a story',
+        excerpt: '<blink>The best story ever told</blink>',
+        imageUrl: 'https://www.test.com/thumbnail.jpg',
+        publisher: 'The London Times',
+        authors: 'Charles Dickens, Mark Twain',
+        sortOrder: 10,
+      };
+      const result = await request(app)
+        .post(graphQLUrl)
+        .set(headers)
+        .send({
+          query: print(CREATE_SHAREABLE_LIST),
+          variables: { listData, listItemData },
+        });
+      expect(result.body.data).to.exist;
+      expect(result.body.data.createShareableList.title).to.equal(
+        'My list to share&lt;script&gt;alert("Hello World!")&lt;/script&gt;'
+      );
+      expect(result.body.data.createShareableList.status).to.equal(
+        ListStatus.PRIVATE
+      );
+      expect(result.body.data.createShareableList.moderationStatus).to.equal(
+        ModerationStatus.VISIBLE
+      );
+      // expect 1 listItem in result
+      expect(result.body.data.createShareableList.listItems.length).to.equal(1);
+      expect(result.body.data.createShareableList.listItems[0].title).to.equal(
+        listItemData.title
       );
     });
 
@@ -139,7 +182,7 @@ describe('public mutations: ShareableList', () => {
         .set(headers)
         .send({
           query: print(CREATE_SHAREABLE_LIST),
-          variables: { data },
+          variables: { listData: data },
         });
       expect(result.body.data.createShareableList).not.to.exist;
       expect(result.body.errors.length).to.equal(1);
@@ -159,7 +202,7 @@ describe('public mutations: ShareableList', () => {
         .set(headers)
         .send({
           query: print(CREATE_SHAREABLE_LIST),
-          variables: { data },
+          variables: { listData: data },
         });
       expect(result.body.data.createShareableList).not.to.exist;
       expect(result.body.errors.length).to.equal(1);
@@ -179,7 +222,7 @@ describe('public mutations: ShareableList', () => {
         .set(headers)
         .send({
           query: print(CREATE_SHAREABLE_LIST),
-          variables: { data },
+          variables: { listData: data },
         });
       expect(result.body.data.createShareableList).not.to.exist;
       expect(result.body.errors.length).to.equal(1);
@@ -205,7 +248,7 @@ describe('public mutations: ShareableList', () => {
         .set(headers)
         .send({
           query: print(CREATE_SHAREABLE_LIST),
-          variables: { data },
+          variables: { listData: data },
         });
       expect(result.body.data.createShareableList).to.exist;
       expect(result.body.data.createShareableList.title).to.equal(title1);
@@ -227,7 +270,7 @@ describe('public mutations: ShareableList', () => {
         .set(headers)
         .send({
           query: print(CREATE_SHAREABLE_LIST),
-          variables: { data },
+          variables: { listData: data },
         });
       expect(result.body.data.createShareableList).to.exist;
       expect(result.body.data.createShareableList.title).to.equal(
@@ -380,6 +423,7 @@ describe('public mutations: ShareableList', () => {
         listToUpdate.createdAt.toISOString()
       );
       expect(updatedList.listItems).to.have.lengthOf(0);
+      expect(updatedList.userId).to.equal(parseInt(headers.userId));
 
       // The `updatedAt` timestamp should change
       expect(updatedList.updatedAt).not.to.equal(
@@ -527,7 +571,7 @@ describe('public mutations: ShareableList', () => {
       expect(updatedList.slug).to.equal(slugify(data.title, config.slugify));
     });
 
-    it('should append next consectuive number to generated slug for list made public for the first time if slug contaning list title already exists for a single user', async () => {
+    it('should append next consecutive number to generated slug for list made public for the first time if slug containing list title already exists for a single user', async () => {
       let dataList1: UpdateShareableListInput;
       // create list 1
       const firstList = await createShareableListHelper(db, {
@@ -655,7 +699,7 @@ describe('public mutations: ShareableList', () => {
       expect(updatedList.status).to.equal(ListStatus.PUBLIC);
       expect(updatedList.slug).not.to.be.empty;
 
-      // Does the slug match the list 1 title (hangove-hotel)?
+      // Does the slug match the list 1 title (hangover-hotel)?
       expect(updatedList.slug).to.equal(
         slugify(firstList.title, config.slugify)
       );

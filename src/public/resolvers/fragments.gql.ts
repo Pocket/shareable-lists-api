@@ -27,6 +27,7 @@ export const ShareableListItemPublicProps = gql`
 export const ShareableListPublicProps = gql`
   fragment ShareableListPublicProps on ShareableList {
     externalId
+    userId
     title
     description
     slug

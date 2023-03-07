@@ -25,6 +25,7 @@ export type ShareableListComplete = Omit<List, 'id'>;
 export type CreateShareableListInput = {
   title: string;
   description?: string;
+  listItem?: CreateShareableListItemInput;
 };
 
 export type UpdateShareableListInput = {

@@ -18,12 +18,15 @@ import { executeMutation } from '../utils';
  */
 export async function createShareableList(
   parent,
-  { data },
+  { listData, listItemData },
   context: IPublicContext
 ): Promise<ShareableList> {
+  if (listItemData) {
+    listData['listItem'] = listItemData;
+  }
   return await executeMutation<CreateShareableListInput, ShareableList>(
     context,
-    data,
+    listData,
     dbCreateShareableList
   );
 }

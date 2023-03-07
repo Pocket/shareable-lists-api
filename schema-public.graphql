@@ -146,6 +146,20 @@ input CreateShareableListItemInput {
   sortOrder: Int!
 }
 
+"""
+Input data for creating a Shareable List Item during Shareable List creation.
+"""
+input CreateShareableListItemWithList {
+  itemId: Float
+  url: Url!
+  title: String
+  excerpt: String
+  imageUrl: Url
+  publisher: String
+  authors: String
+  sortOrder: Int!
+}
+
 type Query {
 	"""
 	Looks up and returns a Shareable List with a given external ID for a given user.
@@ -170,9 +184,13 @@ type Query {
 
 type Mutation {
   """
-  Creates a Shareable List.
+  Creates a Shareable List. Takes in an optional listItemData parameter to create a ShareableListItem
+  along with a ShareableList.
   """
-  createShareableList(data: CreateShareableListInput!): ShareableList
+  createShareableList(
+    listData: CreateShareableListInput!
+    listItemData: CreateShareableListItemWithList
+  ): ShareableList
   """
   Deletes a Shareable List.
   """
