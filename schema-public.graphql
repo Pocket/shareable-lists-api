@@ -149,12 +149,7 @@ input CreateShareableListItemInput {
 """
 Input data for creating a Shareable List Item during Shareable List creation.
 """
-input CreateShareableListItemWithShareableListInput {
-  """
-  listExternalId parameter is optional as it is not
-  required when creating a ShareableList with a ShareableListItem
-  """
-  listExternalId: ID
+input CreateShareableListItemWithList {
   itemId: Float
   url: Url!
   title: String
@@ -191,7 +186,7 @@ type Mutation {
   """
   createShareableList(
     listData: CreateShareableListInput!
-    listItemData: CreateShareableListItemWithShareableListInput
+    listItemData: CreateShareableListItemWithList
   ): ShareableList
   """
   Deletes a Shareable List.

@@ -15,7 +15,6 @@ import { IPublicContext } from '../../context';
 import { client } from '../../../database/client';
 import {
   CreateShareableListInput,
-  CreateShareableListItemInput,
   UpdateShareableListInput,
 } from '../../../database/types';
 import {

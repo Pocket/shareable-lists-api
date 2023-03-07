@@ -33,7 +33,7 @@ export async function createShareableList(
   userId: number | bigint
 ): Promise<ShareableList> {
   let listItemData;
-  let list;
+  // let list;
 
   // check if the title already exists for this user
   const titleExists = await db.list.count({
@@ -60,7 +60,7 @@ export async function createShareableList(
   }
 
   // create ShareableList in db
-  list = await db.list.create({
+  const list: ShareableList = await db.list.create({
     data: { ...listData, userId },
     include: {
       listItems: true,
@@ -77,7 +77,7 @@ export async function createShareableList(
       userId
     );
     // add the created ShareableListItem to the created ShareableList
-    list['listItems'] = [createdListItem];
+    list.listItems = [createdListItem];
   }
   return list;
 }

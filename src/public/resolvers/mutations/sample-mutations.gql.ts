@@ -7,7 +7,7 @@ import {
 export const CREATE_SHAREABLE_LIST = gql`
   mutation createShareableList(
     $listData: CreateShareableListInput!
-    $listItemData: CreateShareableListItemWithShareableListInput
+    $listItemData: CreateShareableListItemWithList
   ) {
     createShareableList(listData: $listData, listItemData: $listItemData) {
       ...ShareableListPublicProps
