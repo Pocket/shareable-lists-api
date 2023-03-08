@@ -34,7 +34,6 @@ describe('public queries: ShareableList', () => {
   let db: PrismaClient;
   let shareableList: List;
   let shareableList2: List;
-  let pilotUser1: PilotUser;
   let pilotUser2: PilotUser;
 
   const headers = {
@@ -59,7 +58,7 @@ describe('public queries: ShareableList', () => {
   beforeEach(async () => {
     await clearDb(db);
 
-    pilotUser1 = await createPilotUserHelper(db, {
+    await createPilotUserHelper(db, {
       userId: parseInt(headers.userId),
     });
 

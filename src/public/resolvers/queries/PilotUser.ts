@@ -1,5 +1,4 @@
 import { isPilotUser as dbIsPilotUser } from '../../../database/queries';
-import { validateUserId } from '../utils';
 
 /**
  * Resolver for the public 'isPilotUser` query.
