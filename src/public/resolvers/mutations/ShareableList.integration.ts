@@ -320,6 +320,27 @@ describe('public mutations: ShareableList', () => {
   });
 
   describe('deleteShareableList', () => {
+    it('should not delete a list for a non-pilot user', async () => {
+      const theList = await createShareableListHelper(db, {
+        title: `A list to be deleted`,
+        userId: BigInt(headers.userId),
+      });
+
+      const result = await request(app)
+        .post(graphQLUrl)
+        .set({
+          userId: '848135', // not in the pilot!
+        })
+        .send({
+          query: print(DELETE_SHAREABLE_LIST),
+          variables: { externalId: theList.externalId },
+        });
+      expect(result.body.data).to.be.null;
+      expect(result.body.errors.length).to.equal(1);
+      expect(result.body.errors[0].extensions.code).to.equal('FORBIDDEN');
+      expect(result.body.errors[0].message).to.equal(ACCESS_DENIED_ERROR);
+    });
+
     it('must not delete a list not owned by the current user', async () => {
       const otherUserId = parseInt(headers.userId) + 1;
       const otherUserList = await createShareableListHelper(db, {
@@ -417,6 +438,28 @@ describe('public mutations: ShareableList', () => {
         userId: parseInt(headers.userId),
         title: 'The Most Shareable List',
       });
+    });
+
+    it('should not update a list for a non-pilot user', async () => {
+      const data: UpdateShareableListInput = {
+        externalId: listToUpdate.externalId,
+        description: 'new description by a HACKER',
+      };
+
+      const result = await request(app)
+        .post(graphQLUrl)
+        .set({
+          userId: '848135',
+        })
+        .send({
+          query: print(UPDATE_SHAREABLE_LIST),
+          variables: { data },
+        });
+
+      expect(result.body.data).to.be.null;
+
+      expect(result.body.errors[0].extensions.code).to.equal('FORBIDDEN');
+      expect(result.body.errors[0].message).to.equal(ACCESS_DENIED_ERROR);
     });
 
     it('should update a list and return all props', async () => {
