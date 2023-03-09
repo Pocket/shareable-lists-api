@@ -12,14 +12,14 @@ export type ShareableListItemEventBusPayload = {
 };
 
 export enum EventBridgeEventType {
-  SHAREABLE_LIST_CREATED = 'shareable-list-created',
-  SHAREABLE_LIST_UPDATED = 'shareable-list-updated',
-  SHAREABLE_LIST_DELETED = 'shareable-list-deleted',
-  SHAREABLE_LIST_HIDDEN = 'shareable-list-hidden',
-  SHAREABLE_LIST_PUBLISHED = 'shareable-list-published',
-  SHAREABLE_LIST_UNPUBLISHED = 'shareable-list-unpublished',
-  SHAREABLE_LIST_ITEM_CREATED = 'shareable-list-item-created',
-  SHAREABLE_LIST_ITEM_DELETED = 'shareable-list-item-deleted',
+  SHAREABLE_LIST_CREATED = 'shareable_list_created',
+  SHAREABLE_LIST_UPDATED = 'shareable_list_updated',
+  SHAREABLE_LIST_DELETED = 'shareable_list_deleted',
+  SHAREABLE_LIST_HIDDEN = 'shareable_list_hidden',
+  SHAREABLE_LIST_PUBLISHED = 'shareable_list_published',
+  SHAREABLE_LIST_UNPUBLISHED = 'shareable_list_unpublished',
+  SHAREABLE_LIST_ITEM_CREATED = 'shareable_list_item_created',
+  SHAREABLE_LIST_ITEM_DELETED = 'shareable_list_item_deleted',
 }
 
 export interface EventBridgeEventOptions {
