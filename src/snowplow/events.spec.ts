@@ -284,11 +284,11 @@ describe('Snowplow event helpers', () => {
       expect(sentryStub.getCall(0).firstArg.message).to.contain('boo!');
       expect(crumbStub.callCount).to.equal(1);
       expect(crumbStub.getCall(0).firstArg.message).to.contain(
-        `Failed to send event 'shareable-list-created' to event bus`
+        `Failed to send event 'shareable_list_created' to event bus`
       );
       expect(consoleSpy.callCount).to.equal(2);
       expect(consoleSpy.getCall(0).firstArg.message).to.contain(
-        `Failed to send event 'shareable-list-created' to event bus`
+        `Failed to send event 'shareable_list_created' to event bus`
       );
     });
     it('should log error if send call throws error for shareable-list-item event', async () => {
@@ -312,12 +312,12 @@ describe('Snowplow event helpers', () => {
       expect(sentryStub.getCall(0).firstArg.message).to.contain('boo!');
       expect(crumbStub.callCount).to.equal(1);
       expect(crumbStub.getCall(0).firstArg.message).to.contain(
-        `Failed to send event 'shareable-list-item-created' to event bus`
+        `Failed to send event 'shareable_list_item_created' to event bus`
       );
       expect(consoleSpy.callCount).to.equal(2);
       console.log(consoleSpy.getCall(0).firstArg.message);
       expect(consoleSpy.getCall(0).firstArg.message).to.contain(
-        `Failed to send event 'shareable-list-item-created' to event bus`
+        `Failed to send event 'shareable_list_item_created' to event bus`
       );
     });
   });
@@ -382,11 +382,11 @@ describe('Snowplow event helpers', () => {
       }, 100);
       expect(sentryStub.callCount).to.equal(1);
       expect(sentryStub.getCall(0).firstArg.message).to.contain(
-        `Failed to send event 'shareable-list-created' to event bus`
+        `Failed to send event 'shareable_list_created' to event bus`
       );
       expect(consoleSpy.callCount).to.equal(1);
       expect(consoleSpy.getCall(0).firstArg.message).to.contain(
-        `Failed to send event 'shareable-list-created' to event bus`
+        `Failed to send event 'shareable_list_created' to event bus`
       );
     });
     it('should log error if send call throws error for shareable-list-item event', async () => {
@@ -413,11 +413,11 @@ describe('Snowplow event helpers', () => {
       }, 100);
       expect(sentryStub.callCount).to.equal(1);
       expect(sentryStub.getCall(0).firstArg.message).to.contain(
-        `Failed to send event 'shareable-list-item-created' to event bus`
+        `Failed to send event 'shareable_list_item_created' to event bus`
       );
       expect(consoleSpy.callCount).to.equal(1);
       expect(consoleSpy.getCall(0).firstArg.message).to.contain(
-        `Failed to send event 'shareable-list-item-created' to event bus`
+        `Failed to send event 'shareable_list_item_created' to event bus`
       );
     });
   });
