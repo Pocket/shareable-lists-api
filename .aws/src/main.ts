@@ -8,7 +8,7 @@ import {
 import { AwsProvider, kms, datasources, sns } from '@cdktf/provider-aws';
 import { config } from './config';
 import {
-  // ApplicationRedis,
+  ApplicationRedis,
   ApplicationRDSCluster,
   PocketALBApplication,
   PocketECSCodePipeline,
@@ -38,7 +38,7 @@ class ShareableListsAPI extends TerraformStack {
     const pocketVpc = new PocketVPC(this, 'pocket-vpc');
     const region = new datasources.DataAwsRegion(this, 'region');
     const caller = new datasources.DataAwsCallerIdentity(this, 'caller');
-    // const cache = ShareableListsAP.createElasticache(this);
+    const cache = ShareableListsAPI.createElasticache(this, pocketVpc);
 
     const pocketApp = this.createPocketAlbApplication({
       rds: this.createRds(pocketVpc),
@@ -47,7 +47,7 @@ class ShareableListsAPI extends TerraformStack {
       snsTopic: this.getCodeDeploySnsTopic(),
       region,
       caller,
-      // cache,
+      cache,
     });
 
     this.createApplicationCodePipeline(pocketApp);
@@ -58,36 +58,39 @@ class ShareableListsAPI extends TerraformStack {
    * @param scope
    * @private
    */
-  // private static createElasticache(scope: Construct): {
-  //   primaryEndpoint: string;
-  //   readerEndpoint: string;
-  // } {
-  //   const pocketVPC = new PocketVPC(scope, 'pocket-vpc');
+  private static createElasticache(
+    scope: Construct,
+    pocketVpc: PocketVPC
+  ): {
+    primaryEndpoint: string;
+    readerEndpoint: string;
+  } {
+    const elasticache = new ApplicationRedis(scope, 'redis', {
+      //Usually we would set the security group ids of the service that needs to hit this.
+      //However we don't have the necessary security group because it gets created in PocketALBApplication
+      //So instead we set it to null and allow anything within the vpc to access it.
+      //This is not ideal..
+      //Ideally we need to be able to add security groups to the ALB application.
+      overrideEngineVersion: '7.0',
+      overrideParameterGroupName: 'default.redis7',
+      allowedIngressSecurityGroupIds: undefined,
+      node: {
+        count: config.cacheNodes,
+        size: config.cacheSize,
+      },
+      subnetIds: pocketVpc.privateSubnetIds,
+      tags: config.tags,
+      vpcId: pocketVpc.vpc.id,
+      prefix: config.prefix,
+    });
 
-  // const elasticache = new ApplicationRedis(scope, 'redis', {
-  //   //Usually we would set the security group ids of the service that needs to hit this.
-  //   //However we don't have the necessary security group because it gets created in PocketALBApplication
-  //   //So instead we set it to null and allow anything within the vpc to access it.
-  //   //This is not ideal..
-  //   //Ideally we need to be able to add security groups to the ALB application.
-  //   allowedIngressSecurityGroupIds: undefined,
-  //   node: {
-  //     count: config.cacheNodes,
-  //     size: config.cacheSize,
-  //   },
-  //   subnetIds: pocketVPC.privateSubnetIds,
-  //   tags: config.tags,
-  //   vpcId: pocketVPC.vpc.id,
-  //   prefix: config.prefix,
-  // });
-
-  //   return {
-  //     primaryEndpoint:
-  //       elasticache.elasticacheReplicationGroup.primaryEndpointAddress,
-  //     readerEndpoint:
-  //       elasticache.elasticacheReplicationGroup.readerEndpointAddress,
-  //   };
-  // }
+    return {
+      primaryEndpoint:
+        elasticache.elasticacheReplicationGroup.primaryEndpointAddress,
+      readerEndpoint:
+        elasticache.elasticacheReplicationGroup.readerEndpointAddress,
+    };
+  }
 
   /**
    * Get the sns topic for code deploy
@@ -192,7 +195,7 @@ class ShareableListsAPI extends TerraformStack {
     caller: datasources.DataAwsCallerIdentity;
     secretsManagerKmsAlias: kms.DataAwsKmsAlias;
     snsTopic: sns.DataAwsSnsTopic;
-    // cache: { primaryEndpoint: string; readerEndpoint: string };
+    cache: { primaryEndpoint: string; readerEndpoint: string };
   }): PocketALBApplication {
     const {
       //  pagerDuty, // enable if necessary
@@ -201,7 +204,7 @@ class ShareableListsAPI extends TerraformStack {
       caller,
       secretsManagerKmsAlias,
       snsTopic,
-      // cache,
+      cache,
     } = dependencies;
 
     return new PocketALBApplication(this, 'application', {
@@ -244,14 +247,14 @@ class ShareableListsAPI extends TerraformStack {
               name: 'EVENT_BUS_NAME',
               value: config.eventBusName,
             },
-            // {
-            //   name: 'REDIS_PRIMARY_ENDPOINT',
-            //   value: cache.primaryEndpoint,
-            // },
-            // {
-            //   name: 'REDIS_READER_ENDPOINT',
-            //   value: cache.readerEndpoint,
-            // },
+            {
+              name: 'REDIS_PRIMARY_ENDPOINT',
+              value: cache.primaryEndpoint,
+            },
+            {
+              name: 'REDIS_READER_ENDPOINT',
+              value: cache.readerEndpoint,
+            },
           ],
           secretEnvVars: [
             {

@@ -11,6 +11,11 @@ services:
       - MYSQL_ALLOW_EMPTY_PASSWORD=yes
       - TZ=UTC
 
+  redis:
+    image: redis:7
+    ports:
+      - '6377:6379'
+
   localstack:
     image: localstack/localstack@sha256:3e9fd1c7feb67dd300041f4c756274d26b63f4875b1571574d536660a13c0f27
     platform: linux/amd64
@@ -48,9 +53,4 @@ services:
     depends_on:
       - mysql
       - localstack
-
-  # snowplow:
-  #   image: pocket/snowplow-micro:prod
-  #   platform: linux/amd64
-  #   ports:
-  #     - '9090:9090'
+      - redis
