@@ -161,15 +161,15 @@ input CreateShareableListItemWithList {
 }
 
 type Query {
-	"""
-	Looks up and returns a Shareable List with a given external ID for a given user.
-	(the user ID will be coming through with the headers)
-	"""
-	shareableList(externalId: ID!): ShareableList
+  """
+  Looks up and returns a Shareable List with a given external ID for a given user.
+  (the user ID will be coming through with the headers)
+  """
+  shareableList(externalId: ID!): ShareableList
   """
   Returns a publicly-shared Shareable List. Note: this query does not require user authentication.
   """
-  shareableListPublic(externalId: ID!): ShareableList
+  shareableListPublic(externalId: ID!, slug: String!): ShareableList
   """
   Looks up and returns an array of Shareable Lists for a given user ID for a given user.
   (the user ID will be coming through with the headers)
