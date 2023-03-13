@@ -251,7 +251,7 @@ describe('public queries: ShareableList', () => {
     });
 
     it('should return a NotFound error if list is Private', async () => {
-      const newList = await createShareableListHelper(db, {
+      const privateList = await createShareableListHelper(db, {
         userId: parseInt(headers.userId),
         title: 'This is a list that is Private',
         status: ListStatus.PRIVATE,
@@ -264,7 +264,7 @@ describe('public queries: ShareableList', () => {
         .send({
           query: print(GET_SHAREABLE_LIST_PUBLIC),
           variables: {
-            externalId: newList.externalId,
+            externalId: privateList.externalId,
           },
         });
 

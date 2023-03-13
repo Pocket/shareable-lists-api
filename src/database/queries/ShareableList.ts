@@ -42,6 +42,8 @@ export async function getShareableListPublic(
   db: PrismaClient,
   externalId: string
 ): Promise<ShareableList> {
+  // externalId is unique, but the generated type for `findUnique` here doesn't
+  // include `status`, so using `findFirst` instead
   const list = await db.list.findFirst({
     where: {
       externalId,
