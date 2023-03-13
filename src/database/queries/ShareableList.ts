@@ -1,4 +1,4 @@
-import { ModerationStatus, PrismaClient } from '@prisma/client';
+import { ListStatus, ModerationStatus, PrismaClient } from '@prisma/client';
 import { ShareableList, ShareableListComplete } from '../types';
 import { ForbiddenError, NotFoundError } from '@pocket-tools/apollo-utils';
 import { ACCESS_DENIED_ERROR } from '../../shared/constants';
@@ -42,9 +42,12 @@ export async function getShareableListPublic(
   db: PrismaClient,
   externalId: string
 ): Promise<ShareableList> {
-  const list = await db.list.findUnique({
+  // externalId is unique, but the generated type for `findUnique` here doesn't
+  // include `status`, so using `findFirst` instead
+  const list = await db.list.findFirst({
     where: {
       externalId,
+      status: ListStatus.PUBLIC,
     },
     include: {
       listItems: true,
