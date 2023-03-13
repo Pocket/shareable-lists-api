@@ -42,10 +42,10 @@ export async function getShareableList(
  */
 export async function getShareableListPublic(
   parent,
-  { externalId },
+  { externalId, slug },
   { db }
 ): Promise<ShareableList> {
-  const list = await dbGetShareableListPublic(db, externalId);
+  const list = await dbGetShareableListPublic(db, externalId, slug);
 
   if (!list) {
     throw new NotFoundError(externalId);

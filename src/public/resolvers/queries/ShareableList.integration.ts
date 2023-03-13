@@ -211,9 +211,9 @@ describe('public queries: ShareableList', () => {
           query: print(GET_SHAREABLE_LIST_PUBLIC),
           variables: {
             externalId: '1234-abcd',
+            slug: 'bad-slug',
           },
         });
-
       // There should be nothing in results
       expect(result.body.data.shareableListPublic).to.be.null;
 
@@ -239,6 +239,7 @@ describe('public queries: ShareableList', () => {
           query: print(GET_SHAREABLE_LIST_PUBLIC),
           variables: {
             externalId: list.externalId,
+            slug: list.slug,
           },
         });
 
@@ -254,6 +255,7 @@ describe('public queries: ShareableList', () => {
       const privateList = await createShareableListHelper(db, {
         userId: parseInt(headers.userId),
         title: 'This is a list that is Private',
+        slug: 'this-is-a-list-that-is-private',
         status: ListStatus.PRIVATE,
         moderationStatus: ModerationStatus.VISIBLE,
       });
@@ -265,6 +267,37 @@ describe('public queries: ShareableList', () => {
           query: print(GET_SHAREABLE_LIST_PUBLIC),
           variables: {
             externalId: privateList.externalId,
+            slug: privateList.slug,
+          },
+        });
+
+      // There should be nothing in results
+      expect(result.body.data.shareableListPublic).to.be.null;
+
+      // And a "Forbidden" error
+      expect(result.body.errors[0].extensions.code).to.equal('NOT_FOUND');
+      expect(result.body.errors[0].message).to.equal(
+        'Error - Not Found: A list by that URL could not be found'
+      );
+    });
+
+    it('should return a NotFound error if externalId is valid but slug is invalid', async () => {
+      const newList = await createShareableListHelper(db, {
+        userId: parseInt(headers.userId),
+        title: 'This is a list',
+        slug: 'this-is-a-list',
+        status: ListStatus.PUBLIC,
+        moderationStatus: ModerationStatus.VISIBLE,
+      });
+
+      // Run the query we're testing
+      const result = await request(app)
+        .post(graphQLUrl)
+        .send({
+          query: print(GET_SHAREABLE_LIST_PUBLIC),
+          variables: {
+            externalId: newList.externalId,
+            slug: 'bad-slug',
           },
         });
 
@@ -294,6 +327,7 @@ describe('public queries: ShareableList', () => {
           query: print(GET_SHAREABLE_LIST_PUBLIC),
           variables: {
             externalId: newList.externalId,
+            slug: newList.slug,
           },
         });
 
@@ -346,6 +380,7 @@ describe('public queries: ShareableList', () => {
           query: print(GET_SHAREABLE_LIST_PUBLIC),
           variables: {
             externalId: newList.externalId,
+            slug: newList.slug,
           },
         });
 
