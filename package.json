@@ -19,7 +19,7 @@
   "dependencies": {
     "@apollo/server": "4.2.2",
     "@apollo/server-plugin-landing-page-graphql-playground": "4.0.0",
-    "@apollo/server-plugin-response-cache": "4.1.0",
+    "@apollo/server-plugin-response-cache": "^4.1.0",
     "@apollo/subgraph": "2.2.1",
     "@aws-sdk/client-eventbridge": "^3.276.0",
     "@pocket-tools/apollo-utils": "3.2.0",
@@ -34,6 +34,7 @@
     "graphql": "16.6.0",
     "graphql-tag": "2.12.6",
     "graphql-upload": "15.0.2",
+    "ioredis": "5.2.4",
     "sinon": "^15.0.1",
     "slugify": "1.6.5",
     "uuid": "9.0.0",
