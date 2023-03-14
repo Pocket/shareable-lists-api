@@ -133,10 +133,12 @@ describe('public mutations: ShareableList', () => {
 
     it('should create a new List without ListItem', async () => {
       const title = 'My list to share<script>alert("Hello World!")</script>';
+
       const data: CreateShareableListInput = {
         title: title,
         description: faker.lorem.sentences(2),
       };
+
       const result = await request(app)
         .post(graphQLUrl)
         .set(headers)
@@ -144,18 +146,22 @@ describe('public mutations: ShareableList', () => {
           query: print(CREATE_SHAREABLE_LIST),
           variables: { listData: data },
         });
+
       expect(result.body.data).to.exist;
-      expect(result.body.data.createShareableList.title).to.equal(
+
+      const list = result.body.data.createShareableList;
+
+      expect(list.title).to.equal(
         'My list to share&lt;script&gt;alert("Hello World!")&lt;/script&gt;'
       );
-      expect(result.body.data.createShareableList.status).to.equal(
-        ListStatus.PRIVATE
-      );
-      expect(result.body.data.createShareableList.moderationStatus).to.equal(
-        ModerationStatus.VISIBLE
-      );
+      expect(list.status).to.equal(ListStatus.PRIVATE);
+      expect(list.moderationStatus).to.equal(ModerationStatus.VISIBLE);
+
+      // user entity should match the creator's id
+      expect(list.user).to.deep.equal({ id: headers.userId });
+
       // expect no listItems in result
-      expect(result.body.data.createShareableList.listItems.length).to.equal(0);
+      expect(list.listItems.length).to.equal(0);
     });
 
     it('should create a new List with a ListItem', async () => {
@@ -175,6 +181,7 @@ describe('public mutations: ShareableList', () => {
         authors: 'Charles Dickens, Mark Twain',
         sortOrder: 10,
       };
+
       const result = await request(app)
         .post(graphQLUrl)
         .set(headers)
@@ -182,21 +189,23 @@ describe('public mutations: ShareableList', () => {
           query: print(CREATE_SHAREABLE_LIST),
           variables: { listData, listItemData },
         });
+
       expect(result.body.data).to.exist;
-      expect(result.body.data.createShareableList.title).to.equal(
+
+      const list = result.body.data.createShareableList;
+
+      expect(list.title).to.equal(
         'My list to share&lt;script&gt;alert("Hello World!")&lt;/script&gt;'
       );
-      expect(result.body.data.createShareableList.status).to.equal(
-        ListStatus.PRIVATE
-      );
-      expect(result.body.data.createShareableList.moderationStatus).to.equal(
-        ModerationStatus.VISIBLE
-      );
+      expect(list.status).to.equal(ListStatus.PRIVATE);
+      expect(list.moderationStatus).to.equal(ModerationStatus.VISIBLE);
+
+      // user entity should match the creator's id
+      expect(list.user).to.deep.equal({ id: headers.userId });
+
       // expect 1 listItem in result
-      expect(result.body.data.createShareableList.listItems.length).to.equal(1);
-      expect(result.body.data.createShareableList.listItems[0].title).to.equal(
-        listItemData.title
-      );
+      expect(list.listItems.length).to.equal(1);
+      expect(list.listItems[0].title).to.equal(listItemData.title);
     });
 
     it('should not create List with existing title for the same userId', async () => {
@@ -387,13 +396,13 @@ describe('public mutations: ShareableList', () => {
         });
 
       expect(result.body.errors).to.be.undefined;
-      expect(result.body.data.deleteShareableList).to.exist;
-      expect(result.body.data.deleteShareableList.externalId).to.equal(
-        theList.externalId
-      );
-      expect(result.body.data.deleteShareableList.title).to.equal(
-        theList.title
-      );
+
+      const list = result.body.data.deleteShareableList;
+
+      expect(list).to.exist;
+      expect(list.externalId).to.equal(theList.externalId);
+      expect(list.title).to.equal(theList.title);
+      expect(list.user).to.deep.equal({ id: headers.userId });
     });
     it('will  clear all items from a list', async () => {
       // first make a list
@@ -486,6 +495,7 @@ describe('public mutations: ShareableList', () => {
 
       // Verify that all optional properties have been updated
       const updatedList = result.body.data.updateShareableList;
+
       expect(updatedList.title).to.equal(data.title);
       expect(updatedList.description).to.equal(data.description);
       expect(updatedList.status).to.equal(data.status);
@@ -499,7 +509,7 @@ describe('public mutations: ShareableList', () => {
         listToUpdate.createdAt.toISOString()
       );
       expect(updatedList.listItems).to.have.lengthOf(0);
-      expect(updatedList.userId).to.equal(parseInt(headers.userId));
+      expect(updatedList.user).to.deep.equal({ id: headers.userId });
 
       // The `updatedAt` timestamp should change
       expect(updatedList.updatedAt).not.to.equal(
