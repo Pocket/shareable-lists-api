@@ -1,3 +1,9 @@
+extend schema
+  @link(
+    url: "https://specs.apollo.dev/federation/v2.0"
+    import: ["@key", "@shareable", "@requires", "@external", "@inaccessible"]
+  )
+
 """
 The status of a Shareable List. Defaults to PRIVATE - visible only to its owner.
 """

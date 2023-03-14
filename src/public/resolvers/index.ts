@@ -1,5 +1,6 @@
 import { PocketDefaultScalars } from '@pocket-tools/apollo-utils';
 import { PrismaBigIntResolver } from '../../shared/resolvers/fields/PrismaBigInt';
+import { UserResolver } from '../../shared/resolvers/fields/User';
 import {
   getShareableList,
   getShareableListPublic,
@@ -20,6 +21,7 @@ export const resolvers = {
   ...PocketDefaultScalars,
   ShareableList: {
     userId: PrismaBigIntResolver,
+    user: UserResolver,
   },
   ShareableListItem: {
     itemId: PrismaBigIntResolver,
