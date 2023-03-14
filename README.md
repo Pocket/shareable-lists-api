@@ -158,4 +158,4 @@ In `src/snowplow/types.ts` do the following:
 
 ### Unit tests
 
-The unit tests for snowlpow events are defined in `src/snowplow/events.spec.ts`. [https://sinonjs.org/](Sinon JS)is used for test spies and stubs.
+The unit tests for Snowplow events are defined in `src/snowplow/events.spec.ts`. [https://sinonjs.org/](Sinon JS)is used for test spies and stubs.

@@ -1,4 +1,16 @@
 """
+ISOString scalar - all datetime fields are Typescript Date objects on this server &
+returned as ISO-8601 encoded date strings (e.g. ISOString scalars) to GraphQL clients.
+See Section 5.6 of the RFC 3339 profile of the ISO 8601 standard: https://www.ietf.org/rfc/rfc3339.txt.
+"""
+scalar ISOString
+
+"""
+A URL to a web page or image.
+"""
+scalar Url
+
+"""
 The status of a Shareable List. Defaults to PRIVATE - visible only to its owner.
 """
 enum ShareableListStatus {
@@ -25,4 +37,107 @@ enum ShareableListModerationStatus {
   by its owner as it violated the Pocket content moderation policy.
   """
   HIDDEN
+}
+
+"""
+A Pocket Save (story) that has been added to a Shareable List.
+"""
+type ShareableListItem {
+    """
+    A unique string identifier in UUID format.
+    """
+    externalId: ID!
+    """
+    The Parser Item ID.
+    """
+    itemId: Float
+    """
+    The URL of the story saved to a list.
+    """
+    url: Url!
+    """
+    The title of the story. Supplied by the Parser.
+    May not be available for URLs that cannot be resolved.
+    Not editable by the Pocket user, as are all the other
+    Parser-supplied story properties below.
+    """
+    title: String
+    """
+    The excerpt of the story. Supplied by the Parser.
+    """
+    excerpt: String
+    """
+    The URL of the thumbnail image illustrating the story. Supplied by the Parser.
+    """
+    imageUrl: Url
+    """
+    The name of the publisher for this story. Supplied by the Parser.
+    """
+    publisher: String
+    """
+    A comma-separated list of story authors. Supplied by the Parser.
+    """
+    authors: String
+    """
+    The custom sort order of stories within a list. Defaults to 1.
+    """
+    sortOrder: Int!
+    """
+    The timestamp of when this story was added to the list by its owner.
+    """
+    createdAt: ISOString!
+    """
+    The timestamp of when the story was last updated. Not used for the MVP.
+    """
+    updatedAt: ISOString!
+}
+"""
+A user-created list of Pocket saves that can be shared publicly.
+"""
+type ShareableList {
+    """
+    A unique string identifier in UUID format.
+    """
+    externalId: ID!
+    """
+    Pocket User ID.
+    UserId is of Float type as GraphQL does not support BigInt.
+    This will ensure that all large integer values are handled
+    and will be interpreted as Number type.
+    """
+    userId: Float!
+    """
+    A URL-ready identifier of the list. Generated from the title
+    of the list when it's first made public. Unique per user.
+    """
+    slug: String
+    """
+    The title of the list. Provided by the Pocket user.
+    """
+    title: String!
+    """
+    Optional text description of a Shareable List. Provided by the Pocket user.
+    """
+    description: String
+    """
+    The status of the list. Defaults to PRIVATE.
+    """
+    status: ShareableListStatus!
+    """
+    The moderation status of the list. Defaults to VISIBLE.
+    """
+    moderationStatus: ShareableListModerationStatus!
+    """
+    The timestamp of when the list was created by its owner.
+    """
+    createdAt: ISOString!
+    """
+    The timestamp of when the list was last updated by its owner
+    or a member of the moderation team.
+    """
+    updatedAt: ISOString!
+    """
+    Pocket Saves that have been added to this list by the Pocket user.
+    """
+    listItems: [ShareableListItem!]!
 }

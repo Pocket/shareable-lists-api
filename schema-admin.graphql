@@ -1,68 +1,25 @@
-"""
-ISOString scalar - all datetime fields are Typescript Date objects on this server &
-returned as ISO-8601 encoded date strings (e.g. ISOString scalars) to GraphQL clients.
-See Section 5.6 of the RFC 3339 profile of the ISO 8601 standard: https://www.ietf.org/rfc/rfc3339.txt.
-"""
-scalar ISOString
+type ShareableListModeration {
+    """
+    The LDAP username of the moderator who took down a list
+    that violates the Pocket content moderation policy.
+    """
+    moderatedBy: String
+    """
+    The reason why the moderator took down the list.
+    """
+    moderationReason: String
+}
 
 """
-A user-created list of Pocket saves that can be shared publicly.
+Union type for a full Shareable List that includes moderation-related fields
 """
-type ShareableList {
-  externalId: ID!
-  """
-  Pocket User ID.
-  UserId is of Float type as GraphQL does not support BigInt.
-  This will ensure that all large integer values are handled and will
-  be interpreted as Number type.
-  """
-  userId: Float!
-  """
-  A URL-ready identifier of the list. Generated from the title
-  of the list when it's first made public. Unique per user.
-  """
-  slug: String
-  """
-  The title of the list. Provided by the Pocket user.
-  """
-  title: String!
-  """
-  Optional text description of a Shareable List. Provided by the Pocket user.
-  """
-  description: String
-  """
-  The status of the list. Defaults to PRIVATE.
-  """
-  status: ShareableListStatus!
-  """
-  The moderation status of the list. Defaults to VISIBLE.
-  """
-  moderationStatus: ShareableListModerationStatus!
-  """
-  The LDAP username of the moderator who took down a list
-  that violates the Pocket content moderation policy.
-  """
-  moderatedBy: String
-  """
-  The reason why the moderator took down the list.
-  """
-  moderationReason: String
-  """
-  The timestamp of when the list was created by its owner.
-  """
-  createdAt: ISOString!
-  """
-  The timestamp of when the list was last updated by its owner
-  or a member of the moderation team.
-  """
-  updatedAt: ISOString!
-}
+union ShareableListResult = ShareableList | ShareableListModeration
 
 type Query {
   """
   Looks up and returns a Shareable List with a given external ID for any user.
   """
-  searchShareableList(externalId: ID!): ShareableList
+  searchShareableList(externalId: ID!): ShareableListResult
 }
 
 """
@@ -78,5 +35,5 @@ type Mutation {
 	"""
 	Removes (moderates) a Shareable List.
 	"""
-	moderateShareableList(data: ModerateShareableListInput!): ShareableList
+	moderateShareableList(data: ModerateShareableListInput!): ShareableListResult
 }
