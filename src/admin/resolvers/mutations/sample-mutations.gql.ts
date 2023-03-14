@@ -1,11 +1,18 @@
 import { gql } from 'graphql-tag';
-import { ShareableListPublicProps } from '../fragments.gql';
+import { ShareableListModerationProps } from '../fragments.gql';
+import { ShareableListPublicProps } from '../../../shared/fragments.gql';
 
 export const MODERATE_SHAREABLE_LIST = gql`
   mutation moderateShareableList($data: ModerateShareableListInput!) {
     moderateShareableList(data: $data) {
-      ...ShareableListPublicProps
+      ... on ShareableList {
+        ...ShareableListPublicProps
+      }
+      ... on ShareableListModeration {
+        ...ShareableListModerationProps
+      }
     }
   }
   ${ShareableListPublicProps}
+  ${ShareableListModerationProps}
 `;

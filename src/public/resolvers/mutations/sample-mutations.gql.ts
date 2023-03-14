@@ -2,7 +2,7 @@ import { gql } from 'graphql-tag';
 import {
   ShareableListPublicProps,
   ShareableListItemPublicProps,
-} from '../fragments.gql';
+} from '../../../shared/fragments.gql';
 
 export const CREATE_SHAREABLE_LIST = gql`
   mutation createShareableList(
