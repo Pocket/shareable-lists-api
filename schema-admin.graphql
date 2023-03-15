@@ -4,12 +4,9 @@ type ShareableListComplete implements ShareableListInterface {
     """
     externalId: ID!
     """
-    Pocket User ID.
-    UserId is of Float type as GraphQL does not support BigInt.
-    This will ensure that all large integer values are handled
-    and will be interpreted as Number type.
+    The user who created this shareable list.
     """
-    userId: Float!
+    user: User!
     """
     A URL-ready identifier of the list. Generated from the title
     of the list when it's first made public. Unique per user.

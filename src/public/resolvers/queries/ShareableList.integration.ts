@@ -157,6 +157,9 @@ describe('public queries: ShareableList', () => {
       // Empty slug - it's not generated on creation
       expect(list.slug).to.be.null;
 
+      // the user entity should be present with the id of the creator
+      expect(list.user).to.deep.equal({ id: headers.userId });
+
       // Empty list items array
       expect(list.listItems).to.have.lengthOf(0);
     });
@@ -356,6 +359,9 @@ describe('public queries: ShareableList', () => {
       // Empty slug - it's not generated on creation
       expect(list.slug).to.not.be.empty;
 
+      // the user should match the id of the creator
+      expect(list.user).to.deep.equal({ id: newList.userId.toString() });
+
       // Empty list items array
       expect(list.listItems).to.have.lengthOf(0);
     });
@@ -524,6 +530,13 @@ describe('public queries: ShareableList', () => {
       expect(result.body.data.shareableLists[1].title).to.equal(
         shareableList.title
       );
+
+      expect(result.body.data.shareableLists[0].user).to.deep.equal({
+        id: headers.userId,
+      });
+      expect(result.body.data.shareableLists[1].user).to.deep.equal({
+        id: headers.userId,
+      });
 
       // Let's run through the visible props of each item
       // to make sure they're all there for the first List
