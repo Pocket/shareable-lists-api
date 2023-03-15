@@ -1,12 +1,12 @@
-import { Construct } from 'constructs';
-import {
-  App,
-  DataTerraformRemoteState,
-  RemoteBackend,
-  TerraformStack,
-} from 'cdktf';
-import { AwsProvider, kms, datasources, sns } from '@cdktf/provider-aws';
 import { config } from './config';
+import { AwsProvider } from '@cdktf/provider-aws/lib/provider';
+import { DataAwsCallerIdentity } from '@cdktf/provider-aws/lib/data-aws-caller-identity';
+import { DataAwsKmsAlias } from '@cdktf/provider-aws/lib/data-aws-kms-alias';
+import { DataAwsRegion } from '@cdktf/provider-aws/lib/data-aws-region';
+import { DataAwsSnsTopic } from '@cdktf/provider-aws/lib/data-aws-sns-topic';
+import { LocalProvider } from '@cdktf/provider-local/lib/provider';
+import { NullProvider } from '@cdktf/provider-null/lib/provider';
+import { PagerdutyProvider } from '@cdktf/provider-pagerduty/lib/provider';
 import {
   ApplicationRedis,
   ApplicationRDSCluster,
@@ -15,9 +15,13 @@ import {
   PocketPagerDuty,
   PocketVPC,
 } from '@pocket-tools/terraform-modules';
-import { PagerdutyProvider } from '@cdktf/provider-pagerduty';
-import { LocalProvider } from '@cdktf/provider-local';
-import { NullProvider } from '@cdktf/provider-null';
+import { Construct } from 'constructs';
+import {
+  App,
+  DataTerraformRemoteState,
+  RemoteBackend,
+  TerraformStack,
+} from 'cdktf';
 import * as fs from 'fs';
 
 class ShareableListsAPI extends TerraformStack {
@@ -25,9 +29,9 @@ class ShareableListsAPI extends TerraformStack {
     super(scope, name);
 
     new AwsProvider(this, 'aws', { region: 'us-east-1' });
-    new PagerdutyProvider(this, 'pagerduty_provider', { token: undefined });
     new LocalProvider(this, 'local_provider');
     new NullProvider(this, 'null_provider');
+    new PagerdutyProvider(this, 'pagerduty_provider', { token: undefined });
 
     new RemoteBackend(this, {
       hostname: 'app.terraform.io',
@@ -36,8 +40,8 @@ class ShareableListsAPI extends TerraformStack {
     });
 
     const pocketVpc = new PocketVPC(this, 'pocket-vpc');
-    const region = new datasources.DataAwsRegion(this, 'region');
-    const caller = new datasources.DataAwsCallerIdentity(this, 'caller');
+    const region = new DataAwsRegion(this, 'region');
+    const caller = new DataAwsCallerIdentity(this, 'caller');
     const cache = ShareableListsAPI.createElasticache(this, pocketVpc);
 
     const pocketApp = this.createPocketAlbApplication({
@@ -95,7 +99,7 @@ class ShareableListsAPI extends TerraformStack {
    * @private
    */
   private getCodeDeploySnsTopic() {
-    return new sns.DataAwsSnsTopic(this, 'backend_notifications', {
+    return new DataAwsSnsTopic(this, 'backend_notifications', {
       name: `Backend-${config.environment}-ChatBot`,
     });
   }
@@ -105,7 +109,7 @@ class ShareableListsAPI extends TerraformStack {
    * @private
    */
   private getSecretsManagerKmsAlias() {
-    return new kms.DataAwsKmsAlias(this, 'kms_alias', {
+    return new DataAwsKmsAlias(this, 'kms_alias', {
       name: 'alias/aws/secretsmanager',
     });
   }
@@ -189,10 +193,10 @@ class ShareableListsAPI extends TerraformStack {
   private createPocketAlbApplication(dependencies: {
     rds: ApplicationRDSCluster;
     pagerDuty: PocketPagerDuty;
-    region: datasources.DataAwsRegion;
-    caller: datasources.DataAwsCallerIdentity;
-    secretsManagerKmsAlias: kms.DataAwsKmsAlias;
-    snsTopic: sns.DataAwsSnsTopic;
+    region: DataAwsRegion;
+    caller: DataAwsCallerIdentity;
+    secretsManagerKmsAlias: DataAwsKmsAlias;
+    snsTopic: DataAwsSnsTopic;
     cache: { primaryEndpoint: string; readerEndpoint: string };
   }): PocketALBApplication {
     const {
