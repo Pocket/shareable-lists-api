@@ -11,6 +11,13 @@ A URL to a web page or image.
 scalar Url
 
 """
+Resolve by reference the User entity in this graph to provide user data with public lists.
+"""
+type User @key(fields: "id", resolvable: false) {
+  id: ID!
+}
+
+"""
 A Pocket Save (story) that has been added to a Shareable List.
 """
 type ShareableListItem {
@@ -75,8 +82,13 @@ type ShareableList {
   UserId is of Float type as GraphQL does not support BigInt.
   This will ensure that all large integer values are handled
   and will be interpreted as Number type.
+  Will not federate userId, but available to be used locally.
   """
-  userId: Float!
+  userId: String! @inaccessible
+  """
+  The user who created this shareable list.
+  """
+  user: User!
   """
   A URL-ready identifier of the list. Generated from the title
   of the list when it's first made public. Unique per user.
