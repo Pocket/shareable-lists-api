@@ -157,6 +157,9 @@ describe('public queries: ShareableList', () => {
       // Empty slug - it's not generated on creation
       expect(list.slug).to.be.null;
 
+      // the user entity should be present with the id of the creator
+      expect(list.user).to.deep.equal({ id: headers.userId });
+
       // Empty list items array
       expect(list.listItems).to.have.lengthOf(0);
     });
@@ -211,9 +214,9 @@ describe('public queries: ShareableList', () => {
           query: print(GET_SHAREABLE_LIST_PUBLIC),
           variables: {
             externalId: '1234-abcd',
+            slug: 'bad-slug',
           },
         });
-
       // There should be nothing in results
       expect(result.body.data.shareableListPublic).to.be.null;
 
@@ -239,6 +242,7 @@ describe('public queries: ShareableList', () => {
           query: print(GET_SHAREABLE_LIST_PUBLIC),
           variables: {
             externalId: list.externalId,
+            slug: list.slug,
           },
         });
 
@@ -250,11 +254,41 @@ describe('public queries: ShareableList', () => {
       expect(result.body.errors[0].message).to.equal(ACCESS_DENIED_ERROR);
     });
 
-    it('should return a list with all props if it is accessible', async () => {
+    it('should return a NotFound error if list is Private', async () => {
+      const privateList = await createShareableListHelper(db, {
+        userId: parseInt(headers.userId),
+        title: 'This is a list that is Private',
+        slug: 'this-is-a-list-that-is-private',
+        status: ListStatus.PRIVATE,
+        moderationStatus: ModerationStatus.VISIBLE,
+      });
+
+      // Run the query we're testing
+      const result = await request(app)
+        .post(graphQLUrl)
+        .send({
+          query: print(GET_SHAREABLE_LIST_PUBLIC),
+          variables: {
+            externalId: privateList.externalId,
+            slug: privateList.slug,
+          },
+        });
+
+      // There should be nothing in results
+      expect(result.body.data.shareableListPublic).to.be.null;
+
+      // And a "Forbidden" error
+      expect(result.body.errors[0].extensions.code).to.equal('NOT_FOUND');
+      expect(result.body.errors[0].message).to.equal(
+        'Error - Not Found: A list by that URL could not be found'
+      );
+    });
+
+    it('should return a NotFound error if externalId is valid but slug is invalid', async () => {
       const newList = await createShareableListHelper(db, {
         userId: parseInt(headers.userId),
-        title: 'This is a list that does not comply with our policies',
-        slug: 'this-is-a-list-that-does-not-comply',
+        title: 'This is a list',
+        slug: 'this-is-a-list',
         status: ListStatus.PUBLIC,
         moderationStatus: ModerationStatus.VISIBLE,
       });
@@ -266,6 +300,37 @@ describe('public queries: ShareableList', () => {
           query: print(GET_SHAREABLE_LIST_PUBLIC),
           variables: {
             externalId: newList.externalId,
+            slug: 'bad-slug',
+          },
+        });
+
+      // There should be nothing in results
+      expect(result.body.data.shareableListPublic).to.be.null;
+
+      // And a "Forbidden" error
+      expect(result.body.errors[0].extensions.code).to.equal('NOT_FOUND');
+      expect(result.body.errors[0].message).to.equal(
+        'Error - Not Found: A list by that URL could not be found'
+      );
+    });
+
+    it('should return a list with all props if it is accessible', async () => {
+      const newList = await createShareableListHelper(db, {
+        userId: parseInt(headers.userId),
+        title: 'This is a list that does comply with our policies',
+        slug: 'this-is-a-list-that-does-comply',
+        status: ListStatus.PUBLIC,
+        moderationStatus: ModerationStatus.VISIBLE,
+      });
+
+      // Run the query we're testing
+      const result = await request(app)
+        .post(graphQLUrl)
+        .send({
+          query: print(GET_SHAREABLE_LIST_PUBLIC),
+          variables: {
+            externalId: newList.externalId,
+            slug: newList.slug,
           },
         });
 
@@ -294,6 +359,9 @@ describe('public queries: ShareableList', () => {
       // Empty slug - it's not generated on creation
       expect(list.slug).to.not.be.empty;
 
+      // the user should match the id of the creator
+      expect(list.user).to.deep.equal({ id: newList.userId.toString() });
+
       // Empty list items array
       expect(list.listItems).to.have.lengthOf(0);
     });
@@ -318,6 +386,7 @@ describe('public queries: ShareableList', () => {
           query: print(GET_SHAREABLE_LIST_PUBLIC),
           variables: {
             externalId: newList.externalId,
+            slug: newList.slug,
           },
         });
 
@@ -461,6 +530,13 @@ describe('public queries: ShareableList', () => {
       expect(result.body.data.shareableLists[1].title).to.equal(
         shareableList.title
       );
+
+      expect(result.body.data.shareableLists[0].user).to.deep.equal({
+        id: headers.userId,
+      });
+      expect(result.body.data.shareableLists[1].user).to.deep.equal({
+        id: headers.userId,
+      });
 
       // Let's run through the visible props of each item
       // to make sure they're all there for the first List
