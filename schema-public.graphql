@@ -1,11 +1,4 @@
 """
-Resolve by reference the User entity in this graph to provide user data with public lists.
-"""
-type User @key(fields: "id", resolvable: false) {
-  id: ID!
-}
-
-"""
 A user-created list of Pocket saves that can be shared publicly.
 """
 type ShareableList implements ShareableListInterface {
