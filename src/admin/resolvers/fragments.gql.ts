@@ -1,21 +1,21 @@
 import { gql } from 'graphql-tag';
+import { ShareableListItemPublicProps } from '../../shared/fragments.gql';
 
-/**
- * This GraphQL fragment contains all the properties that must be available
- * in the Admin Pocket Graph for a Shareable List.
- */
-export const ShareableListPublicProps = gql`
-  fragment ShareableListPublicProps on ShareableList {
+export const ShareableListCompleteProps = gql`
+  fragment ShareableListCompleteProps on ShareableListComplete {
     externalId
-    userId
     title
     description
     slug
     status
     moderationStatus
-    moderatedBy
-    moderationReason
     createdAt
     updatedAt
+    moderatedBy
+    moderationReason
+    listItems {
+      ...ShareableListItemPublicProps
+    }
   }
+  ${ShareableListItemPublicProps}
 `;

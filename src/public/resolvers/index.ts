@@ -20,7 +20,6 @@ import {
 export const resolvers = {
   ...PocketDefaultScalars,
   ShareableList: {
-    userId: PrismaBigIntResolver,
     user: UserResolver,
   },
   ShareableListItem: {
