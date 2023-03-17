@@ -1,24 +1,18 @@
-import { ElasticacheRedis } from '@pocket-tools/apollo-utils';
-import Redis from 'ioredis';
+import Keyv from 'keyv';
+import KeyvRedis from '@keyv/redis';
+import { KeyvAdapter } from '@apollo/utils.keyvadapter';
 import config from '../config';
 
-let redisCache = undefined;
+const keyvRedis = new KeyvRedis(
+  `${config.redis.primaryEndpoint.split(':')[0]}:${config.redis.port}`
+);
 
-export const getRedisCache = (): ElasticacheRedis => {
-  if (redisCache) {
-    return redisCache;
-  }
+const keyv = new Keyv({
+  store: keyvRedis,
+});
 
-  redisCache = new ElasticacheRedis(
-    new Redis({
-      port: 63779, // Redis port
-      host: '127.0.0.1', // Redis host
-    }),
-    new Redis({
-      port: 6379, // Redis port
-      host: '127.0.0.1', // Redis host
-    })
-  );
+export const cache = new KeyvAdapter(keyv);
 
-  return redisCache;
-};
+keyv.on('error', function (message) {
+  console.error(`Redis cache error: ${message}`);
+});

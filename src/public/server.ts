@@ -21,10 +21,10 @@ import { typeDefsPublic } from '../typeDefs';
 import { resolvers } from './resolvers';
 import { IPublicContext } from './context';
 import config from '../config';
+import { cache } from '../cache';
 
 export function getPublicServer(
-  httpServer: Server,
-  cache: ElasticacheRedis
+  httpServer: Server
 ): ApolloServer<IPublicContext> {
   const defaultPlugins = [
     //Copied from Apollo docs, the sessionID signifies if we should separate out caches by user.
@@ -41,6 +41,8 @@ export function getPublicServer(
     sentryPlugin,
     ApolloServerPluginDrainHttpServer({ httpServer }),
     ApolloServerPluginCacheControl({
+      // Set a default cache control of 0 seconds so it respects the individual set cache controls on the schema
+      // With this set to 0 it will not cache by default
       defaultMaxAge: config.app.defaultMaxAge,
     }),
   ];
@@ -54,7 +56,6 @@ export function getPublicServer(
     // Usage reporting is enabled by default if you have APOLLO_KEY in your environment
     ApolloServerPluginUsageReportingDisabled(),
   ];
-
   const plugins =
     process.env.NODE_ENV === 'production'
       ? defaultPlugins.concat(prodPlugins)
@@ -62,8 +63,9 @@ export function getPublicServer(
 
   return new ApolloServer<IPublicContext>({
     schema: buildSubgraphSchema([{ typeDefs: typeDefsPublic, resolvers }]),
-    // Caches the queries that apollo clients can send via a hashed get request
-    // This allows us to cache resolver decisions
+    // Caches the queries that apollo clients can send via a hashed get request.
+    // This allows us to cache resolver decisions and improve network performance
+    // for large query strings
     persistedQueries: {
       cache,
       ttl: 300, // 5 minutes
@@ -75,10 +77,9 @@ export function getPublicServer(
 }
 
 export async function startPublicServer(
-  httpServer: Server,
-  cache: ElasticacheRedis
+  httpServer: Server
 ): Promise<ApolloServer<IPublicContext>> {
-  const server = getPublicServer(httpServer, cache);
+  const server = getPublicServer(httpServer);
   await server.start();
   return server;
 }
