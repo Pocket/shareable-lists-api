@@ -45,6 +45,7 @@ export async function getShareableListPublic(
 ): Promise<ShareableList> {
   // externalId is unique, but the generated type for `findUnique` here doesn't
   // include `status`, so using `findFirst` instead
+  console.log('hiiii');
   const list = await db.list.findFirst({
     where: {
       externalId,

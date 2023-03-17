@@ -21,28 +21,18 @@ import { typeDefsPublic } from '../typeDefs';
 import { resolvers } from './resolvers';
 import { IPublicContext } from './context';
 import config from '../config';
-import { cache } from '../cache';
+import { getRedisCache } from '../cache';
 
 export function getPublicServer(
   httpServer: Server
 ): ApolloServer<IPublicContext> {
+  const cache = getRedisCache();
+  console.log(cache);
   const defaultPlugins = [
-    //Copied from Apollo docs, the sessionID signifies if we should separate out caches by user.
-    responseCachePlugin({
-      //https://www.apollographql.com/docs/apollo-server/performance/caching/#saving-full-responses-to-a-cache
-      //The user id is added to the request header by the apollo gateway (client api)
-      sessionId: async (
-        requestContext: GraphQLRequestContext<IPublicContext>
-      ) =>
-        requestContext?.request?.http?.headers?.has('userId')
-          ? requestContext?.request?.http?.headers?.get('userId')
-          : null,
-    }),
+    responseCachePlugin(),
     sentryPlugin,
     ApolloServerPluginDrainHttpServer({ httpServer }),
     ApolloServerPluginCacheControl({
-      // Set a default cache control of 0 seconds so it respects the individual set cache controls on the schema
-      // With this set to 0 it will not cache by default
       defaultMaxAge: config.app.defaultMaxAge,
     }),
   ];
