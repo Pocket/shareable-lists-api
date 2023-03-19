@@ -2,11 +2,11 @@ import AWSXRay from 'aws-xray-sdk-core';
 import https from 'https';
 import { startServer } from './express';
 
-//Set XRAY to just log if the context is missing instead of a runtime error
-AWSXRay.setContextMissingStrategy('LOG_ERROR');
-
 //Add the AWS XRAY ECS plugin that will add ecs specific data to the trace
 AWSXRay.config([AWSXRay.plugins.ECSPlugin]);
+
+//Set XRAY to just log if the context is missing instead of a runtime error
+AWSXRay.setContextMissingStrategy('LOG_ERROR');
 
 //Capture all https traffic this service sends
 //This is to auto capture node fetch requests (like to parser)
