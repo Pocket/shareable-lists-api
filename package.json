@@ -1,6 +1,9 @@
 {
   "name": "shareable-lists-api",
   "main": "dist/main.js",
+  "prisma": {
+    "seed": "ts-node --emit=false prisma/seed.ts"
+  },
   "scripts": {
     "build": "rm -rf dist && tsc",
     "watch": "tsc -w & nodemon",
