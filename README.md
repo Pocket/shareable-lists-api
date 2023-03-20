@@ -28,9 +28,21 @@ Prepare Prisma:
 
 Start Docker container:
 
-- `docker-compose up --build -V`
+- `docker compose up --build -V`
 
-After Docker completes, you should be able to access the GraphQL playground at `http://localhost:4029`.
+Once all the Docker containers are up and running, you should be able to reach
+
+- the public API at `http://localhost:4029/`
+- the admin API at `http://localhost:4029/admin`
+
+
+Out of the box, the local installation doesn't have any actual data for you to fetch or manipulate through the API. To seed some sample data for your local dev environment, run
+
+```bash
+docker compose exec app npx prisma migrate reset
+```
+
+Note that the above command will not be adding to any data you may have added to the database through other means - it will do a complete reset AND apply the seed script located at `src/prisma/seed.ts`.
 
 ### Admin API Authorization
 
