@@ -453,16 +453,6 @@ describe('public queries: ShareableList', () => {
     });
 
     it('should return an array of lists with all props if it exists for a given userId', async () => {
-      await createShareableListHelper(db, {
-        userId: parseInt(headers.userId),
-        title: 'fake-list-one',
-      });
-
-      // create another list
-      await createShareableListHelper(db, {
-        userId: parseInt(headers.userId),
-        title: 'fake-list-two',
-      });
       // Run the query we're testing
       const result = await request(app)
         .post(graphQLUrl)
@@ -471,9 +461,6 @@ describe('public queries: ShareableList', () => {
           query: print(GET_SHAREABLE_LISTS),
         });
 
-      console.log(result);
-      console.log(headers);
-      console.log(result.body.data);
       // A result should be returned
       expect(result.body.data.shareableList).not.to.be.null;
 
@@ -511,75 +498,75 @@ describe('public queries: ShareableList', () => {
       }
     });
 
-    // it('should return an array of lists with list items for a given userId', async () => {
-    //   // Create a couple of list items for list1
-    //   await createShareableListItemHelper(db, { list: shareableList });
-    //   await createShareableListItemHelper(db, { list: shareableList });
-    //   // Create a couple of list items for list2
-    //   await createShareableListItemHelper(db, { list: shareableList2 });
-    //   await createShareableListItemHelper(db, { list: shareableList2 });
+    it('should return an array of lists with list items for a given userId', async () => {
+      // Create a couple of list items for list1
+      await createShareableListItemHelper(db, { list: shareableList });
+      await createShareableListItemHelper(db, { list: shareableList });
+      // Create a couple of list items for list2
+      await createShareableListItemHelper(db, { list: shareableList2 });
+      await createShareableListItemHelper(db, { list: shareableList2 });
 
-    //   // Run the query we're testing
-    //   const result = await request(app)
-    //     .post(graphQLUrl)
-    //     .set(headers)
-    //     .send({
-    //       query: print(GET_SHAREABLE_LISTS),
-    //     });
+      // Run the query we're testing
+      const result = await request(app)
+        .post(graphQLUrl)
+        .set(headers)
+        .send({
+          query: print(GET_SHAREABLE_LISTS),
+        });
 
-    //   // A result should be returned
-    //   expect(result.body.data.shareableLists).not.to.be.null;
+      // A result should be returned
+      expect(result.body.data.shareableLists).not.to.be.null;
 
-    //   // There should be no errors
-    //   expect(result.body.errors).to.be.undefined;
+      // There should be no errors
+      expect(result.body.errors).to.be.undefined;
 
-    //   // There should be two list items for the first List in the array
-    //   expect(result.body.data.shareableLists[0].listItems).to.have.lengthOf(2);
-    //   // There should be two list items for the second List in the array
-    //   expect(result.body.data.shareableLists[1].listItems).to.have.lengthOf(2);
+      // There should be two list items for the first List in the array
+      expect(result.body.data.shareableLists[0].listItems).to.have.lengthOf(2);
+      // There should be two list items for the second List in the array
+      expect(result.body.data.shareableLists[1].listItems).to.have.lengthOf(2);
 
-    //   // Let's double check the returned array is ordered correctly
-    //   expect(result.body.data.shareableLists[0].title).to.equal(
-    //     shareableList2.title
-    //   );
-    //   expect(result.body.data.shareableLists[1].title).to.equal(
-    //     shareableList.title
-    //   );
+      // Let's double check the returned array is ordered correctly
+      expect(result.body.data.shareableLists[0].title).to.equal(
+        shareableList2.title
+      );
+      expect(result.body.data.shareableLists[1].title).to.equal(
+        shareableList.title
+      );
 
-    //   expect(result.body.data.shareableLists[0].user).to.deep.equal({
-    //     id: headers.userId,
-    //   });
-    //   expect(result.body.data.shareableLists[1].user).to.deep.equal({
-    //     id: headers.userId,
-    //   });
+      expect(result.body.data.shareableLists[0].user).to.deep.equal({
+        id: headers.userId,
+      });
+      expect(result.body.data.shareableLists[1].user).to.deep.equal({
+        id: headers.userId,
+      });
 
-    //   // Let's run through the visible props of each item
-    //   // to make sure they're all there for the first List
-    //   result.body.data.shareableLists[0].listItems.forEach((listItem) => {
-    //     expect(listItem.url).not.to.be.empty;
-    //     expect(listItem.title).not.to.be.empty;
-    //     expect(listItem.excerpt).not.to.be.empty;
-    //     expect(listItem.imageUrl).not.to.be.empty;
-    //     expect(listItem.publisher).not.to.be.empty;
-    //     expect(listItem.authors).not.to.be.empty;
-    //     expect(listItem.sortOrder).to.be.a('number');
-    //     expect(listItem.createdAt).not.to.be.empty;
-    //     expect(listItem.updatedAt).not.to.be.empty;
-    //   });
+      // Let's run through the visible props of each item
+      // to make sure they're all there for the first List
+      result.body.data.shareableLists[0].listItems.forEach((listItem) => {
+        expect(listItem.url).not.to.be.empty;
+        expect(listItem.title).not.to.be.empty;
+        expect(listItem.excerpt).not.to.be.empty;
+        expect(listItem.imageUrl).not.to.be.empty;
+        expect(listItem.publisher).not.to.be.empty;
+        expect(listItem.authors).not.to.be.empty;
+        expect(listItem.sortOrder).to.be.a('number');
+        expect(listItem.createdAt).not.to.be.empty;
+        expect(listItem.updatedAt).not.to.be.empty;
+      });
 
-    //   // Let's run through the visible props of each item
-    //   // to make sure they're all there for the second List
-    //   result.body.data.shareableLists[1].listItems.forEach((listItem) => {
-    //     expect(listItem.url).not.to.be.empty;
-    //     expect(listItem.title).not.to.be.empty;
-    //     expect(listItem.excerpt).not.to.be.empty;
-    //     expect(listItem.imageUrl).not.to.be.empty;
-    //     expect(listItem.publisher).not.to.be.empty;
-    //     expect(listItem.authors).not.to.be.empty;
-    //     expect(listItem.sortOrder).to.be.a('number');
-    //     expect(listItem.createdAt).not.to.be.empty;
-    //     expect(listItem.updatedAt).not.to.be.empty;
-    //   });
-    // });
+      // Let's run through the visible props of each item
+      // to make sure they're all there for the second List
+      result.body.data.shareableLists[1].listItems.forEach((listItem) => {
+        expect(listItem.url).not.to.be.empty;
+        expect(listItem.title).not.to.be.empty;
+        expect(listItem.excerpt).not.to.be.empty;
+        expect(listItem.imageUrl).not.to.be.empty;
+        expect(listItem.publisher).not.to.be.empty;
+        expect(listItem.authors).not.to.be.empty;
+        expect(listItem.sortOrder).to.be.a('number');
+        expect(listItem.createdAt).not.to.be.empty;
+        expect(listItem.updatedAt).not.to.be.empty;
+      });
+    });
   });
 });

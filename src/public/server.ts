@@ -1,11 +1,7 @@
-import { ApolloServer, GraphQLRequestContext } from '@apollo/server';
+import { ApolloServer } from '@apollo/server';
 import { Server } from 'http';
 import { buildSubgraphSchema } from '@apollo/subgraph';
-import {
-  ElasticacheRedis,
-  errorHandler,
-  sentryPlugin,
-} from '@pocket-tools/apollo-utils';
+import { errorHandler, sentryPlugin } from '@pocket-tools/apollo-utils';
 import { ApolloServerPluginLandingPageGraphQLPlayground } from '@apollo/server-plugin-landing-page-graphql-playground';
 import {
   ApolloServerPluginLandingPageDisabled,
@@ -27,7 +23,6 @@ export function getPublicServer(
   httpServer: Server
 ): ApolloServer<IPublicContext> {
   const cache = getRedisCache();
-  console.log(cache);
   const defaultPlugins = [
     responseCachePlugin(),
     sentryPlugin,
