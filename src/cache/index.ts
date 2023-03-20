@@ -1,19 +1,23 @@
 import Keyv from 'keyv';
 import { KeyvAdapter } from '@apollo/utils.keyvadapter';
+import { ErrorsAreMissesCache } from '@apollo/utils.keyvaluecache';
 import config from '../config';
 
-let cache = undefined;
+// const keyv = new Keyv(
+//   `redis://${config.redis.primaryEndpoint}:${config.redis.port}`
+// );
+// export const cache = new KeyvAdapter(keyv);
 
-export const getRedisCache = (): KeyvAdapter => {
-  if (cache) {
-    return cache;
-  }
-
+export function getRedisCache() {
   const keyv = new Keyv(
     `redis://${config.redis.primaryEndpoint}:${config.redis.port}`
+  ).on('error', function (message) {
+    console.error(`Redis cache error: ${message}`);
+  });
+  const cache = new ErrorsAreMissesCache(
+    new KeyvAdapter(
+      new Keyv(`redis://${config.redis.primaryEndpoint}:${config.redis.port}`)
+    )
   );
-
-  cache = new KeyvAdapter(keyv);
-
   return cache;
-};
+}

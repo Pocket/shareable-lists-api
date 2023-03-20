@@ -30,6 +30,7 @@ import {
   createPilotUserHelper,
   createShareableListHelper,
   createShareableListItemHelper,
+  mockRedisServer,
 } from '../../../test/helpers';
 import config from '../../../config';
 import {
@@ -51,6 +52,7 @@ describe('public mutations: ShareableList', () => {
   };
 
   beforeAll(async () => {
+    mockRedisServer();
     // port 0 tells express to dynamically assign an available port
     ({
       app,

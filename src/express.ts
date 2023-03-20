@@ -10,6 +10,8 @@ import { startPublicServer } from './public/server';
 import { getPublicContext, IPublicContext } from './public/context';
 import { getAdminContext, IAdminContext } from './admin/context';
 import { startAdminServer } from './admin/server';
+// import { KeyvAdapter } from '@apollo/utils.keyvadapter';
+// import { getRedisCache } from './cache';
 
 /**
  * Initialize an express server.
@@ -57,6 +59,7 @@ export async function startServer(port: number): Promise<{
   );
 
   // set up the public server
+  // const publicCache = getRedisCache();
   const publicServer = await startPublicServer(httpServer);
   const publicUrl = '/';
 

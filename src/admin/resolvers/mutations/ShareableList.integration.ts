@@ -7,7 +7,11 @@ import request from 'supertest';
 import { IAdminContext } from '../../context';
 import { startServer } from '../../../express';
 import { client } from '../../../database/client';
-import { clearDb, createShareableListHelper } from '../../../test/helpers';
+import {
+  clearDb,
+  createShareableListHelper,
+  mockRedisServer,
+} from '../../../test/helpers';
 import { expect } from 'chai';
 import {
   ACCESS_DENIED_ERROR,
@@ -31,6 +35,7 @@ describe('admin mutations: ShareableList', () => {
   let eventBridgeClientStub: sinon.SinonStub;
 
   beforeAll(async () => {
+    mockRedisServer();
     ({ app, adminServer: server, adminUrl: graphQLUrl } = await startServer(0));
     db = client();
     // we mock the send method on EventBridgeClient
