@@ -24,6 +24,8 @@ export function getPublicServer(
 ): ApolloServer<IPublicContext> {
   const cache = getRedisCache();
   const defaultPlugins = [
+    // On initialization, this plugin automatically begins caching responses according to field settings
+    // see shareableListPublic cache control settings
     responseCachePlugin(),
     sentryPlugin,
     ApolloServerPluginDrainHttpServer({ httpServer }),
@@ -48,13 +50,6 @@ export function getPublicServer(
 
   return new ApolloServer<IPublicContext>({
     schema: buildSubgraphSchema([{ typeDefs: typeDefsPublic, resolvers }]),
-    // Caches the queries that apollo clients can send via a hashed get request.
-    // This allows us to cache resolver decisions and improve network performance
-    // for large query strings
-    persistedQueries: {
-      cache,
-      ttl: 300, // 5 minutes
-    },
     plugins,
     cache,
     formatError: errorHandler,
