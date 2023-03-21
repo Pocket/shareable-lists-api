@@ -28,9 +28,20 @@ Prepare Prisma:
 
 Start Docker container:
 
-- `docker-compose up --build -V`
+- `docker compose up --build -V`
 
-After Docker completes, you should be able to access the GraphQL playground at `http://localhost:4029`.
+Once all the Docker containers are up and running, you should be able to reach
+
+- the public API at `http://localhost:4029/`
+- the admin API at `http://localhost:4029/admin`
+
+Out of the box, the local installation doesn't have any actual data for you to fetch or manipulate through the API. To seed some sample data for your local dev environment, run
+
+```bash
+docker compose exec app npx prisma migrate reset
+```
+
+Note that the above command will not be adding to any data you may have added to the database through other means - it will do a complete reset AND apply the seed script located at `src/prisma/seed.ts`.
 
 ### Admin API Authorization
 
@@ -69,7 +80,7 @@ environment:
 ```
 
 - Add a `try/catch` block in a query / mutation, throw an error and capture it with `Sentry.captureException(err)`
-- In `src/server.ts` replace `nonProdPlugins` with:
+- In `src/public/server.ts` and or `src/admin/server.ts` replace `nonProdPlugins` with:
 
 ```
 const nonProdPlugins = [
@@ -125,3 +136,45 @@ If tests don't rely on other services:
 ```
 npm run test-integrations
 ```
+
+### Snowplow Events
+
+This API sends two kinds of events to the Pocket Event Bridge --> Snowplow: `shareable-list` and `shareable-list-item` events.
+
+- `shareable_list` JSON schema: [Snowplow schema](https://console.snowplowanalytics.com/cf0fba6b-23b3-49a0-9d79-7ce18b8f9618/data-structures/7b895f09809942a835587b02a58b7a835f92e16a726f5d224a43b90d219ae9c4)
+- `shareable_list_item` JSON schema: [Snowplow schema] (https://console.snowplowanalytics.com/cf0fba6b-23b3-49a0-9d79-7ce18b8f9618/data-structures/5c6a2540cd75d3baef34f659a7902732616502c996e513770d7e2c8bad926fc6)
+- event triggers: [object_update Snowplow schema](https://console.snowplowanalytics.com/cf0fba6b-23b3-49a0-9d79-7ce18b8f9618/data-structures/a30c8f05ecf12d2b53202ed1cf161a4c578fab653f846550a20392659449dbad)
+
+The API maps the GraphQL API types to the Snowplow types and sends both events to the Pocket Event Bridge. The core logic happens in `src/snowplow/events.ts` where the `sendEvent` function takes in a payload and sends it to the Pocket Bridge.
+
+### To setup a new Snowplow event:
+
+In `src/aws/config/index.ts`:
+
+1. Add a new event to `eventBridge` and define the source.
+
+In `src/snowplow/types.ts` do the following:
+
+1. Add the expected Snowplow type.
+2. Add the event bridge event type to `EventBridgeEventType` enum.
+3. Add an `EventBusPayload` for your type.
+4. To the `EventBridgeEventOptions` interface, add your event type and a boolean to indicate what event you are passing.
+
+In `src/snowplow/types.ts` do the following:
+
+1. Add your transformer function which maps the GraphQL API type to the expected Snowplow type.
+2. Add the function which generates the Snowplow type payload.
+3. In `sendEventHelper` function, add a conditional for what event option you are passing and call `sendEvent` function and pass the payload.
+4. Finally, in the `sendEvent` function, based on the boolean flag, set the event bridge source.
+
+### Unit tests
+
+The unit tests for Snowplow events are defined in `src/snowplow/events.spec.ts`. [https://sinonjs.org/](Sinon JS)is used for test spies and stubs.
+
+### Redis Cache
+
+The Redis container runs on `localhost:6379`. To connect to the local Redis server (works for `dev` and `prod` as well, just find the Redis cluster primary endpoints in AWS ElastiCache and make sure to use the appropriate `$(maws)` role), one of the options is to install the [redis-gui](https://github.com/ekvedaras/redis-gui/releases) and setup the connection to `localhost:6379`.
+
+The `shareableListPublic` query caches the responses and stores them for 60 seconds in the Redis db. Here is a screenshot of how it gets stored:
+
+![Architecture](redis-gui-screenshot.png)

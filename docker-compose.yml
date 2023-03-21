@@ -1,7 +1,7 @@
 version: '3.1'
 services:
   mysql:
-    image: mysql:5.7@sha256:8cf035b14977b26f4a47d98e85949a7dd35e641f88fc24aa4b466b36beecf9d6
+    image: mysql:5.7@sha256:9202fc6bc8fa63615e6bfc0049fc660f712d164220c5c54d86519870c305ea48
     platform: linux/amd64
     env_file:
       - ./.docker/local.env
@@ -11,8 +11,13 @@ services:
       - MYSQL_ALLOW_EMPTY_PASSWORD=yes
       - TZ=UTC
 
+  redis:
+    image: redis:7@sha256:e50c7e23f79ae81351beacb20e004720d4bed657415e68c2b1a2b5557c075ce0
+    ports:
+      - '6379:6379'
+
   localstack:
-    image: localstack/localstack@sha256:93f78390f08ad84e9393e440cc3c32bcfb46b5efb7fe7cb3b355a0e70e6f971b
+    image: localstack/localstack@sha256:6ce2c98bb8013e6c94615edf2753829ec16762f641fdbdbe1238f6f3267a0e0f
     platform: linux/amd64
     env_file:
       - .docker/local.env
@@ -33,7 +38,7 @@ services:
       - HOSTNAME_EXTERNAL=localstack
 
   app:
-    image: node:18@sha256:077e885f214f445f0d2cb25ba2105f8965f89f4f334cae7d31c29c5bd06a8381
+    image: node:18@sha256:370db2cf5b89acc950805ef32aa9cbfc69d86769f92ba9f3492a36a6f75e0d92
     platform: linux/amd64
     working_dir: /app
     ports:
@@ -48,9 +53,4 @@ services:
     depends_on:
       - mysql
       - localstack
-
-  # snowplow:
-  #   image: pocket/snowplow-micro:prod
-  #   platform: linux/amd64
-  #   ports:
-  #     - '9090:9090'
+      - redis

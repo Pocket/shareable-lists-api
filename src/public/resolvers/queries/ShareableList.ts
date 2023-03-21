@@ -20,7 +20,11 @@ export async function getShareableList(
   { externalId },
   { userId, db }
 ): Promise<ShareableList> {
-  const list = await dbGetShareableList(db, validateUserId(userId), externalId);
+  const list = await dbGetShareableList(
+    db,
+    await validateUserId(db, userId),
+    externalId
+  );
 
   if (!list) {
     throw new NotFoundError(externalId);
@@ -38,15 +42,21 @@ export async function getShareableList(
  */
 export async function getShareableListPublic(
   parent,
-  { externalId },
-  { db }
+  { externalId, slug },
+  { db },
+  info
 ): Promise<ShareableList> {
-  const list = await dbGetShareableListPublic(db, externalId);
+  const list = await dbGetShareableListPublic(db, externalId, slug);
 
   if (!list) {
     throw new NotFoundError(externalId);
   }
-
+  // dynamically providing caching controll in the resolver
+  // PUBLIC scope because response is accessible to public not a single user
+  info.cacheControl.setCacheHint({
+    maxAge: 60, // The maximum amount of time the field's cached value is valid, in seconds.
+    scope: 'PUBLIC',
+  });
   return list;
 }
 
@@ -62,5 +72,5 @@ export async function getShareableLists(
   _,
   { userId, db }
 ): Promise<ShareableList[]> {
-  return await dbGetShareableLists(db, validateUserId(userId));
+  return await dbGetShareableLists(db, await validateUserId(db, userId));
 }

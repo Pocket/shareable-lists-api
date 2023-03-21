@@ -1,8 +1,16 @@
 import { expect } from 'chai';
+import sinon from 'sinon';
 import { print } from 'graphql';
 import request from 'supertest';
 import { ApolloServer } from '@apollo/server';
-import { List, ListItem, ModerationStatus, PrismaClient } from '@prisma/client';
+import { EventBridgeClient } from '@aws-sdk/client-eventbridge';
+import {
+  List,
+  ListItem,
+  ModerationStatus,
+  PilotUser,
+  PrismaClient,
+} from '@prisma/client';
 import { startServer } from '../../../express';
 import { IPublicContext } from '../../context';
 import { client } from '../../../database/client';
@@ -13,8 +21,10 @@ import {
 } from './sample-mutations.gql';
 import {
   clearDb,
+  createPilotUserHelper,
   createShareableListHelper,
   createShareableListItemHelper,
+  mockRedisServer,
 } from '../../../test/helpers';
 import { ACCESS_DENIED_ERROR } from '../../../shared/constants';
 
@@ -23,11 +33,16 @@ describe('public mutations: ShareableListItem', () => {
   let server: ApolloServer<IPublicContext>;
   let graphQLUrl: string;
   let db: PrismaClient;
+  let eventBridgeClientStub: sinon.SinonStub;
+  let pilotUser1: PilotUser;
+  let pilotUser2: PilotUser;
+
   const headers = {
-    userId: '12345',
+    userId: '8009882300',
   };
 
   beforeAll(async () => {
+    mockRedisServer();
     // port 0 tells express to dynamically assign an available port
     ({
       app,
@@ -35,9 +50,14 @@ describe('public mutations: ShareableListItem', () => {
       publicUrl: graphQLUrl,
     } = await startServer(0));
     db = client();
+    // we mock the send method on EventBridgeClient
+    eventBridgeClientStub = sinon
+      .stub(EventBridgeClient.prototype, 'send')
+      .resolves({ FailedEntryCount: 0 });
   });
 
   afterAll(async () => {
+    eventBridgeClientStub.restore();
     await db.$disconnect();
     await server.stop();
   });
@@ -48,11 +68,44 @@ describe('public mutations: ShareableListItem', () => {
     beforeEach(async () => {
       await clearDb(db);
 
+      // create pilot users
+      pilotUser1 = await createPilotUserHelper(db, {
+        userId: parseInt(headers.userId),
+      });
+
+      pilotUser2 = await createPilotUserHelper(db, {
+        userId: 7732025862,
+      });
+
       // Create a parent Shareable List
       list = await createShareableListHelper(db, {
         userId: parseInt(headers.userId),
         title: 'This List Will Have Lots of Stories',
       });
+    });
+
+    it('should not create a new item for a user not in the pilot', async () => {
+      const data: CreateShareableListItemInput = {
+        listExternalId: 'this-list-does-not-even-exist',
+        itemId: 1,
+        url: 'https://getpocket.com/discover',
+        sortOrder: 1,
+      };
+
+      const result = await request(app)
+        .post(graphQLUrl)
+        .set({
+          userId: 848135,
+        })
+        .send({
+          query: print(CREATE_SHAREABLE_LIST_ITEM),
+          variables: { data },
+        });
+
+      expect(result.body.data.createShareableListItem).to.be.null;
+
+      expect(result.body.errors[0].extensions.code).to.equal('FORBIDDEN');
+      expect(result.body.errors[0].message).to.equal(ACCESS_DENIED_ERROR);
     });
 
     it("should not create a new item for a list that doesn't exist", async () => {
@@ -75,10 +128,7 @@ describe('public mutations: ShareableListItem', () => {
       expect(result.body.data.createShareableListItem).to.be.null;
 
       // And a "Not found" error
-      expect(result.body).to.have.nested.property(
-        'errors[0].extensions.code',
-        'NOT_FOUND'
-      );
+      expect(result.body.errors[0].extensions.code).to.equal('NOT_FOUND');
     });
 
     it('should not create a new item for a list that has been taken down', async () => {
@@ -107,10 +157,7 @@ describe('public mutations: ShareableListItem', () => {
       expect(result.body.data.createShareableListItem).to.be.null;
 
       // And a "Not found" error
-      expect(result.body).to.have.nested.property(
-        'errors[0].extensions.code',
-        'NOT_FOUND'
-      );
+      expect(result.body.errors[0].extensions.code).to.equal('NOT_FOUND');
     });
 
     it('should not create a list item in a list that belongs to another user', async () => {
@@ -124,7 +171,7 @@ describe('public mutations: ShareableListItem', () => {
 
       const result = await request(app)
         .post(graphQLUrl)
-        .set({ userId: '222333444' }) // Note the test list is owned by user '12345'
+        .set({ userId: pilotUser2.userId }) // Note the test list is owned by pilotUser1
         .send({
           query: print(CREATE_SHAREABLE_LIST_ITEM),
           variables: { data },
@@ -134,10 +181,7 @@ describe('public mutations: ShareableListItem', () => {
       expect(result.body.data.createShareableListItem).to.be.null;
 
       // And a "Not found" error
-      expect(result.body).to.have.nested.property(
-        'errors[0].extensions.code',
-        'NOT_FOUND'
-      );
+      expect(result.body.errors[0].extensions.code).to.equal('NOT_FOUND');
     });
 
     it('should create a new list item', async () => {
@@ -211,10 +255,7 @@ describe('public mutations: ShareableListItem', () => {
       expect(result.body.data.createShareableListItem).to.be.null;
 
       // And a "Bad user input" error
-      expect(result.body).to.have.nested.property(
-        'errors[0].extensions.code',
-        'BAD_USER_INPUT'
-      );
+      expect(result.body.errors[0].extensions.code).to.equal('BAD_USER_INPUT');
     });
 
     it('should create a list item with the same URL in a different list', async () => {
@@ -279,6 +320,16 @@ describe('public mutations: ShareableListItem', () => {
 
     beforeEach(async () => {
       await clearDb(db);
+
+      // create pilot users
+      pilotUser1 = await createPilotUserHelper(db, {
+        userId: parseInt(headers.userId),
+      });
+
+      pilotUser2 = await createPilotUserHelper(db, {
+        userId: 7732025862,
+      });
+
       // Create a VISIBLE List
       shareableList = await createShareableListHelper(db, {
         userId: parseInt(headers.userId),
@@ -290,15 +341,42 @@ describe('public mutations: ShareableListItem', () => {
       });
     });
 
-    it('should not delete a list item for another userId', async () => {
-      // Create a List and ListItem for another userId
+    it('should not delete a list item for a user not in the pilot', async () => {
       const list = await createShareableListHelper(db, {
-        userId: parseInt('65129'),
+        userId: pilotUser1.userId,
         title: 'Bob Sinclair List',
       });
+
       const listItem = await createShareableListItemHelper(db, {
         list,
       });
+
+      const result = await request(app)
+        .post(graphQLUrl)
+        .set({
+          userId: '848135',
+        })
+        .send({
+          query: print(DELETE_SHAREABLE_LIST_ITEM),
+          variables: { externalId: listItem.externalId },
+        });
+      expect(result.body.data).not.to.exist;
+      expect(result.body.errors.length).to.equal(1);
+      expect(result.body.errors[0].extensions.code).to.equal('FORBIDDEN');
+      expect(result.body.errors[0].message).to.equal(ACCESS_DENIED_ERROR);
+    });
+
+    it('should not delete a list item for another userId', async () => {
+      // Create a List and ListItem for another userId
+      const list = await createShareableListHelper(db, {
+        userId: pilotUser2.userId,
+        title: 'Bob Sinclair List',
+      });
+
+      const listItem = await createShareableListItemHelper(db, {
+        list,
+      });
+
       // Run the mutation as userId: 12345 but trying to delete a list item for userId: 65129
       const result = await request(app)
         .post(graphQLUrl)

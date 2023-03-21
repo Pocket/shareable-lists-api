@@ -12,19 +12,22 @@ export type ShareableListItem = Omit<ListItem, 'id' | 'externalId' | 'listId'>;
  */
 export type ShareableList = Omit<
   List,
-  'id' | 'userId' | 'moderatedBy' | 'moderationReason'
+  'id' | 'moderatedBy' | 'moderationReason'
 > & {
   listItems?: ShareableListItem[];
 };
 
 /**
- * This is the shape of a shareable list object on the admin Pocket Graph.
+ * This is the shape of a shareable list object on the Admin Pocket Graph.
  */
-export type ShareableListComplete = Omit<List, 'id'>;
+export type ShareableListComplete = Omit<List, 'id'> & {
+  listItems?: ShareableListItem[];
+};
 
 export type CreateShareableListInput = {
   title: string;
   description?: string;
+  listItem?: CreateShareableListItemInput;
 };
 
 export type UpdateShareableListInput = {

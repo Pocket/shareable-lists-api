@@ -5,7 +5,11 @@ import request from 'supertest';
 import { IPublicContext } from '../../context';
 import { startServer } from '../../../express';
 import { client } from '../../../database/client';
-import { clearDb, createPilotUserHelper } from '../../../test/helpers';
+import {
+  clearDb,
+  createPilotUserHelper,
+  mockRedisServer,
+} from '../../../test/helpers';
 import { SHAREABLE_LISTS_PILOT_USER } from './sample-queries.gql';
 import { expect } from 'chai';
 
@@ -18,6 +22,7 @@ describe('public queries: PilotUser', () => {
   let pilotUser: PilotUser;
 
   beforeAll(async () => {
+    mockRedisServer();
     // port 0 tells express to dynamically assign an available port
     ({
       app,
@@ -26,6 +31,12 @@ describe('public queries: PilotUser', () => {
     } = await startServer(0));
 
     db = client();
+  });
+
+  beforeEach(async () => {
+    // start with a populated cache for testing the methods
+    // await keyvAdapter.set('foo', 'foo');
+    await clearDb(db);
 
     // create a pilot user
     pilotUser = await createPilotUserHelper(db, {
@@ -34,7 +45,6 @@ describe('public queries: PilotUser', () => {
   });
 
   afterAll(async () => {
-    await clearDb(db);
     await db.$disconnect();
     await server.stop();
   });
@@ -60,6 +70,20 @@ describe('public queries: PilotUser', () => {
         .set({
           // *not* the id of the pilot user we created above
           userId: '7732025862',
+        })
+        .send({
+          query: print(SHAREABLE_LISTS_PILOT_USER),
+        });
+
+      expect(result.body.data.shareableListsPilotUser).to.be.false;
+    });
+
+    it('should return false if userId is empty', async () => {
+      const result = await request(app)
+        .post(graphQLUrl)
+        .set({
+          // userId is not set
+          userId: '',
         })
         .send({
           query: print(SHAREABLE_LISTS_PILOT_USER),
