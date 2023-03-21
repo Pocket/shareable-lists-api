@@ -5,11 +5,7 @@ import request from 'supertest';
 import { IPublicContext } from '../../context';
 import { startServer } from '../../../express';
 import { client } from '../../../database/client';
-import {
-  clearDb,
-  createPilotUserHelper,
-  mockRedisServer,
-} from '../../../test/helpers';
+import { clearDb, createPilotUserHelper } from '../../../test/helpers';
 import { SHAREABLE_LISTS_PILOT_USER } from './sample-queries.gql';
 import { expect } from 'chai';
 
@@ -22,7 +18,6 @@ describe('public queries: PilotUser', () => {
   let pilotUser: PilotUser;
 
   beforeAll(async () => {
-    mockRedisServer();
     // port 0 tells express to dynamically assign an available port
     ({
       app,
@@ -34,8 +29,6 @@ describe('public queries: PilotUser', () => {
   });
 
   beforeEach(async () => {
-    // start with a populated cache for testing the methods
-    // await keyvAdapter.set('foo', 'foo');
     await clearDb(db);
 
     // create a pilot user

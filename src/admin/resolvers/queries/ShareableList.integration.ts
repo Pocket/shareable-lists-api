@@ -14,7 +14,6 @@ import {
   clearDb,
   createShareableListHelper,
   updateShareableListHelper,
-  mockRedisServer,
 } from '../../../test/helpers';
 import { SEARCH_SHAREABLE_LIST } from './sample-queries.gql';
 import { FULLACCESS } from '../../../shared/constants';
@@ -37,7 +36,6 @@ describe('admin queries: ShareableList', () => {
   };
 
   beforeAll(async () => {
-    mockRedisServer();
     // port 0 tells express to dynamically assign an available port
     ({ app, adminServer: server, adminUrl: graphQLUrl } = await startServer(0));
     db = client();

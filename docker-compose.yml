@@ -14,7 +14,7 @@ services:
   redis:
     image: redis:7@sha256:e50c7e23f79ae81351beacb20e004720d4bed657415e68c2b1a2b5557c075ce0
     ports:
-      - '6379:6379'
+      - '6377:6379'
 
   localstack:
     image: localstack/localstack@sha256:6ce2c98bb8013e6c94615edf2753829ec16762f641fdbdbe1238f6f3267a0e0f

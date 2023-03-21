@@ -43,20 +43,14 @@ export async function getShareableList(
 export async function getShareableListPublic(
   parent,
   { externalId, slug },
-  { db },
-  info
+  { db }
 ): Promise<ShareableList> {
   const list = await dbGetShareableListPublic(db, externalId, slug);
 
   if (!list) {
     throw new NotFoundError(externalId);
   }
-  // dynamically providing caching controll in the resolver
-  // PUBLIC scope because response is accessible to public not a single user
-  info.cacheControl.setCacheHint({
-    maxAge: 60, // The maximum amount of time the field's cached value is valid, in seconds.
-    scope: 'PUBLIC',
-  });
+
   return list;
 }
 
