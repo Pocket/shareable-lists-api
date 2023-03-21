@@ -19,7 +19,6 @@ import {
   createPilotUserHelper,
   createShareableListHelper,
   createShareableListItemHelper,
-  mockRedisServer,
 } from '../../../test/helpers';
 import {
   GET_SHAREABLE_LIST,
@@ -42,7 +41,6 @@ describe('public queries: ShareableList', () => {
   };
 
   beforeAll(async () => {
-    mockRedisServer();
     // port 0 tells express to dynamically assign an available port
     ({
       app,
