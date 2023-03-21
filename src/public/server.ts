@@ -10,26 +10,17 @@ import {
 } from '@apollo/server/plugin/disabled';
 import { ApolloServerPluginInlineTrace } from '@apollo/server/plugin/inlineTrace';
 import { ApolloServerPluginDrainHttpServer } from '@apollo/server/plugin/drainHttpServer';
-import { ApolloServerPluginCacheControl } from '@apollo/server/plugin/cacheControl';
-import responseCachePlugin from '@apollo/server-plugin-response-cache';
 
 import { typeDefsPublic } from '../typeDefs';
 import { resolvers } from './resolvers';
 import { IPublicContext } from './context';
-import config from '../config';
-import { getRedisCache } from '../cache';
 
 export function getPublicServer(
   httpServer: Server
 ): ApolloServer<IPublicContext> {
-  const cache = getRedisCache();
   const defaultPlugins = [
-    responseCachePlugin(),
     sentryPlugin,
     ApolloServerPluginDrainHttpServer({ httpServer }),
-    ApolloServerPluginCacheControl({
-      defaultMaxAge: config.app.defaultMaxAge,
-    }),
   ];
   const prodPlugins = [
     ApolloServerPluginLandingPageDisabled(),
@@ -41,6 +32,7 @@ export function getPublicServer(
     // Usage reporting is enabled by default if you have APOLLO_KEY in your environment
     ApolloServerPluginUsageReportingDisabled(),
   ];
+
   const plugins =
     process.env.NODE_ENV === 'production'
       ? defaultPlugins.concat(prodPlugins)
@@ -48,15 +40,9 @@ export function getPublicServer(
 
   return new ApolloServer<IPublicContext>({
     schema: buildSubgraphSchema([{ typeDefs: typeDefsPublic, resolvers }]),
-    // Caches the queries that apollo clients can send via a hashed get request.
-    // This allows us to cache resolver decisions and improve network performance
-    // for large query strings
-    persistedQueries: {
-      cache,
-      ttl: 300, // 5 minutes
-    },
     plugins,
-    cache,
+    // OSL-202 (https://getpocket.atlassian.net/browse/OSL-202) needs to get done in order
+    // to stop masking Apollo Errors.
     formatError: errorHandler,
   });
 }

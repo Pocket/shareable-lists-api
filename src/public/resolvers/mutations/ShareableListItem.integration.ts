@@ -24,7 +24,6 @@ import {
   createPilotUserHelper,
   createShareableListHelper,
   createShareableListItemHelper,
-  mockRedisServer,
 } from '../../../test/helpers';
 import { ACCESS_DENIED_ERROR } from '../../../shared/constants';
 
@@ -42,7 +41,6 @@ describe('public mutations: ShareableListItem', () => {
   };
 
   beforeAll(async () => {
-    mockRedisServer();
     // port 0 tells express to dynamically assign an available port
     ({
       app,
