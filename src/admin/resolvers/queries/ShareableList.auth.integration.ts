@@ -5,7 +5,7 @@ import request from 'supertest';
 import { IAdminContext } from '../../context';
 import { startServer } from '../../../express';
 import { client } from '../../../database/client';
-import { clearDb } from '../../../test/helpers';
+import { clearDb, mockRedisServer } from '../../../test/helpers';
 import { SEARCH_SHAREABLE_LIST } from './sample-queries.gql';
 import {
   ACCESS_DENIED_ERROR,
@@ -27,6 +27,7 @@ describe('auth: ShareableList', () => {
   };
 
   beforeAll(async () => {
+    mockRedisServer();
     // port 0 tells express to dynamically assign an available port
     ({ app, adminServer: server, adminUrl: graphQLUrl } = await startServer(0));
     db = client();
