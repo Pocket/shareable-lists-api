@@ -30,9 +30,13 @@ export function getPublicServer(
   const cache = getRedisCache();
 
   // Add @constraint directive to the schema
-  const schema = buildSubgraphSchema({
-    typeDefs: [gql(constraintDirectiveTypeDefs), typeDefsPublic],
-  });
+  const schema = buildSubgraphSchema([
+    { typeDefs: gql(constraintDirectiveTypeDefs) },
+    {
+      typeDefs: typeDefsPublic,
+      resolvers,
+    },
+  ]);
 
   const defaultPlugins = [
     responseCachePlugin(),
@@ -61,7 +65,7 @@ export function getPublicServer(
       : defaultPlugins.concat(nonProdPlugins);
 
   return new ApolloServer<IPublicContext>({
-    schema: buildSubgraphSchema([{ typeDefs: typeDefsPublic, resolvers }]),
+    schema,
     // Caches the queries that apollo clients can send via a hashed get request.
     // This allows us to cache resolver decisions and improve network performance
     // for large query strings

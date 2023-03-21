@@ -1,8 +1,12 @@
 extend schema
-  @link(
-    url: "https://specs.apollo.dev/federation/v2.0"
-    import: ["@key", "@shareable", "@requires", "@external", "@inaccessible"]
-  )
+  @link(url: "https://specs.apollo.dev/link/v1.0")
+  @link(url: "https://specs.apollo.dev/federation/v2.1",
+    import: ["@key", "@composeDirective"])
+  # The link directive is required to federate @constraint
+  # It doesn't actually have to be a real spec, but it would be good
+  # to write one and replace this.
+  @link(url: "https://myspecs.dev/myDirective/v1.0", import: ["@constraint"])
+  @composeDirective(name:"@constraint")
 
 """
 ISOString scalar - all datetime fields are Typescript Date objects on this server &
