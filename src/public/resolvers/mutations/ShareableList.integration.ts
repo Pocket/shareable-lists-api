@@ -149,6 +149,9 @@ describe('public mutations: ShareableList', () => {
           variables: { listData: data },
         });
 
+      // This mutation should not be cached, expect headers.cache-control = no-store
+      expect(result.headers['cache-control']).to.equal('no-store');
+
       expect(result.body.data).to.exist;
 
       const list = result.body.data.createShareableList;
@@ -191,6 +194,9 @@ describe('public mutations: ShareableList', () => {
           query: print(CREATE_SHAREABLE_LIST),
           variables: { listData, listItemData },
         });
+
+      // This mutation should not be cached, expect headers.cache-control = no-store
+      expect(result.headers['cache-control']).to.equal('no-store');
 
       expect(result.body.data).to.exist;
 
@@ -294,6 +300,9 @@ describe('public mutations: ShareableList', () => {
           query: print(CREATE_SHAREABLE_LIST),
           variables: { listData: data },
         });
+
+      // This mutation should not be cached, expect headers.cache-control = no-store
+      expect(result.headers['cache-control']).to.equal('no-store');
       expect(result.body.data.createShareableList).to.exist;
       expect(result.body.data.createShareableList.title).to.equal(title1);
       expect(result.body.data.createShareableList.status).to.equal(
@@ -316,6 +325,9 @@ describe('public mutations: ShareableList', () => {
           query: print(CREATE_SHAREABLE_LIST),
           variables: { listData: data },
         });
+
+      // This mutation should not be cached, expect headers.cache-control = no-store
+      expect(result.headers['cache-control']).to.equal('no-store');
       expect(result.body.data.createShareableList).to.exist;
       expect(result.body.data.createShareableList.title).to.equal(
         'List with missing description'
@@ -397,6 +409,8 @@ describe('public mutations: ShareableList', () => {
           variables: { externalId: theList.externalId },
         });
 
+      // This mutation should not be cached, expect headers.cache-control = no-store
+      expect(result.headers['cache-control']).to.equal('no-store');
       expect(result.body.errors).to.be.undefined;
 
       const list = result.body.data.deleteShareableList;
@@ -489,6 +503,8 @@ describe('public mutations: ShareableList', () => {
           variables: { data },
         });
 
+      // This mutation should not be cached, expect headers.cache-control = no-store
+      expect(result.headers['cache-control']).to.equal('no-store');
       // There should be no errors
       expect(result.body.errors).to.be.undefined;
 
@@ -582,6 +598,8 @@ describe('public mutations: ShareableList', () => {
           variables: { data },
         });
 
+      // This mutation should not be cached, expect headers.cache-control = no-store
+      expect(result.headers['cache-control']).to.equal('no-store');
       // There should be no errors
       expect(result.body.errors).to.be.undefined;
 
@@ -606,6 +624,8 @@ describe('public mutations: ShareableList', () => {
           variables: { data },
         });
 
+      // This mutation should not be cached, expect headers.cache-control = no-store
+      expect(result.headers['cache-control']).to.equal('no-store');
       // There should be no errors
       expect(result.body.errors).to.be.undefined;
 
@@ -638,6 +658,8 @@ describe('public mutations: ShareableList', () => {
           variables: { data },
         });
 
+      // This mutation should not be cached, expect headers.cache-control = no-store
+      expect(result.headers['cache-control']).to.equal('no-store');
       // There should be no errors
       expect(result.body.errors).to.be.undefined;
 
@@ -674,6 +696,8 @@ describe('public mutations: ShareableList', () => {
           variables: { data: dataList1 },
         });
 
+      // This mutation should not be cached, expect headers.cache-control = no-store
+      expect(result.headers['cache-control']).to.equal('no-store');
       // There should be no errors
       expect(result.body.errors).to.be.undefined;
 
@@ -704,6 +728,8 @@ describe('public mutations: ShareableList', () => {
           variables: { data: dataList1 },
         });
 
+      // This mutation should not be cached, expect headers.cache-control = no-store
+      expect(result.headers['cache-control']).to.equal('no-store');
       // There should be no errors
       expect(result.body.errors).to.be.undefined;
 
@@ -736,6 +762,8 @@ describe('public mutations: ShareableList', () => {
           variables: { data: dataList2 },
         });
 
+      // This mutation should not be cached, expect headers.cache-control = no-store
+      expect(result.headers['cache-control']).to.equal('no-store');
       // There should be no errors
       expect(result.body.errors).to.be.undefined;
 
@@ -769,7 +797,8 @@ describe('public mutations: ShareableList', () => {
           query: print(UPDATE_SHAREABLE_LIST),
           variables: { data: dataList1 },
         });
-
+      // This mutation should not be cached, expect headers.cache-control = no-store
+      expect(result.headers['cache-control']).to.equal('no-store');
       // There should be no errors
       expect(result.body.errors).to.be.undefined;
 
@@ -806,7 +835,8 @@ describe('public mutations: ShareableList', () => {
           query: print(UPDATE_SHAREABLE_LIST),
           variables: { data: dataList2 },
         });
-
+      // This mutation should not be cached, expect headers.cache-control = no-store
+      expect(result.headers['cache-control']).to.equal('no-store');
       // There should be no errors
       expect(result.body.errors).to.be.undefined;
 
@@ -838,7 +868,8 @@ describe('public mutations: ShareableList', () => {
           query: print(UPDATE_SHAREABLE_LIST),
           variables: { data },
         });
-
+      // This mutation should not be cached, expect headers.cache-control = no-store
+      expect(result.headers['cache-control']).to.equal('no-store');
       // There should be no errors
       expect(result.body.errors).to.be.undefined;
 
@@ -864,7 +895,8 @@ describe('public mutations: ShareableList', () => {
           query: print(UPDATE_SHAREABLE_LIST),
           variables: { data: data2 },
         });
-
+      // This mutation should not be cached, expect headers.cache-control = no-store
+      expect(result.headers['cache-control']).to.equal('no-store');
       // There should be no errors
       expect(result2.body.errors).to.be.undefined;
 

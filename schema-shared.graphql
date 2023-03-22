@@ -48,14 +48,14 @@ enum ShareableListModerationStatus {
 """
 Resolve by reference the User entity in this graph to provide user data with public lists.
 """
-type User @key(fields: "id", resolvable: false) @cacheControl(maxAge: 0) {
+type User @key(fields: "id", resolvable: false) {
   id: ID!
 }
 
 """
 A Pocket Save (story) that has been added to a Shareable List.
 """
-type ShareableListItem @cacheControl(maxAge: 0) {
+type ShareableListItem {
   """
   A unique string identifier in UUID format.
   """

@@ -23,12 +23,6 @@ export default {
     primaryEndpoint: process.env.REDIS_PRIMARY_ENDPOINT || 'redis',
     readerEndpoint: process.env.REDIS_READER_ENDPOINT || 'redis',
     port: process.env.REDIS_PORT ?? 6379,
-    querySettings: {
-      shareableListPublic: {
-        maxAge: 60,
-        scope: 'PUBLIC',
-      },
-    },
   },
   sentry: {
     dsn: process.env.SENTRY_DSN || '',
