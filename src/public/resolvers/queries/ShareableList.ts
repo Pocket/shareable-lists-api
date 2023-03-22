@@ -6,6 +6,7 @@ import {
 } from '../../../database/queries';
 import { ShareableList } from '../../../database/types';
 import { validateUserId } from '../utils';
+import config from '../../../config';
 
 /**
  * Resolver for the public 'shareableList` query.
@@ -54,8 +55,8 @@ export async function getShareableListPublic(
   // dynamically providing caching controll in the resolver
   // PUBLIC scope because response is accessible to public not a single user
   info.cacheControl.setCacheHint({
-    maxAge: 60, // The maximum amount of time the field's cached value is valid, in seconds.
-    scope: 'PUBLIC',
+    maxAge: config.redis.querySettings.shareableListPublic.maxAge, // The maximum amount of time the field's cached value is valid, in seconds.
+    scope: config.redis.querySettings.shareableListPublic.scope,
   });
   return list;
 }

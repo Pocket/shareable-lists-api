@@ -43,3 +43,27 @@ export const ShareableListPublicProps = gql`
   }
   ${ShareableListItemPublicProps}
 `;
+
+/**
+ * This GraphQL fragment contains all the properties that must be available
+ * in the Public Pocket Graph for a Shareable List.
+ */
+export const ShareableListPublicQueryProps = gql`
+  fragment ShareableListPublicQueryProps on ShareableListPublic {
+    externalId
+    user {
+      id
+    }
+    title
+    description
+    slug
+    status
+    moderationStatus
+    createdAt
+    updatedAt
+    listItems {
+      ...ShareableListItemPublicProps
+    }
+  }
+  ${ShareableListItemPublicProps}
+`;

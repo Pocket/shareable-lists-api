@@ -34,8 +34,6 @@ describe('public queries: PilotUser', () => {
   });
 
   beforeEach(async () => {
-    // start with a populated cache for testing the methods
-    // await keyvAdapter.set('foo', 'foo');
     await clearDb(db);
 
     // create a pilot user
@@ -61,6 +59,9 @@ describe('public queries: PilotUser', () => {
           query: print(SHAREABLE_LISTS_PILOT_USER),
         });
 
+      // This query should not be cached, expect headers.cache-control = no-store
+      expect(result.headers['cache-control']).to.equal('no-store');
+
       expect(result.body.data.shareableListsPilotUser).to.be.true;
     });
 
@@ -75,6 +76,9 @@ describe('public queries: PilotUser', () => {
           query: print(SHAREABLE_LISTS_PILOT_USER),
         });
 
+      // This query should not be cached, expect headers.cache-control = no-store
+      expect(result.headers['cache-control']).to.equal('no-store');
+
       expect(result.body.data.shareableListsPilotUser).to.be.false;
     });
 
@@ -88,6 +92,9 @@ describe('public queries: PilotUser', () => {
         .send({
           query: print(SHAREABLE_LISTS_PILOT_USER),
         });
+
+      // This query should not be cached, expect headers.cache-control = no-store
+      expect(result.headers['cache-control']).to.equal('no-store');
 
       expect(result.body.data.shareableListsPilotUser).to.be.false;
     });
