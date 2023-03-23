@@ -1,6 +1,5 @@
 import { ApolloServer } from '@apollo/server';
 import { Server } from 'http';
-import { buildSubgraphSchema } from '@apollo/subgraph';
 import { errorHandler, sentryPlugin } from '@pocket-tools/apollo-utils';
 import { ApolloServerPluginLandingPageGraphQLPlayground } from '@apollo/server-plugin-landing-page-graphql-playground';
 import {
@@ -12,14 +11,9 @@ import { ApolloServerPluginInlineTrace } from '@apollo/server/plugin/inlineTrace
 import { ApolloServerPluginDrainHttpServer } from '@apollo/server/plugin/drainHttpServer';
 import { ApolloServerPluginCacheControl } from '@apollo/server/plugin/cacheControl';
 import responseCachePlugin from '@apollo/server-plugin-response-cache';
-import {
-  createApollo4QueryValidationPlugin,
-  constraintDirectiveTypeDefs,
-} from 'graphql-constraint-directive/apollo4';
-import { gql } from 'graphql-tag';
+import { createApollo4QueryValidationPlugin } from 'graphql-constraint-directive/apollo4';
+import { schema } from './schema';
 
-import { typeDefsPublic } from '../typeDefs';
-import { resolvers } from './resolvers';
 import { IPublicContext } from './context';
 import config from '../config';
 import { getRedisCache } from '../cache';
@@ -28,12 +22,6 @@ export function getPublicServer(
   httpServer: Server
 ): ApolloServer<IPublicContext> {
   const cache = getRedisCache();
-
-  // Add @constraint directive to the schema
-  const schema = buildSubgraphSchema({
-    typeDefs: [gql(constraintDirectiveTypeDefs), typeDefsPublic],
-    resolvers,
-  });
 
   const defaultPlugins = [
     responseCachePlugin(),

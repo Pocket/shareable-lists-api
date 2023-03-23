@@ -1,0 +1,261 @@
+extend schema
+  @link(url: "https://specs.apollo.dev/federation/v2.3", import: ["@key", "@composeDirective"])
+  @link(url: "https://myspecs.dev/constraint/v1.0", import: ["@constraint"])
+  @composeDirective(name: "@constraint")
+
+directive @constraint(minLength: Int, maxLength: Int, startsWith: String, endsWith: String, contains: String, notContains: String, pattern: String, format: String, min: Float, max: Float, exclusiveMin: Float, exclusiveMax: Float, multipleOf: Float, minItems: Int, maxItems: Int, uniqueTypeName: String) on INPUT_FIELD_DEFINITION | FIELD_DEFINITION | ARGUMENT_DEFINITION
+
+"""A user-created list of Pocket saves that can be shared publicly."""
+type ShareableList implements ShareableListInterface {
+  """A unique string identifier in UUID format."""
+  externalId: ID!
+
+  """The user who created this shareable list."""
+  user: User!
+
+  """
+  A URL-ready identifier of the list. Generated from the title
+  of the list when it's first made public. Unique per user.
+  """
+  slug: String
+
+  """The title of the list. Provided by the Pocket user."""
+  title: String!
+
+  """
+  Optional text description of a Shareable List. Provided by the Pocket user.
+  """
+  description: String
+
+  """The status of the list. Defaults to PRIVATE."""
+  status: ShareableListStatus!
+
+  """The moderation status of the list. Defaults to VISIBLE."""
+  moderationStatus: ShareableListModerationStatus!
+
+  """The timestamp of when the list was created by its owner."""
+  createdAt: ISOString!
+
+  """
+  The timestamp of when the list was last updated by its owner
+  or a member of the moderation team.
+  """
+  updatedAt: ISOString!
+
+  """Pocket Saves that have been added to this list by the Pocket user."""
+  listItems: [ShareableListItem!]!
+}
+
+"""Input data for creating a Shareable List."""
+input CreateShareableListInput {
+  title: String! @constraint(minLength: 3, maxLength: 100)
+  description: String @constraint(minLength: 3, maxLength: 100)
+}
+
+"""Input data for updating a Shareable List."""
+input UpdateShareableListInput {
+  externalId: ID!
+  title: String @constraint(minLength: 3, maxLength: 100)
+  description: String @constraint(minLength: 3, maxLength: 200)
+  status: ShareableListStatus
+}
+
+"""Input data for creating a Shareable List Item."""
+input CreateShareableListItemInput {
+  listExternalId: ID!
+  itemId: Float
+  url: Url!
+  title: String
+  excerpt: String
+  imageUrl: Url
+  publisher: String
+  authors: String
+  sortOrder: Int!
+}
+
+"""
+Input data for creating a Shareable List Item during Shareable List creation.
+"""
+input CreateShareableListItemWithList {
+  itemId: Float
+  url: Url!
+  title: String
+  excerpt: String
+  imageUrl: Url
+  publisher: String
+  authors: String
+  sortOrder: Int!
+}
+
+type Query {
+  """
+  Looks up and returns a Shareable List with a given external ID for a given user.
+  (the user ID will be coming through with the headers)
+  """
+  shareableList(externalId: ID!): ShareableList
+
+  """
+  Returns a publicly-shared Shareable List. Note: this query does not require user authentication.
+  """
+  shareableListPublic(externalId: ID!, slug: String!): ShareableList
+
+  """
+  Looks up and returns an array of Shareable Lists for a given user ID for a given user.
+  (the user ID will be coming through with the headers)
+  """
+  shareableLists: [ShareableList!]!
+
+  """
+  Determines if the userid passed in the headers has access to the pilot program.
+  """
+  shareableListsPilotUser: Boolean!
+}
+
+type Mutation {
+  """
+  Creates a Shareable List. Takes in an optional listItemData parameter to create a ShareableListItem
+  along with a ShareableList.
+  """
+  createShareableList(listData: CreateShareableListInput!, listItemData: CreateShareableListItemWithList): ShareableList
+
+  """Deletes a Shareable List."""
+  deleteShareableList(externalId: ID!): ShareableList!
+
+  """Updates a Shareable List. This includes making it public."""
+  updateShareableList(data: UpdateShareableListInput!): ShareableList!
+
+  """Creates a Shareable List Item."""
+  createShareableListItem(data: CreateShareableListItemInput!): ShareableListItem
+
+  """
+  Deletes a Shareable List Item. HIDDEN Lists cannot have their items deleted.
+  """
+  deleteShareableListItem(externalId: ID!): ShareableListItem!
+}
+
+"""ISOString custom scalar type"""
+scalar ISOString
+
+"""A URL to a web page or image."""
+scalar Url
+
+"""
+The status of a Shareable List. Defaults to PRIVATE - visible only to its owner.
+"""
+enum ShareableListStatus {
+  """
+  The list is only visible to its owner - the Pocket user who created it.
+  """
+  PRIVATE
+
+  """The list has been shared and can be viewed by anyone in the world."""
+  PUBLIC
+}
+
+"""The moderation status of a Shareable List. Defaults to VISIBLE."""
+enum ShareableListModerationStatus {
+  """
+  The list and its contents abide by the Pocket content moderation policy.
+  """
+  VISIBLE
+
+  """
+  The list and its contents have been removed from view and further editing
+  by its owner as it violated the Pocket content moderation policy.
+  """
+  HIDDEN
+}
+
+"""
+Resolve by reference the User entity in this graph to provide user data with public lists.
+"""
+type User
+  @key(fields: "id", resolvable: false)
+{
+  id: ID!
+}
+
+"""A Pocket Save (story) that has been added to a Shareable List."""
+type ShareableListItem {
+  """A unique string identifier in UUID format."""
+  externalId: ID!
+
+  """The Parser Item ID."""
+  itemId: Float
+
+  """The URL of the story saved to a list."""
+  url: Url!
+
+  """
+  The title of the story. Supplied by the Parser.
+  May not be available for URLs that cannot be resolved.
+  Not editable by the Pocket user, as are all the other
+  Parser-supplied story properties below.
+  """
+  title: String
+
+  """The excerpt of the story. Supplied by the Parser."""
+  excerpt: String
+
+  """
+  The URL of the thumbnail image illustrating the story. Supplied by the Parser.
+  """
+  imageUrl: Url
+
+  """The name of the publisher for this story. Supplied by the Parser."""
+  publisher: String
+
+  """A comma-separated list of story authors. Supplied by the Parser."""
+  authors: String
+
+  """The custom sort order of stories within a list. Defaults to 1."""
+  sortOrder: Int!
+
+  """The timestamp of when this story was added to the list by its owner."""
+  createdAt: ISOString!
+
+  """
+  The timestamp of when the story was last updated. Not used for the MVP.
+  """
+  updatedAt: ISOString!
+}
+
+interface ShareableListInterface {
+  """A unique string identifier in UUID format."""
+  externalId: ID!
+
+  """The user who created this shareable list."""
+  user: User!
+
+  """
+  A URL-ready identifier of the list. Generated from the title
+  of the list when it's first made public. Unique per user.
+  """
+  slug: String
+
+  """The title of the list. Provided by the Pocket user."""
+  title: String!
+
+  """
+  Optional text description of a Shareable List. Provided by the Pocket user.
+  """
+  description: String
+
+  """The status of the list. Defaults to PRIVATE."""
+  status: ShareableListStatus!
+
+  """The moderation status of the list. Defaults to VISIBLE."""
+  moderationStatus: ShareableListModerationStatus!
+
+  """The timestamp of when the list was created by its owner."""
+  createdAt: ISOString!
+
+  """
+  The timestamp of when the list was last updated by its owner
+  or a member of the moderation team.
+  """
+  updatedAt: ISOString!
+
+  """Pocket Saves that have been added to this list by the Pocket user."""
+  listItems: [ShareableListItem!]!
+}
