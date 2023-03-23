@@ -778,6 +778,71 @@ describe('public mutations: ShareableList', () => {
       expect(updatedList2.slug).to.equal('hangover-hotel-2');
     });
 
+    it('should remove emojis from slugs', async () => {
+      const data: UpdateShareableListInput = {
+        externalId: listToUpdate.externalId,
+        title: 'This 👏 Title 👏 Is 👏 Full 👏 Of 👏 Emojis',
+        status: ListStatus.PUBLIC,
+      };
+
+      const result = await request(app)
+        .post(graphQLUrl)
+        .set(headers)
+        .send({
+          query: print(UPDATE_SHAREABLE_LIST),
+          variables: { data },
+        });
+
+      // This mutation should not be cached, expect headers.cache-control = no-store
+      expect(result.headers['cache-control']).to.equal('no-store');
+      // There should be no errors
+      expect(result.body.errors).to.be.undefined;
+
+      // A result should be returned
+      expect(result.body.data.updateShareableList).not.to.be.null;
+
+      // Verify that the updates have taken place
+      const updatedList = result.body.data.updateShareableList;
+      expect(updatedList.status).to.equal(ListStatus.PUBLIC);
+      expect(updatedList.slug).not.to.be.empty;
+
+      // Does the slug look as expected?
+      expect(updatedList.slug).to.equal('this-title-is-full-of-emojis');
+    });
+
+    it('should generate a neutral title if slugified title is empty', async () => {
+      const data: UpdateShareableListInput = {
+        externalId: listToUpdate.externalId,
+        title: '👀 😱 😈 💚 👌 🔮️',
+        status: ListStatus.PUBLIC,
+      };
+
+      const result = await request(app)
+        .post(graphQLUrl)
+        .set(headers)
+        .send({
+          query: print(UPDATE_SHAREABLE_LIST),
+          variables: { data },
+        });
+
+      // This mutation should not be cached, expect headers.cache-control = no-store
+      expect(result.headers['cache-control']).to.equal('no-store');
+      // There should be no errors
+      expect(result.body.errors).to.be.undefined;
+
+      // A result should be returned
+      expect(result.body.data.updateShareableList).not.to.be.null;
+
+      // Verify that the updates have taken place
+      const updatedList = result.body.data.updateShareableList;
+      expect(updatedList.status).to.equal(ListStatus.PUBLIC);
+      expect(updatedList.slug).not.to.be.empty;
+
+      // Since the slug is whittled away into nothingness with the removal
+      // of spaces and emojis, a neutral slug is used instead
+      expect(updatedList.slug).to.equal('shared-list');
+    });
+
     it('should generate two identical slugs but for two different users', async () => {
       // create list 1
       const firstList = await createShareableListHelper(db, {
