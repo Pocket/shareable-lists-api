@@ -153,3 +153,29 @@ interface ShareableListInterface {
   """
   listItems: [ShareableListItem!]!
 }
+
+"""
+Apollo Server @cacheControl directive caching behavior either for a single field, or for all fields that
+return a particular type
+"""
+enum CacheControlScope {
+  PUBLIC
+
+  PRIVATE
+}
+
+directive @cacheControl(
+  """
+  The maximum amount of time the field's cached value is valid, in seconds.
+  """
+  maxAge: Int
+  """
+  If PRIVATE, the field's value is specific to a single user. The default value is PUBLIC
+  """
+  scope: CacheControlScope
+  """
+  If true, this field inherits the maxAge of its parent field instead of using the default
+  maxAge. Do not provide maxAge if you provide this argument.
+  """
+  inheritMaxAge: Boolean
+) on FIELD_DEFINITION | OBJECT | INTERFACE | UNION

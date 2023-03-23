@@ -39,10 +39,14 @@ export function getPublicServer(
   ]);
 
   const defaultPlugins = [
+    // On initialization, this plugin automatically begins caching responses according to field settings
+    // see shareableListPublic cache control settings
     responseCachePlugin(),
     sentryPlugin,
     ApolloServerPluginDrainHttpServer({ httpServer }),
     ApolloServerPluginCacheControl({
+      // Lets set the default max age to 0 so that no query responses get cached by default
+      // and we will specifythe max age for specific queries on the schema and resolver level
       defaultMaxAge: config.app.defaultMaxAge,
     }),
     createApollo4QueryValidationPlugin({
@@ -66,13 +70,6 @@ export function getPublicServer(
 
   return new ApolloServer<IPublicContext>({
     schema,
-    // Caches the queries that apollo clients can send via a hashed get request.
-    // This allows us to cache resolver decisions and improve network performance
-    // for large query strings
-    persistedQueries: {
-      cache,
-      ttl: 300, // 5 minutes
-    },
     plugins,
     cache,
     formatError: errorHandler,

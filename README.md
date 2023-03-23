@@ -177,4 +177,4 @@ The Redis container runs on `localhost:6379`. To connect to the local Redis serv
 
 The `shareableListPublic` query caches the responses and stores them for 60 seconds in the Redis db. Here is a screenshot of how it gets stored:
 
-![Architecture](redis-gui-screenshot.png)
+![Architecture](docs/images/redis-gui-screenshot.png)

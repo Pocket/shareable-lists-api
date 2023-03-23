@@ -2,7 +2,7 @@
 export default {
   app: {
     environment: process.env.NODE_ENV || 'development',
-    defaultMaxAge: 600,
+    defaultMaxAge: 0,
   },
   aws: {
     region: process.env.AWS_DEFAULT_REGION || 'us-east-1',
