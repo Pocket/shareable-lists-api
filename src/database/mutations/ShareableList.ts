@@ -141,18 +141,18 @@ export async function updateShareableList(
     // run the title through the slugify function
     const slugifiedTitle = slugify(data.title ?? list.title, config.slugify);
 
-    // First check how many slugs containing the list title already exist in the db
-    const slugCount = await db.list.count({
-      where: {
-        userId,
-        slug: { contains: slugifiedTitle },
-      },
-    });
-
     // if title was made up entirely of characters that the slug cannot contain,
     // e.g. emojis, generate a neutral-sounding, short slug
     const preparedSlug =
       slugifiedTitle.length > 0 ? slugifiedTitle : 'shared-list';
+
+    // First check how many slugs containing the list title already exist in the db
+    const slugCount = await db.list.count({
+      where: {
+        userId,
+        slug: { contains: preparedSlug },
+      },
+    });
 
     // if there is at least 1 slug containing title of list to update,
     // append next consecutive # of slugCount to data.slug
