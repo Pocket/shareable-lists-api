@@ -78,5 +78,7 @@ model PilotUser {
   mozillaEmployee Boolean   @default(false)
   // who added this user?
   createdBy       String?
+  // any notes we want to capture about the pilot user?
+  notes           String?   @db.VarChar(1000)
   createdAt       DateTime  @default(now()) @db.DateTime(0)
 }
