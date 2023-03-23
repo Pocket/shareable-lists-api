@@ -24,6 +24,7 @@ import {
   createPilotUserHelper,
   createShareableListHelper,
   createShareableListItemHelper,
+  mockRedisServer,
 } from '../../../test/helpers';
 import { ACCESS_DENIED_ERROR } from '../../../shared/constants';
 
@@ -41,6 +42,7 @@ describe('public mutations: ShareableListItem', () => {
   };
 
   beforeAll(async () => {
+    mockRedisServer();
     // port 0 tells express to dynamically assign an available port
     ({
       app,
@@ -174,7 +176,8 @@ describe('public mutations: ShareableListItem', () => {
           query: print(CREATE_SHAREABLE_LIST_ITEM),
           variables: { data },
         });
-
+      // This mutation should not be cached, expect headers.cache-control = no-store
+      expect(result.headers['cache-control']).to.equal('no-store');
       // There should be nothing in results
       expect(result.body.data.createShareableListItem).to.be.null;
 
@@ -202,7 +205,8 @@ describe('public mutations: ShareableListItem', () => {
           query: print(CREATE_SHAREABLE_LIST_ITEM),
           variables: { data },
         });
-
+      // This mutation should not be cached, expect headers.cache-control = no-store
+      expect(result.headers['cache-control']).to.equal('no-store');
       // There should be no errors
       expect(result.body.errors).to.be.undefined;
 
@@ -289,7 +293,8 @@ describe('public mutations: ShareableListItem', () => {
           query: print(CREATE_SHAREABLE_LIST_ITEM),
           variables: { data },
         });
-
+      // This mutation should not be cached, expect headers.cache-control = no-store
+      expect(result.headers['cache-control']).to.equal('no-store');
       // There should be no errors
       expect(result.body.errors).to.be.undefined;
 
@@ -458,6 +463,8 @@ describe('public mutations: ShareableListItem', () => {
           query: print(DELETE_SHAREABLE_LIST_ITEM),
           variables: { externalId: listItem1.externalId },
         });
+      // This mutation should not be cached, expect headers.cache-control = no-store
+      expect(result.headers['cache-control']).to.equal('no-store');
       expect(result.body.data.deleteShareableListItem).to.exist;
       expect(result.body.data.deleteShareableListItem.title).to.equal(
         listItem1.title

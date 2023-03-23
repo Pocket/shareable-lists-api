@@ -19,6 +19,7 @@ import {
   createPilotUserHelper,
   createShareableListHelper,
   createShareableListItemHelper,
+  mockRedisServer,
 } from '../../../test/helpers';
 import {
   GET_SHAREABLE_LIST,
@@ -41,6 +42,7 @@ describe('public queries: ShareableList', () => {
   };
 
   beforeAll(async () => {
+    mockRedisServer();
     // port 0 tells express to dynamically assign an available port
     ({
       app,
@@ -131,6 +133,9 @@ describe('public queries: ShareableList', () => {
           },
         });
 
+      // This query should not be cached, expect headers.cache-control = no-store
+      expect(result.headers['cache-control']).to.equal('no-store');
+
       // A result should be returned
       expect(result.body.data.shareableList).not.to.be.null;
 
@@ -179,6 +184,9 @@ describe('public queries: ShareableList', () => {
             externalId: shareableList.externalId,
           },
         });
+
+      // This query should not be cached, expect headers.cache-control = no-store
+      expect(result.headers['cache-control']).to.equal('no-store');
 
       // A result should be returned
       expect(result.body.data.shareableList).not.to.be.null;
@@ -334,6 +342,9 @@ describe('public queries: ShareableList', () => {
           },
         });
 
+      /// This query should be cached, expect headers.cache-control = max-age=60, public
+      expect(result.headers['cache-control']).to.equal('max-age=60, public');
+
       // A result should be returned
       expect(result.body.data.shareableList).not.to.be.null;
 
@@ -389,6 +400,9 @@ describe('public queries: ShareableList', () => {
             slug: newList.slug,
           },
         });
+
+      // This query should be cached, expect headers.cache-control = max-age=60, public
+      expect(result.headers['cache-control']).to.equal('max-age=60, public');
 
       // A result should be returned
       expect(result.body.data.shareableListPublic).not.to.be.null;
@@ -446,6 +460,9 @@ describe('public queries: ShareableList', () => {
           query: print(GET_SHAREABLE_LISTS),
         });
 
+      // This query should not be cached, expect headers.cache-control = no-store
+      expect(result.headers['cache-control']).to.equal('no-store');
+
       // The returned shareableLists array should be empty
       expect(result.body.data.shareableLists.length).to.equal(0);
     });
@@ -458,6 +475,9 @@ describe('public queries: ShareableList', () => {
         .send({
           query: print(GET_SHAREABLE_LISTS),
         });
+
+      // This query should not be cached, expect headers.cache-control = no-store
+      expect(result.headers['cache-control']).to.equal('no-store');
 
       // A result should be returned
       expect(result.body.data.shareableList).not.to.be.null;
@@ -511,6 +531,9 @@ describe('public queries: ShareableList', () => {
         .send({
           query: print(GET_SHAREABLE_LISTS),
         });
+
+      // This query should not be cached, expect headers.cache-control = no-store
+      expect(result.headers['cache-control']).to.equal('no-store');
 
       // A result should be returned
       expect(result.body.data.shareableLists).not.to.be.null;

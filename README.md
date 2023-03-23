@@ -35,7 +35,6 @@ Once all the Docker containers are up and running, you should be able to reach
 - the public API at `http://localhost:4029/`
 - the admin API at `http://localhost:4029/admin`
 
-
 Out of the box, the local installation doesn't have any actual data for you to fetch or manipulate through the API. To seed some sample data for your local dev environment, run
 
 ```bash
@@ -171,3 +170,11 @@ In `src/snowplow/types.ts` do the following:
 ### Unit tests
 
 The unit tests for Snowplow events are defined in `src/snowplow/events.spec.ts`. [https://sinonjs.org/](Sinon JS)is used for test spies and stubs.
+
+### Redis Cache
+
+The Redis container runs on `localhost:6379`. To connect to the local Redis server (works for `dev` and `prod` as well, just find the Redis cluster primary endpoints in AWS ElastiCache and make sure to use the appropriate `$(maws)` role), one of the options is to install the [redis-gui](https://github.com/ekvedaras/redis-gui/releases) and setup the connection to `localhost:6379`.
+
+The `shareableListPublic` query caches the responses and stores them for 60 seconds in the Redis db. Here is a screenshot of how it gets stored:
+
+![Architecture](docs/images/redis-gui-screenshot.png)

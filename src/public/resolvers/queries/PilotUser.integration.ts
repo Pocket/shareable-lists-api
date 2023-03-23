@@ -5,7 +5,11 @@ import request from 'supertest';
 import { IPublicContext } from '../../context';
 import { startServer } from '../../../express';
 import { client } from '../../../database/client';
-import { clearDb, createPilotUserHelper } from '../../../test/helpers';
+import {
+  clearDb,
+  createPilotUserHelper,
+  mockRedisServer,
+} from '../../../test/helpers';
 import { SHAREABLE_LISTS_PILOT_USER } from './sample-queries.gql';
 import { expect } from 'chai';
 
@@ -18,6 +22,7 @@ describe('public queries: PilotUser', () => {
   let pilotUser: PilotUser;
 
   beforeAll(async () => {
+    mockRedisServer();
     // port 0 tells express to dynamically assign an available port
     ({
       app,
@@ -54,6 +59,9 @@ describe('public queries: PilotUser', () => {
           query: print(SHAREABLE_LISTS_PILOT_USER),
         });
 
+      // This query should not be cached, expect headers.cache-control = no-store
+      expect(result.headers['cache-control']).to.equal('no-store');
+
       expect(result.body.data.shareableListsPilotUser).to.be.true;
     });
 
@@ -68,6 +76,9 @@ describe('public queries: PilotUser', () => {
           query: print(SHAREABLE_LISTS_PILOT_USER),
         });
 
+      // This query should not be cached, expect headers.cache-control = no-store
+      expect(result.headers['cache-control']).to.equal('no-store');
+
       expect(result.body.data.shareableListsPilotUser).to.be.false;
     });
 
@@ -81,6 +92,9 @@ describe('public queries: PilotUser', () => {
         .send({
           query: print(SHAREABLE_LISTS_PILOT_USER),
         });
+
+      // This query should not be cached, expect headers.cache-control = no-store
+      expect(result.headers['cache-control']).to.equal('no-store');
 
       expect(result.body.data.shareableListsPilotUser).to.be.false;
     });

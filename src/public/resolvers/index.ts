@@ -22,6 +22,9 @@ export const resolvers = {
   ShareableList: {
     user: UserResolver,
   },
+  ShareableListPublic: {
+    user: UserResolver,
+  },
   ShareableListItem: {
     itemId: PrismaBigIntResolver,
   },
