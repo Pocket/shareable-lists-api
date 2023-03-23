@@ -928,5 +928,26 @@ describe('public mutations: ShareableList', () => {
         `List description must not be longer than 200 characters`
       );
     });
+    it('should not update List with a title of less than 3 characters', async () => {
+      const data: UpdateShareableListInput = {
+        externalId: listToUpdate.externalId,
+        title: 'hi',
+      };
+
+      const result = await request(app)
+        .post(graphQLUrl)
+        .set(headers)
+        .send({
+          query: print(UPDATE_SHAREABLE_LIST),
+          variables: { data },
+        });
+
+      // "Bad user input" error
+      expect(result.body.errors[0].extensions.code).to.equal('BAD_USER_INPUT');
+      expect(result.body.errors[0].extensions.field).to.equal('data.title');
+      expect(result.body.errors[0].message).to.contain(
+        'Must be at least 3 characters in length'
+      );
+    });
   });
 });

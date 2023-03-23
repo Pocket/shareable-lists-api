@@ -1,3 +1,13 @@
+extend schema
+  @link(url: "https://specs.apollo.dev/link/v1.0")
+  @link(url: "https://specs.apollo.dev/federation/v2.3",
+    import: ["@key", "@composeDirective"])
+  # The link directive is required to federate @constraint
+  # It doesn't actually have to be a real spec, but it would be good
+  # to write one and replace this.
+  @link(url: "https://myspecs.dev/constraint/v1.0", import: ["@constraint"])
+  @composeDirective(name:"@constraint")
+
 """
 A user-created list of Pocket saves that can be shared publicly.
 """
@@ -18,11 +28,11 @@ type ShareableList implements ShareableListInterface {
   """
   The title of the list. Provided by the Pocket user.
   """
-  title: String! @constraint(min: 3, max: 100)
+  title: String!
   """
   Optional text description of a Shareable List. Provided by the Pocket user.
   """
-  description: String @constraint(min: 3, max: 200)
+  description: String
   """
   The status of the list. Defaults to PRIVATE.
   """
@@ -50,8 +60,8 @@ type ShareableList implements ShareableListInterface {
 Input data for creating a Shareable List.
 """
 input CreateShareableListInput {
-  title: String!
-  description: String
+  title: String! @constraint(minLength: 3, maxLength: 100)
+  description: String @constraint(minLength: 3, maxLength: 100)
 }
 
 """
@@ -59,8 +69,8 @@ Input data for updating a Shareable List.
 """
 input UpdateShareableListInput {
   externalId: ID!
-  title: String @constraint (min: 3, max: 100)
-  description: String @constraint (min: 3, max: 200)
+  title: String @constraint (minLength: 3, maxLength: 100)
+  description: String @constraint (minLength: 3, maxLength: 200)
   status: ShareableListStatus
 }
 

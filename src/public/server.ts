@@ -30,13 +30,10 @@ export function getPublicServer(
   const cache = getRedisCache();
 
   // Add @constraint directive to the schema
-  const schema = buildSubgraphSchema([
-    { typeDefs: gql(constraintDirectiveTypeDefs) },
-    {
-      typeDefs: typeDefsPublic,
-      resolvers,
-    },
-  ]);
+  const schema = buildSubgraphSchema({
+    typeDefs: [gql(constraintDirectiveTypeDefs), typeDefsPublic],
+    resolvers,
+  });
 
   const defaultPlugins = [
     responseCachePlugin(),
