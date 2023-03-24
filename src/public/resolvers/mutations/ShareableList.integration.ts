@@ -242,6 +242,28 @@ describe('public mutations: ShareableList', () => {
       );
     });
 
+    it('should not create List with a title of fewer than 3 chars', async () => {
+      const data: CreateShareableListInput = {
+        title: 'hi',
+        description: faker.lorem.sentences(2),
+      };
+      const result = await request(app)
+        .post(graphQLUrl)
+        .set(headers)
+        .send({
+          query: print(CREATE_SHAREABLE_LIST),
+          variables: { listData: data },
+        });
+      expect(result.body.data).not.to.exist;
+
+      expect(result.body.errors.length).to.equal(1);
+      expect(result.body.errors[0].extensions.code).to.equal('BAD_USER_INPUT');
+      expect(result.body.errors[0].extensions.field).to.equal('listData.title');
+      expect(result.body.errors[0].message).to.contain(
+        'Must be at least 3 characters in length'
+      );
+    });
+
     it('should not create List with a title of more than 100 chars', async () => {
       const data: CreateShareableListInput = {
         title: faker.random.alpha(LIST_TITLE_MAX_CHARS + 1),
@@ -254,11 +276,36 @@ describe('public mutations: ShareableList', () => {
           query: print(CREATE_SHAREABLE_LIST),
           variables: { listData: data },
         });
-      expect(result.body.data.createShareableList).not.to.exist;
+      expect(result.body.data).not.to.exist;
+
       expect(result.body.errors.length).to.equal(1);
       expect(result.body.errors[0].extensions.code).to.equal('BAD_USER_INPUT');
-      expect(result.body.errors[0].message).to.equal(
-        `List title must not be longer than 100 characters`
+      expect(result.body.errors[0].message).to.contain(
+        'Must be no more than 100 characters in length'
+      );
+    });
+
+    it('should not create List with a description of fewer than 3 chars', async () => {
+      const data: CreateShareableListInput = {
+        title: 'Just an everyday updated title',
+        description: 'ai',
+      };
+      const result = await request(app)
+        .post(graphQLUrl)
+        .set(headers)
+        .send({
+          query: print(CREATE_SHAREABLE_LIST),
+          variables: { listData: data },
+        });
+      expect(result.body.data).not.to.exist;
+
+      expect(result.body.errors.length).to.equal(1);
+      expect(result.body.errors[0].extensions.code).to.equal('BAD_USER_INPUT');
+      expect(result.body.errors[0].extensions.field).to.equal(
+        'listData.description'
+      );
+      expect(result.body.errors[0].message).to.contain(
+        'Must be at least 3 characters in length'
       );
     });
 
@@ -274,11 +321,11 @@ describe('public mutations: ShareableList', () => {
           query: print(CREATE_SHAREABLE_LIST),
           variables: { listData: data },
         });
-      expect(result.body.data.createShareableList).not.to.exist;
+      expect(result.body.data).not.to.exist;
       expect(result.body.errors.length).to.equal(1);
       expect(result.body.errors[0].extensions.code).to.equal('BAD_USER_INPUT');
-      expect(result.body.errors[0].message).to.equal(
-        `List description must not be longer than 200 characters`
+      expect(result.body.errors[0].message).to.contain(
+        'Must be no more than 200 characters in length'
       );
     });
 
@@ -420,6 +467,7 @@ describe('public mutations: ShareableList', () => {
       expect(list.title).to.equal(theList.title);
       expect(list.user).to.deep.equal({ id: headers.userId });
     });
+
     it('will  clear all items from a list', async () => {
       // first make a list
       const theList = await createShareableListHelper(db, {
@@ -913,6 +961,28 @@ describe('public mutations: ShareableList', () => {
       expect(updatedList.slug).to.equal(listWithSlugSet.slug);
     });
 
+    it('should not update List with a title of fewer than 3 characters', async () => {
+      const data: UpdateShareableListInput = {
+        externalId: listToUpdate.externalId,
+        title: 'hi',
+      };
+
+      const result = await request(app)
+        .post(graphQLUrl)
+        .set(headers)
+        .send({
+          query: print(UPDATE_SHAREABLE_LIST),
+          variables: { data },
+        });
+
+      // "Bad user input" error
+      expect(result.body.errors[0].extensions.code).to.equal('BAD_USER_INPUT');
+      expect(result.body.errors[0].extensions.field).to.equal('data.title');
+      expect(result.body.errors[0].message).to.contain(
+        'Must be at least 3 characters in length'
+      );
+    });
+
     it('should not update List with a title of more than 100 chars', async () => {
       const data: UpdateShareableListInput = {
         externalId: listToUpdate.externalId,
@@ -928,12 +998,40 @@ describe('public mutations: ShareableList', () => {
         });
 
       // There should be nothing in results
-      expect(result.body.data).to.be.null;
+      expect(result.body.data).not.to.exist;
 
       // And a "Bad user input" error
       expect(result.body.errors[0].extensions.code).to.equal('BAD_USER_INPUT');
-      expect(result.body.errors[0].message).to.equal(
-        `List title must not be longer than 100 characters`
+      expect(result.body.errors[0].extensions.field).to.equal('data.title');
+      expect(result.body.errors[0].message).to.contain(
+        'Must be no more than 100 characters in length'
+      );
+    });
+
+    it('should not update List with a description of fewer than 3 characters', async () => {
+      const data: UpdateShareableListInput = {
+        externalId: listToUpdate.externalId,
+        description: 'ai',
+      };
+
+      const result = await request(app)
+        .post(graphQLUrl)
+        .set(headers)
+        .send({
+          query: print(UPDATE_SHAREABLE_LIST),
+          variables: { data },
+        });
+
+      // "Bad user input" error
+      expect(result.body.errors[0].extensions.code).to.equal('BAD_USER_INPUT');
+      expect(result.body.errors[0].extensions.field).to.equal(
+        'data.description'
+      );
+      expect(result.body.errors[0].extensions.field).to.equal(
+        'data.description'
+      );
+      expect(result.body.errors[0].message).to.contain(
+        'Must be at least 3 characters in length'
       );
     });
 
@@ -952,12 +1050,15 @@ describe('public mutations: ShareableList', () => {
         });
 
       // There should be nothing in results
-      expect(result.body.data).to.be.null;
+      expect(result.body.data).not.to.exist;
 
       // And a "Bad user input" error
       expect(result.body.errors[0].extensions.code).to.equal('BAD_USER_INPUT');
-      expect(result.body.errors[0].message).to.equal(
-        `List description must not be longer than 200 characters`
+      expect(result.body.errors[0].extensions.field).to.equal(
+        'data.description'
+      );
+      expect(result.body.errors[0].message).to.contain(
+        'Must be no more than 200 characters in length'
       );
     });
   });

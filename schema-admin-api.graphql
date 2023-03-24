@@ -1,5 +1,5 @@
 extend schema
-  @link(url: "https://specs.apollo.dev/federation/v2.1", import: ["@key", "@composeDirective"])
+  @link(url: "https://specs.apollo.dev/federation/v2.3", import: ["@key", "@composeDirective"])
   @link(url: "https://myspecs.dev/myDirective/v1.0", import: ["@constraint"])
   @composeDirective(name: "@constraint")
 

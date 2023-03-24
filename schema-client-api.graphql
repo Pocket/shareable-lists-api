@@ -1,5 +1,5 @@
 extend schema
-  @link(url: "https://specs.apollo.dev/federation/v2.1", import: ["@key", "@composeDirective"])
+  @link(url: "https://specs.apollo.dev/federation/v2.3", import: ["@key", "@composeDirective"])
   @link(url: "https://myspecs.dev/myDirective/v1.0", import: ["@constraint"])
   @composeDirective(name: "@constraint")
 
@@ -38,12 +38,12 @@ type ShareableList implements ShareableListInterface {
   slug: String
 
   """The title of the list. Provided by the Pocket user."""
-  title: String! @constraint(min: 3, max: 100)
+  title: String!
 
   """
   Optional text description of a Shareable List. Provided by the Pocket user.
   """
-  description: String @constraint(min: 3, max: 200)
+  description: String
 
   """The status of the list. Defaults to PRIVATE."""
   status: ShareableListStatus!
@@ -112,15 +112,15 @@ type ShareableListPublic implements ShareableListInterface
 
 """Input data for creating a Shareable List."""
 input CreateShareableListInput {
-  title: String!
-  description: String
+  title: String! @constraint(minLength: 3, maxLength: 100)
+  description: String @constraint(minLength: 3, maxLength: 200)
 }
 
 """Input data for updating a Shareable List."""
 input UpdateShareableListInput {
   externalId: ID!
-  title: String @constraint(min: 3, max: 100)
-  description: String @constraint(min: 3, max: 200)
+  title: String @constraint(minLength: 3, maxLength: 100)
+  description: String @constraint(minLength: 3, maxLength: 200)
   status: ShareableListStatus
 }
 
