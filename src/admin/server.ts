@@ -1,8 +1,5 @@
 import { ApolloServer } from '@apollo/server';
 import { Server } from 'http';
-import { buildSubgraphSchema } from '@apollo/subgraph';
-import { typeDefsAdmin } from '../typeDefs';
-import { resolvers as adminResolvers } from './resolvers';
 import { errorHandler, sentryPlugin } from '@pocket-tools/apollo-utils';
 import { ApolloServerPluginLandingPageGraphQLPlayground } from '@apollo/server-plugin-landing-page-graphql-playground';
 import {
@@ -13,6 +10,8 @@ import {
 import { ApolloServerPluginInlineTrace } from '@apollo/server/plugin/inlineTrace';
 import { ApolloServerPluginDrainHttpServer } from '@apollo/server/plugin/drainHttpServer';
 import { IAdminContext } from './context';
+import { schema } from './schema';
+import { createApollo4QueryValidationPlugin } from 'graphql-constraint-directive/apollo4';
 
 /**
  * Sets up and configures an ApolloServer for the application.
@@ -26,6 +25,9 @@ export function getAdminServer(
   const defaultPlugins = [
     sentryPlugin,
     ApolloServerPluginDrainHttpServer({ httpServer }),
+    createApollo4QueryValidationPlugin({
+      schema,
+    }),
   ];
   const prodPlugins = [
     ApolloServerPluginLandingPageDisabled(),
@@ -44,9 +46,7 @@ export function getAdminServer(
       : defaultPlugins.concat(nonProdPlugins);
 
   return new ApolloServer<IAdminContext>({
-    schema: buildSubgraphSchema([
-      { typeDefs: typeDefsAdmin, resolvers: adminResolvers },
-    ]),
+    schema,
     plugins,
     // OSL-202 (https://getpocket.atlassian.net/browse/OSL-202) needs to get done in order
     // to stop masking Apollo Errors.
