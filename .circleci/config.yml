@@ -61,7 +61,7 @@ jobs:
           name: build public schema
           # We have to send one file for the federated schema which means we have to concat our shared schema
           # to the public schema before pushing up to apollo studio (this happens in the next step)
-          command: cat schema-shared.graphql schema-public.graphql > schema-client-api.graphql
+          command: cat /tmp/workspace/app_prod/generated/schema-public.graphql > schema-client-api.graphql
       - run:
           name: build admin schema
           # We have to send one file for the federated schema which means we have to concat our shared schema
@@ -142,7 +142,7 @@ jobs:
           name: Setup workspace
           command: |
             mkdir -p /tmp/workspace/app_prod
-            cp -r ./node_modules package.json Dockerfile schema*.graphql ./prisma ./dist /tmp/workspace/app_prod
+            cp -r ./node_modules package.json Dockerfile schema*.graphql ./generated ./prisma ./dist /tmp/workspace/app_prod
       # Persist built files to workspace
       - persist_to_workspace:
           root: /tmp/workspace
@@ -221,7 +221,9 @@ workflows:
           name: test_integrations
           command: 'npm run test-integrations'
 
-      - apollo
+      - apollo:
+          requires:
+            - build
 
       - build:
           context: pocket
