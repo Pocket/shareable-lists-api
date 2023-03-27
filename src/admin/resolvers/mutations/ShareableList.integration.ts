@@ -16,10 +16,10 @@ import { expect } from 'chai';
 import {
   ACCESS_DENIED_ERROR,
   FULLACCESS,
-  MODERATION_REASON_REQUIRED_ERROR,
   READONLY,
 } from '../../../shared/constants';
 import { MODERATE_SHAREABLE_LIST } from './sample-mutations.gql';
+import { ShareableListModerationReason } from '../../../database/types';
 
 const validHeaders = {
   name: 'Lee Moderator',
@@ -61,7 +61,7 @@ describe('admin mutations: ShareableList', () => {
       const data = {
         externalId: 'xid',
         moderationStatus: 'HIDDEN',
-        moderationReason: 'Some reason',
+        moderationReason: ShareableListModerationReason.FRAUD,
       };
 
       const result = await request(app)
@@ -81,7 +81,7 @@ describe('admin mutations: ShareableList', () => {
       const data = {
         externalId: 'xid',
         moderationStatus: 'HIDDEN',
-        moderationReason: 'Some reason',
+        moderationReason: ShareableListModerationReason.FRAUD,
       };
       const result = await request(app)
         .post(graphQLUrl)
@@ -105,7 +105,8 @@ describe('admin mutations: ShareableList', () => {
       const data = {
         externalId: theList.externalId,
         moderationStatus: 'HIDDEN',
-        moderationReason: 'Some reason',
+        moderationReason: ShareableListModerationReason.FRAUD,
+        moderationDetails: 'making list hidden',
       };
       const result = await request(app)
         .post(graphQLUrl)
@@ -121,6 +122,7 @@ describe('admin mutations: ShareableList', () => {
       expect(moderatedList.externalId).to.equal(theList.externalId);
       expect(moderatedList.moderationStatus).to.equal(data.moderationStatus);
       expect(moderatedList.moderationReason).to.equal(data.moderationReason);
+      expect(moderatedList.moderationDetails).to.equal(data.moderationDetails);
     });
     it('can make a hidden list visible', async () => {
       const theList = await createShareableListHelper(db, {
@@ -132,7 +134,10 @@ describe('admin mutations: ShareableList', () => {
       const data = {
         externalId: theList.externalId,
         moderationStatus: 'VISIBLE',
-        moderationReason: 'Some reason',
+        // we don't have a list of reasons for making a list visible, so pass
+        // ShareableListModerationReason enum val as this field is required
+        moderationReason: ShareableListModerationReason.FRAUD,
+        moderationDetails: 'making list visible',
       };
       const result = await request(app)
         .post(graphQLUrl)
@@ -148,8 +153,9 @@ describe('admin mutations: ShareableList', () => {
       expect(moderatedList.externalId).to.equal(theList.externalId);
       expect(moderatedList.moderationStatus).to.equal(data.moderationStatus);
       expect(moderatedList.moderationReason).to.equal(data.moderationReason);
+      expect(moderatedList.moderationDetails).to.equal(data.moderationDetails);
     });
-    it('needs a reason', async () => {
+    it('moderationDetails is optional', async () => {
       const theList = await createShareableListHelper(db, {
         userId: 12345,
         title: 'Moderate this list',
@@ -157,8 +163,8 @@ describe('admin mutations: ShareableList', () => {
       });
       const data = {
         externalId: theList.externalId,
-        moderationStatus: 'VISIBLE',
-        moderationReason: '',
+        moderationStatus: 'HIDDEN',
+        moderationReason: ShareableListModerationReason.FRAUD,
       };
       const result = await request(app)
         .post(graphQLUrl)
@@ -169,11 +175,12 @@ describe('admin mutations: ShareableList', () => {
             data: data,
           },
         });
-      expect(result.body.data.moderateShareableList).to.be.null;
-      expect(result.body.errors[0].message).to.equal(
-        MODERATION_REASON_REQUIRED_ERROR
-      );
-      expect(result.body.errors[0].extensions.code).to.equal('BAD_USER_INPUT');
+      const moderatedList = result.body.data.moderateShareableList;
+      expect(moderatedList).to.not.be.null;
+      expect(moderatedList.externalId).to.equal(theList.externalId);
+      expect(moderatedList.moderationStatus).to.equal(data.moderationStatus);
+      expect(moderatedList.moderationReason).to.equal(data.moderationReason);
+      expect(moderatedList.moderationDetails).to.be.null;
     });
   });
 });

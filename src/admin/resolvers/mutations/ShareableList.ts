@@ -1,8 +1,5 @@
-import { ForbiddenError, UserInputError } from '@pocket-tools/apollo-utils';
-import {
-  ACCESS_DENIED_ERROR,
-  MODERATION_REASON_REQUIRED_ERROR,
-} from '../../../shared/constants';
+import { ForbiddenError } from '@pocket-tools/apollo-utils';
+import { ACCESS_DENIED_ERROR } from '../../../shared/constants';
 import { ShareableListComplete } from '../../../database/types';
 import { moderateShareableList as dbModerateShareableList } from '../../../database/mutations';
 import { IAdminContext } from '../../context';
@@ -29,9 +26,8 @@ export async function moderateShareableList(
     throw new ForbiddenError(ACCESS_DENIED_ERROR);
   }
   data.moderatedBy = authenticatedUser.username;
-  data.moderationReason = data.moderationReason.trim();
-  if (data.moderationReason.length === 0) {
-    throw new UserInputError(MODERATION_REASON_REQUIRED_ERROR);
+  if (data.moderationDetails) {
+    data.moderationDetails = data.moderationDetails.trim();
   }
   return await dbModerateShareableList(db, data);
 }
