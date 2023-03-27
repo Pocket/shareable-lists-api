@@ -16,7 +16,6 @@ import { expect } from 'chai';
 import {
   ACCESS_DENIED_ERROR,
   FULLACCESS,
-  MODERATION_REASON_REQUIRED_ERROR,
   READONLY,
 } from '../../../shared/constants';
 import { MODERATE_SHAREABLE_LIST } from './sample-mutations.gql';

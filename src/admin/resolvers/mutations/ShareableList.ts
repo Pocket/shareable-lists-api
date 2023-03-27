@@ -1,8 +1,5 @@
-import { ForbiddenError, UserInputError } from '@pocket-tools/apollo-utils';
-import {
-  ACCESS_DENIED_ERROR,
-  MODERATION_REASON_REQUIRED_ERROR,
-} from '../../../shared/constants';
+import { ForbiddenError } from '@pocket-tools/apollo-utils';
+import { ACCESS_DENIED_ERROR } from '../../../shared/constants';
 import { ShareableListComplete } from '../../../database/types';
 import { moderateShareableList as dbModerateShareableList } from '../../../database/mutations';
 import { IAdminContext } from '../../context';
