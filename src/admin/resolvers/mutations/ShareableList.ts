@@ -29,9 +29,8 @@ export async function moderateShareableList(
     throw new ForbiddenError(ACCESS_DENIED_ERROR);
   }
   data.moderatedBy = authenticatedUser.username;
-  data.moderationReason = data.moderationReason.trim();
-  if (data.moderationReason.length === 0) {
-    throw new UserInputError(MODERATION_REASON_REQUIRED_ERROR);
+  if (data.moderationDetails) {
+    data.moderationDetails = data.moderationDetails.trim();
   }
   return await dbModerateShareableList(db, data);
 }

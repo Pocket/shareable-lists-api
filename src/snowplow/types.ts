@@ -43,6 +43,7 @@ export type SnowplowShareableList = {
   moderation_status: ModerationStatus;
   moderated_by?: string;
   moderation_reason?: string;
+  moderation_details?: string;
   created_at: number; // snowplow schema requires this field in seconds
   updated_at?: number; // snowplow schema requires this field in seconds
 };

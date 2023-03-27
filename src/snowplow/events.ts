@@ -37,6 +37,9 @@ function transformAPIShareableListToSnowplowShareableList(
     moderation_reason: shareableList.moderationReason
       ? shareableList.moderationReason
       : undefined,
+    moderation_details: shareableList.moderationDetails
+      ? shareableList.moderationDetails
+      : undefined,
     created_at: Math.floor(shareableList.createdAt.getTime() / 1000),
     updated_at: shareableList.updatedAt
       ? Math.floor(shareableList.updatedAt.getTime() / 1000)
