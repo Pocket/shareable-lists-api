@@ -19,7 +19,7 @@ import {
   READONLY,
 } from '../../../shared/constants';
 import { MODERATE_SHAREABLE_LIST } from './sample-mutations.gql';
-import { HideShareableListModerationReasonOptions } from '../../../database/types';
+import { ShareableListModerationReason } from '../../../database/types';
 
 const validHeaders = {
   name: 'Lee Moderator',
@@ -61,7 +61,7 @@ describe('admin mutations: ShareableList', () => {
       const data = {
         externalId: 'xid',
         moderationStatus: 'HIDDEN',
-        moderationReason: HideShareableListModerationReasonOptions.FRAUD,
+        moderationReason: ShareableListModerationReason.FRAUD,
       };
 
       const result = await request(app)
@@ -81,7 +81,7 @@ describe('admin mutations: ShareableList', () => {
       const data = {
         externalId: 'xid',
         moderationStatus: 'HIDDEN',
-        moderationReason: HideShareableListModerationReasonOptions.FRAUD,
+        moderationReason: ShareableListModerationReason.FRAUD,
       };
       const result = await request(app)
         .post(graphQLUrl)
@@ -105,7 +105,7 @@ describe('admin mutations: ShareableList', () => {
       const data = {
         externalId: theList.externalId,
         moderationStatus: 'HIDDEN',
-        moderationReason: HideShareableListModerationReasonOptions.FRAUD,
+        moderationReason: ShareableListModerationReason.FRAUD,
         moderationDetails: 'making list hidden',
       };
       const result = await request(app)
@@ -135,8 +135,8 @@ describe('admin mutations: ShareableList', () => {
         externalId: theList.externalId,
         moderationStatus: 'VISIBLE',
         // we don't have a list of reasons for making a list visible, so pass
-        // HideShareableListModerationReasonOptions enum val as this field is required
-        moderationReason: HideShareableListModerationReasonOptions.FRAUD,
+        // ShareableListModerationReason enum val as this field is required
+        moderationReason: ShareableListModerationReason.FRAUD,
         moderationDetails: 'making list visible',
       };
       const result = await request(app)
@@ -164,7 +164,7 @@ describe('admin mutations: ShareableList', () => {
       const data = {
         externalId: theList.externalId,
         moderationStatus: 'HIDDEN',
-        moderationReason: HideShareableListModerationReasonOptions.FRAUD,
+        moderationReason: ShareableListModerationReason.FRAUD,
       };
       const result = await request(app)
         .post(graphQLUrl)

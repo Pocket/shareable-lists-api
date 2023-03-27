@@ -1,4 +1,4 @@
-enum HiddenShareableListModerationReason {
+enum ShareableListModerationReason {
   ABUSIVE_BEHAVIOR
   POSTING_PRIVATE_INFORMATION
   HATE_SPEECH
@@ -72,7 +72,7 @@ type ShareableListComplete implements ShareableListInterface {
   """
   The reason why the moderator took down the list.
   """
-  moderationReason: HiddenShareableListModerationReason
+  moderationReason: ShareableListModerationReason
   """
   The optional details why the list was moderated.
   """
@@ -92,7 +92,7 @@ Input data for removing (moderating) a ShareableList
 input ModerateShareableListInput {
   externalId: ID!
   moderationStatus: ShareableListModerationStatus!
-  moderationReason: HiddenShareableListModerationReason!
+  moderationReason: ShareableListModerationReason!
   moderationDetails: String
 }
 

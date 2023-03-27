@@ -17,7 +17,7 @@ export type ShareableList = Omit<
   listItems?: ShareableListItem[];
 };
 
-export enum HideShareableListModerationReasonOptions {
+export enum ShareableListModerationReason {
   ABUSIVE_BEHAVIOR = 'ABUSIVE_BEHAVIOR',
   POSTING_PRIVATE_INFORMATION = 'POSTING_PRIVATE_INFORMATION',
   HATE_SPEECH = 'HATE_SPEECH',
@@ -66,7 +66,7 @@ export type UpdateShareableListInput = {
 export type ModerateShareableListInput = {
   externalId: string;
   moderationStatus: ModerationStatus;
-  moderationReason: HideShareableListModerationReasonOptions;
+  moderationReason: ShareableListModerationReason;
   moderationDetails?: string;
   // not in the schema, copied from the request user data when updating
   moderatedBy: string;

@@ -4,7 +4,7 @@ import * as Sentry from '@sentry/node';
 import { EventBridgeClient } from '@aws-sdk/client-eventbridge';
 import { ListStatus, ModerationStatus } from '@prisma/client';
 import {
-  HideShareableListModerationReasonOptions,
+  ShareableListModerationReason,
   ShareableListComplete,
   ShareableListItem,
 } from '../database/types';
@@ -190,8 +190,7 @@ describe('Snowplow event helpers', () => {
     // SHAREABLE_LIST_HIDDEN
     // update some properties
     shareableList.moderationStatus = ModerationStatus.HIDDEN;
-    shareableList.moderationReason =
-      HideShareableListModerationReasonOptions.SPAM;
+    shareableList.moderationReason = ShareableListModerationReason.SPAM;
     shareableList.moderationDetails = 'more details here';
     shareableList.updatedAt = new Date('2023-02-03 05:15:43');
     newUpdatedAt = shareableList.updatedAt;
@@ -211,7 +210,7 @@ describe('Snowplow event helpers', () => {
     );
     // check that moderation_reason exists
     expect(payload.shareableList.moderation_reason).to.equal(
-      HideShareableListModerationReasonOptions.SPAM
+      ShareableListModerationReason.SPAM
     );
     // check that moderation_details exists
     expect(payload.shareableList.moderation_details).to.equal(
