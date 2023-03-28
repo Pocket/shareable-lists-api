@@ -39,13 +39,15 @@ async function main() {
       userId: randomUser.userId,
     });
 
-    // turn it public so that it obtains a slug - this seed data
-    // is created for the benefit of testing the admin tools after all
-    await updateShareableList(
-      prisma,
-      { externalId: list.externalId, status: ListStatus.PUBLIC },
-      randomUser.userId
-    );
+    // Turn some lists public so that the status changes and a slug is generated.
+    // This seed data is created for the benefit of testing the admin tools after all.
+    if (Math.random() > 0.5) {
+      await updateShareableList(
+        prisma,
+        { externalId: list.externalId, status: ListStatus.PUBLIC },
+        randomUser.userId
+      );
+    }
 
     // add between 5 and 10 Pocket stories to this list
     const numberOfStories = Math.floor(Math.random() * 5) + 5;
