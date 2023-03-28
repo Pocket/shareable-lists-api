@@ -1,10 +1,11 @@
-import { PilotUser, PrismaClient } from '@prisma/client';
+import { ListStatus, PilotUser, PrismaClient } from '@prisma/client';
 import {
   createPilotUserHelper,
   createShareableListHelper,
   createShareableListItemHelper,
 } from '../src/test/helpers';
 import { faker } from '@faker-js/faker';
+import { updateShareableList } from '../src/database/mutations';
 
 const prisma = new PrismaClient();
 
@@ -37,6 +38,14 @@ async function main() {
       title,
       userId: randomUser.userId,
     });
+
+    // turn it public so that it obtains a slug - this seed data
+    // is created for the benefit of testing the admin tools after all
+    await updateShareableList(
+      prisma,
+      { externalId: list.externalId, status: ListStatus.PUBLIC },
+      randomUser.userId
+    );
 
     // add between 5 and 10 Pocket stories to this list
     const numberOfStories = Math.floor(Math.random() * 5) + 5;

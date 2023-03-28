@@ -128,7 +128,7 @@ export async function updateShareableList(
     }
   }
 
-  // check list title and descipriotn length
+  // check list title and description length
   shareableListTitleDescriptionValidation(
     data.title ? data.title : null,
     data.description ? data.description : null
