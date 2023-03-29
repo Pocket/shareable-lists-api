@@ -2,6 +2,7 @@ import { NotFoundError, UserInputError } from '@pocket-tools/apollo-utils';
 import { ModerationStatus, PrismaClient } from '@prisma/client';
 import { CreateShareableListItemInput, ShareableListItem } from '../types';
 import { PRISMA_RECORD_NOT_FOUND } from '../../shared/constants';
+import { validateItemId } from '../../public/resolvers/utils';
 
 import { sendEventHelper as sendEvent } from '../../snowplow/events';
 import { EventBridgeEventType } from '../../snowplow/types';
@@ -18,6 +19,11 @@ export async function createShareableListItem(
   data: CreateShareableListItemInput,
   userId: number | bigint
 ): Promise<ShareableListItem> {
+  // make sure the itemId is valid
+  // this is required as itemId must be a string at the API level, but is
+  // actually a number in the db (legacy problems)
+  validateItemId(data.itemId);
+
   // Retrieve the list this item should be added to.
   // Note: no new items should be added to lists that have been taken down
   // by the moderators.
@@ -50,7 +56,8 @@ export async function createShareableListItem(
   }
 
   const input = {
-    itemId: data.itemId,
+    // coerce itemId to a number to conform to db schema
+    itemId: parseInt(data.itemId),
     url: data.url,
     title: data.title ?? undefined,
     excerpt: data.excerpt ?? undefined,

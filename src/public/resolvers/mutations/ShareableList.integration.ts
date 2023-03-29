@@ -169,6 +169,41 @@ describe('public mutations: ShareableList', () => {
       expect(list.listItems.length).to.equal(0);
     });
 
+    it('should not create a new List with a ListItem with an invalid itemId', async () => {
+      const title = 'My list to share<script>alert("Hello World!")</script>';
+      const listData: CreateShareableListInput = {
+        title: title,
+        description: faker.lorem.sentences(2),
+      };
+
+      const listItemData = {
+        itemId: '378asdf9538749', // invalid!
+        url: 'https://www.test.com/this-is-a-story',
+        title: 'A story is a story',
+        excerpt: '<blink>The best story ever told</blink>',
+        imageUrl: 'https://www.test.com/thumbnail.jpg',
+        publisher: 'The London Times',
+        authors: 'Charles Dickens, Mark Twain',
+        sortOrder: 10,
+      };
+
+      const result = await request(app)
+        .post(graphQLUrl)
+        .set(headers)
+        .send({
+          query: print(CREATE_SHAREABLE_LIST),
+          variables: { listData, listItemData },
+        });
+
+      const errors = result.body.errors;
+
+      expect(errors.length).to.equal(1);
+      expect(errors[0].extensions.code).to.equal('BAD_USER_INPUT');
+      expect(errors[0].message).to.equal(
+        `${listItemData.itemId} is an invalid itemId`
+      );
+    });
+
     it('should create a new List with a ListItem', async () => {
       const title = 'My list to share<script>alert("Hello World!")</script>';
       const listData: CreateShareableListInput = {
@@ -177,7 +212,7 @@ describe('public mutations: ShareableList', () => {
       };
 
       const listItemData = {
-        itemId: 3789538749,
+        itemId: '3789538749',
         url: 'https://www.test.com/this-is-a-story',
         title: 'A story is a story',
         excerpt: '<blink>The best story ever told</blink>',
