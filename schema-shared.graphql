@@ -63,7 +63,7 @@ type ShareableListItem {
   """
   The Parser Item ID.
   """
-  itemId: Float
+  itemId: Float!
   """
   The URL of the story saved to a list.
   """

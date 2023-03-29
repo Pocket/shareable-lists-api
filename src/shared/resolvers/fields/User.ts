@@ -1,5 +1,5 @@
 /**
- * Return an ojbect conforming to the User graphql definition.
+ * Return an object conforming to the User graphql definition.
  *
  * @param parent // a List
  * @param args

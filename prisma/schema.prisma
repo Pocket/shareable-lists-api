@@ -54,8 +54,8 @@ model ListItem {
   externalId String   @default(uuid()) @db.VarChar(255)
   // The link to the parent List
   listId     BigInt
-  // Optional ID of Parser Item and Item props outside of this subgraph's control
-  itemId     BigInt?
+  // ID of Parser Item and Item props outside of this subgraph's control
+  itemId     BigInt
   url        String?  @db.VarChar(1000)
   title      String?  @db.VarChar(300)
   excerpt    String?  @db.Text
