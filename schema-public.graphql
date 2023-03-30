@@ -119,7 +119,7 @@ Input data for creating a Shareable List Item.
 """
 input CreateShareableListItemInput {
   listExternalId: ID!
-  itemId: ID
+  itemId: ID!
   url: Url!
   title: String
   excerpt: String
@@ -133,7 +133,7 @@ input CreateShareableListItemInput {
 Input data for creating a Shareable List Item during Shareable List creation.
 """
 input CreateShareableListItemWithList {
-  itemId: ID
+  itemId: ID!
   url: Url!
   title: String
   excerpt: String
