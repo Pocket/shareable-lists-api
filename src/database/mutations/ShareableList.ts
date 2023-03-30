@@ -19,6 +19,7 @@ import {
 } from '../../shared/constants';
 import { getShareableList } from '../queries';
 import config from '../../config';
+import { validateItemId } from '../../public/resolvers/utils';
 import { sendEventHelper } from '../../snowplow/events';
 import { EventBridgeEventType } from '../../snowplow/types';
 
@@ -36,6 +37,19 @@ export async function createShareableList(
 ): Promise<ShareableList> {
   let listItemData;
 
+  // check if listItem data is passed
+  if (listData.listItem) {
+    // make sure the itemId is valid - if not, fail the entire operation early
+    //
+    // this is required as itemId must be a string at the API level, but is
+    // actually a number in the db (legacy problems)
+    validateItemId(listData.listItem.itemId);
+
+    listItemData = listData.listItem;
+    //remove it from listData so that we can create the ShareableList first
+    delete listData.listItem;
+  }
+
   // check if the title already exists for this user
   const titleExists = await db.list.count({
     where: { title: listData.title, userId: userId },
@@ -52,13 +66,6 @@ export async function createShareableList(
     listData.title,
     listData.description ? listData.description : null
   );
-
-  // check if listItem data is passed
-  if (listData.listItem) {
-    listItemData = listData.listItem;
-    //remove it from listData so that we can create the ShareableList first
-    delete listData.listItem;
-  }
 
   // create ShareableList in db
   const list: ShareableList = await db.list.create({
@@ -128,7 +135,7 @@ export async function updateShareableList(
     }
   }
 
-  // check list title and descipriotn length
+  // check list title and description length
   shareableListTitleDescriptionValidation(
     data.title ? data.title : null,
     data.description ? data.description : null
