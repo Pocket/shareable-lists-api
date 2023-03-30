@@ -57,7 +57,13 @@ export async function createShareableListItem(
 
   const input = {
     // coerce itemId to a number to conform to db schema
-    itemId: parseInt(data.itemId),
+    // if no itemId is set, send null. accepting null here should only
+    // occur in test scenarios, as we need to be able to mock list items that
+    // are missing itemId. as of this writing, the schema requires itemId.
+    // once we backfill old data missing itemId, we can revert this to:
+    // itemId: parseInt(data.itemId)
+    // https://getpocket.atlassian.net/browse/OSL-338
+    itemId: data.itemId ? parseInt(data.itemId) : null,
     url: data.url,
     title: data.title ?? undefined,
     excerpt: data.excerpt ?? undefined,

@@ -27,7 +27,12 @@ export async function createShareableListItemHelper(
 ): Promise<ListItem> {
   const input = {
     listId: data.list.id,
-    itemId: data.itemId ?? faker.datatype.number(),
+    // if 0 was explicitly sent, do NOT include an itemId. this is to mimic old
+    // data that's missing itemId in the db. once we've backfilled the old data
+    // we can revert this conditional to:
+    // itemId: data.itemId ?? faker.datatype.number()
+    // https://getpocket.atlassian.net/browse/OSL-338
+    itemId: data.itemId === 0 ? null : faker.datatype.number(),
     url: data.url ?? `${faker.internet.url()}/${faker.lorem.slug(5)}`,
     title: data.title ?? faker.random.words(5),
     excerpt: data.excerpt ?? faker.lorem.sentences(2),

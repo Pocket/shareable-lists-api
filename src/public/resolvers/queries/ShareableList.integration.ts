@@ -386,8 +386,11 @@ describe('public queries: ShareableList', () => {
         moderationStatus: ModerationStatus.VISIBLE,
       });
 
-      // Create a couple of list items
-      await createShareableListItemHelper(db, { list: newList });
+      // Create a couple of list items, the first is missing an itemId (to
+      // mimic old data where itemId was not captured).
+      // once we backfill old data, we can remove the itemId: 0 below.
+      // https://getpocket.atlassian.net/browse/OSL-338
+      await createShareableListItemHelper(db, { list: newList, itemId: 0 });
       await createShareableListItemHelper(db, { list: newList });
 
       // Run the query we're testing
