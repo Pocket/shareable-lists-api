@@ -24,7 +24,7 @@ function transformAPIShareableListToSnowplowShareableList(
 ): SnowplowShareableList {
   return {
     shareable_list_external_id: shareableList.externalId,
-    slug: shareableList.slug,
+    slug: shareableList.slug ? shareableList.slug : undefined,
     title: shareableList.title,
     description: shareableList.description
       ? shareableList.description
@@ -131,7 +131,6 @@ export async function sendEventHelper(
   options: EventBridgeEventOptions
 ) {
   let payload;
-
   if (options.shareableList) {
     payload = generateShareableListEventBridgePayload(
       eventType,
