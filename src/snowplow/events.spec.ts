@@ -88,6 +88,8 @@ describe('Snowplow event helpers', () => {
     expect(payload.shareableList.shareable_list_external_id).to.equal(
       shareableList.externalId
     );
+    // expect slug to be undefined
+    expect(payload.shareableList.slug).to.equal(undefined);
     // moderationStatus -> moderation_status
     expect(payload.shareableList.moderation_status).to.equal(
       shareableList.moderationStatus
@@ -132,6 +134,7 @@ describe('Snowplow event helpers', () => {
 
     // SHAREABLE_LIST_PUBLISHED
     // update some properties
+    shareableList.slug = 'updated-random-title';
     shareableList.status = ListStatus.PUBLIC;
     shareableList.updatedAt = new Date('2023-02-01 10:15:45');
     newUpdatedAt = shareableList.updatedAt;
@@ -145,6 +148,8 @@ describe('Snowplow event helpers', () => {
     expect(payload.eventType).to.equal(
       EventBridgeEventType.SHAREABLE_LIST_PUBLISHED
     );
+    // expect slug to not be null
+    expect(payload.shareableList.slug).to.equal(shareableList.slug);
     // check that status was updated to PUBLIC
     expect(payload.shareableList.status).to.equal(ListStatus.PUBLIC);
     // updatedAt -> updated_at in seconds
