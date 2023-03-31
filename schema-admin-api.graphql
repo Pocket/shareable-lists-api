@@ -23,6 +23,29 @@ directive @cacheControl(
   inheritMaxAge: Boolean
 ) on FIELD_DEFINITION | OBJECT | INTERFACE | UNION
 
+enum ShareableListModerationReason {
+  ABUSIVE_BEHAVIOR
+  POSTING_PRIVATE_INFORMATION
+  HATE_SPEECH
+  MISLEADING_INFORMATION
+  ADULT_SEXUAL_CONTENT
+  CSAM_IMAGES
+  CSAM_SOLICITATION
+  ILLEGAL_GOODS_AND_SERVICES
+  VIOLENCE_AND_GORE
+  INSTRUCTIONS_FOR_VIOLENCE
+  INCITEMENT_TO_VIOLENCE
+  SELF_HARM
+  TERRORISM
+  COPYRIGHT
+  TRADEMARK
+  COUNTERFEIT
+  SPAM
+  FRAUD
+  MALWARE
+  PHISHING
+}
+
 type ShareableListComplete implements ShareableListInterface {
   """A unique string identifier in UUID format."""
   externalId: ID!
@@ -69,7 +92,10 @@ type ShareableListComplete implements ShareableListInterface {
   moderatedBy: String
 
   """The reason why the moderator took down the list."""
-  moderationReason: String
+  moderationReason: ShareableListModerationReason
+
+  """The optional details why the list was moderated."""
+  moderationDetails: String
 }
 
 type Query {
@@ -83,7 +109,8 @@ type Query {
 input ModerateShareableListInput {
   externalId: ID!
   moderationStatus: ShareableListModerationStatus!
-  moderationReason: String!
+  moderationReason: ShareableListModerationReason!
+  moderationDetails: String
 }
 
 type Mutation {
@@ -139,7 +166,7 @@ type ShareableListItem {
   externalId: ID!
 
   """The Parser Item ID."""
-  itemId: Float
+  itemId: ID!
 
   """The URL of the story saved to a list."""
   url: Url!
