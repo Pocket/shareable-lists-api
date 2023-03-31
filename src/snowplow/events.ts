@@ -50,6 +50,8 @@ function transformAPIShareableListToSnowplowShareableList(
 /**
  * This function takes in the API Shareable List Item object and transforms it into a Snowplow Shareable List Item object
  * @param shareableListItem
+ * @param externalId
+ * @param listExternalId
  */
 function transformAPIShareableListItemToSnowplowShareableListItem(
   shareableListItem: ShareableListItem,
@@ -178,6 +180,8 @@ export async function sendEventHelper(
  *
  *
  * @param eventPayload the payload to send to event bus
+ * @param isShareableListEventType
+ * @param isShareableListItemEventType
  */
 export async function sendEvent(
   eventPayload: any,

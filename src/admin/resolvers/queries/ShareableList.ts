@@ -4,7 +4,7 @@ import { ShareableListComplete } from '../../../database/types';
 import { ACCESS_DENIED_ERROR } from '../../../shared/constants';
 
 /**
- * Resolver for the admin 'searchShareableList` query.
+ * Resolver for the admin `searchShareableList` query.
  *
  * @param parent
  * @param externalId

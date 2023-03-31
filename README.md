@@ -147,7 +147,7 @@ This API sends two kinds of events to the Pocket Event Bridge --> Snowplow: `sha
 
 The API maps the GraphQL API types to the Snowplow types and sends both events to the Pocket Event Bridge. The core logic happens in `src/snowplow/events.ts` where the `sendEvent` function takes in a payload and sends it to the Pocket Bridge.
 
-### To setup a new Snowplow event:
+### To set up a new Snowplow event:
 
 In `src/aws/config/index.ts`:
 
@@ -173,7 +173,7 @@ The unit tests for Snowplow events are defined in `src/snowplow/events.spec.ts`.
 
 ### Redis Cache
 
-The Redis container runs on `localhost:6379`. To connect to the local Redis server (works for `dev` and `prod` as well, just find the Redis cluster primary endpoints in AWS ElastiCache and make sure to use the appropriate `$(maws)` role), one of the options is to install the [redis-gui](https://github.com/ekvedaras/redis-gui/releases) and setup the connection to `localhost:6379`.
+The Redis container runs on `localhost:6379`. To connect to the local Redis server (works for `dev` and `prod` as well, just find the Redis cluster primary endpoints in AWS ElastiCache and make sure to use the appropriate `$(maws)` role), one of the options is to install the [redis-gui](https://github.com/ekvedaras/redis-gui/releases) and set up the connection to `localhost:6379`.
 
 The `shareableListPublic` query caches the responses and stores them for 60 seconds in the Redis db. Here is a screenshot of how it gets stored:
 

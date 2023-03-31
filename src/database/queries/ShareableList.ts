@@ -37,6 +37,7 @@ export function getShareableList(
  *
  * @param db
  * @param externalId
+ * @param slug
  */
 export async function getShareableListPublic(
   db: PrismaClient,

@@ -30,8 +30,8 @@ export function getPublicServer(
     sentryPlugin,
     ApolloServerPluginDrainHttpServer({ httpServer }),
     ApolloServerPluginCacheControl({
-      // Lets set the default max age to 0 so that no query responses get cached by default
-      // and we will specifythe max age for specific queries on the schema and resolver level
+      // Let's set the default max age to 0 so that no query responses get cached by default
+      // and we will specify the max age for specific queries on the schema and resolver level
       defaultMaxAge: config.app.defaultMaxAge,
     }),
   ];

@@ -1,22 +1,8 @@
-import { List, ListItem, ListStatus, ModerationStatus } from '@prisma/client';
+import { ListStatus, ModerationStatus, Prisma } from '@prisma/client';
 
 /**
- * These are the properties of list items exposed on the public Pocket Graph -
- * props meant for the Admin Graph are omitted.
+ * Source of truth: https://getpocket.atlassian.net/wiki/spaces/PE/pages/2584150049/Pocket+Shared+Data
  */
-export type ShareableListItem = Omit<ListItem, 'id' | 'externalId' | 'listId'>;
-
-/**
- * This is the shape of a shareable list object on the public Pocket Graph -
- * properties meant for the Admin Graph are omitted.
- */
-export type ShareableList = Omit<
-  List,
-  'id' | 'moderatedBy' | 'moderationReason' | 'moderationDetails'
-> & {
-  listItems?: ShareableListItem[];
-};
-
 export enum ShareableListModerationReason {
   ABUSIVE_BEHAVIOR = 'ABUSIVE_BEHAVIOR',
   POSTING_PRIVATE_INFORMATION = 'POSTING_PRIVATE_INFORMATION',
@@ -41,11 +27,74 @@ export enum ShareableListModerationReason {
 }
 
 /**
- * This is the shape of a shareable list object on the Admin Pocket Graph.
+ * These are the properties of list items exposed on both the Public and Admin graphs.
+ *
+ * New and improved way of setting up custom types that contain a subset of Prisma
+ * model properties while taking advantage of Prisma validation and type safety.
+ * (see more at https://www.prisma.io/docs/concepts/components/prisma-client/advanced-type-safety/operating-against-partial-structures-of-model-types)
  */
-export type ShareableListComplete = Omit<List, 'id'> & {
-  listItems?: ShareableListItem[];
+export const shareableListItemSelectFields =
+  Prisma.validator<Prisma.ListItemSelect>()({
+    externalId: true,
+    itemId: true,
+    url: true,
+    title: true,
+    excerpt: true,
+    imageUrl: true,
+    publisher: true,
+    authors: true,
+    sortOrder: true,
+    createdAt: true,
+    updatedAt: true,
+  });
+
+const shareableListItem = Prisma.validator<Prisma.ListItemArgs>()({
+  select: shareableListItemSelectFields,
+});
+export type ShareableListItem = Prisma.ListItemGetPayload<
+  typeof shareableListItem
+>;
+
+/**
+ * This is the shape of a shareable list object on the public Pocket Graph -
+ * properties meant for the Admin Graph are omitted.
+ *
+ * Note that the included list items also pull in a subset of properties
+ * for the types to match.
+ */
+const shareableListSelectFields = {
+  externalId: true,
+  userId: true,
+  slug: true,
+  title: true,
+  description: true,
+  status: true,
+  moderationStatus: true,
+  createdAt: true,
+  updatedAt: true,
+  listItems: { select: shareableListItemSelectFields },
 };
+const shareableList = Prisma.validator<Prisma.ListArgs>()({
+  select: shareableListSelectFields,
+});
+export type ShareableList = Prisma.ListGetPayload<typeof shareableList>;
+
+/**
+ * This is the shape of a shareable list object on the Admin Pocket Graph:
+ * the public list + additional props meant for the moderators' eyes only.
+ */
+const shareableListCompleteSelectFields = {
+  ...shareableListSelectFields,
+  moderatedBy: true,
+  moderationReason: true,
+  moderationDetails: true,
+};
+const shareableListComplete = Prisma.validator<Prisma.ListArgs>()({
+  select: shareableListCompleteSelectFields,
+});
+export type ShareableListComplete = Prisma.ListGetPayload<
+  typeof shareableListComplete
+>;
 
 export type CreateShareableListInput = {
   title: string;

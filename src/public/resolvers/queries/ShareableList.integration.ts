@@ -549,7 +549,7 @@ describe('public queries: ShareableList', () => {
       // There should be two list items for the second List in the array
       expect(result.body.data.shareableLists[1].listItems).to.have.lengthOf(2);
 
-      // Let's double check the returned array is ordered correctly
+      // Let's double-check the returned array is ordered correctly
       expect(result.body.data.shareableLists[0].title).to.equal(
         shareableList2.title
       );
