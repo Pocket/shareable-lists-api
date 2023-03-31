@@ -1,11 +1,53 @@
 import { expect } from 'chai';
+
+import { UserInputError } from '@pocket-tools/apollo-utils';
+
 import {
   CreateShareableListInput,
   CreateShareableListItemInput,
 } from '../../database/types';
-import { sanitizeMutationInput } from './utils';
+import { sanitizeMutationInput, validateItemId } from './utils';
 
 describe('utility functions', () => {
+  describe('validateItemId', () => {
+    it('does not throw an error for a missing itemId', () => {
+      expect(() => {
+        validateItemId(null);
+      }).not.to.throw();
+
+      expect(() => {
+        validateItemId(undefined);
+      }).not.to.throw();
+
+      expect(() => {
+        validateItemId();
+      }).not.to.throw();
+    });
+
+    it('throws an error for a non-numeric itemId', () => {
+      expect(() => {
+        validateItemId('1234asdf5678');
+      }).to.throw(UserInputError);
+
+      expect(() => {
+        validateItemId('asdf12345678');
+      }).to.throw(UserInputError);
+
+      expect(() => {
+        validateItemId('12345678asdf');
+      }).to.throw(UserInputError);
+
+      expect(() => {
+        validateItemId('asdf');
+      }).to.throw(UserInputError);
+    });
+
+    it('does not throw for a numeric itemId', () => {
+      expect(() => {
+        validateItemId('123456789');
+      }).not.to.throw();
+    });
+  });
   describe('xssifyMutationInput', () => {
     it('transforms strings in a mutation input object', () => {
       const input: CreateShareableListInput = {
@@ -25,7 +67,7 @@ describe('utility functions', () => {
     it('returns numeric values as-is in a mutation input object', () => {
       const input: CreateShareableListItemInput = {
         listExternalId: '123-abc',
-        itemId: 456789,
+        itemId: '456789',
         url: 'https://www.test.com/story',
         title: 'This is a test title',
         excerpt: 'An excerpt sounds like a good thing to have',

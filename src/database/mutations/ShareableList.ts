@@ -19,6 +19,7 @@ import {
 } from '../../shared/constants';
 import { getShareableList } from '../queries';
 import config from '../../config';
+import { validateItemId } from '../../public/resolvers/utils';
 import { sendEventHelper } from '../../snowplow/events';
 import { EventBridgeEventType } from '../../snowplow/types';
 
@@ -36,6 +37,19 @@ export async function createShareableList(
 ): Promise<ShareableList> {
   let listItemData;
 
+  // check if listItem data is passed
+  if (listData.listItem) {
+    // make sure the itemId is valid - if not, fail the entire operation early
+    //
+    // this is required as itemId must be a string at the API level, but is
+    // actually a number in the db (legacy problems)
+    validateItemId(listData.listItem.itemId);
+
+    listItemData = listData.listItem;
+    //remove it from listData so that we can create the ShareableList first
+    delete listData.listItem;
+  }
+
   // check if the title already exists for this user
   const titleExists = await db.list.count({
     where: { title: listData.title, userId: userId },
@@ -52,13 +66,6 @@ export async function createShareableList(
     listData.title,
     listData.description ? listData.description : null
   );
-
-  // check if listItem data is passed
-  if (listData.listItem) {
-    listItemData = listData.listItem;
-    //remove it from listData so that we can create the ShareableList first
-    delete listData.listItem;
-  }
 
   // create ShareableList in db
   const list: ShareableList = await db.list.create({
@@ -128,7 +135,7 @@ export async function updateShareableList(
     }
   }
 
-  // check list title and descipriotn length
+  // check list title and description length
   shareableListTitleDescriptionValidation(
     data.title ? data.title : null,
     data.description ? data.description : null
@@ -138,23 +145,30 @@ export async function updateShareableList(
   // let's generate a unique slug from the title. Once set, it will not be
   // updated to sync with any further title edits.
   if (data.status === ListStatus.PUBLIC && !list.slug) {
+    // run the title through the slugify function
+    const slugifiedTitle = slugify(data.title ?? list.title, config.slugify);
+
+    // if title was made up entirely of characters that the slug cannot contain,
+    // e.g. emojis, generate a neutral-sounding, short slug
+    const preparedSlug =
+      slugifiedTitle.length > 0 ? slugifiedTitle : 'shared-list';
+
     // First check how many slugs containing the list title already exist in the db
     const slugCount = await db.list.count({
       where: {
         userId,
-        slug: { contains: slugify(data.title ?? list.title, config.slugify) },
+        slug: { contains: preparedSlug },
       },
     });
+
     // if there is at least 1 slug containing title of list to update,
     // append next consecutive # of slugCount to data.slug
     if (slugCount) {
-      data.slug =
-        slugify(data.title ?? list.title, config.slugify) +
-        ('-' + (slugCount + 1));
+      data.slug = `${preparedSlug}-${slugCount + 1}`;
     } else {
       // If an updated title is provided, generate the slug from that,
       // otherwise default to the title saved previously.
-      data.slug = slugify(data.title ?? list.title, config.slugify);
+      data.slug = preparedSlug;
     }
   }
   const updatedList = await db.list.update({

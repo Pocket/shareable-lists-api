@@ -3,7 +3,11 @@ import { expect } from 'chai';
 import * as Sentry from '@sentry/node';
 import { EventBridgeClient } from '@aws-sdk/client-eventbridge';
 import { ListStatus, ModerationStatus } from '@prisma/client';
-import { ShareableListComplete, ShareableListItem } from '../database/types';
+import {
+  ShareableListModerationReason,
+  ShareableListComplete,
+  ShareableListItem,
+} from '../database/types';
 import {
   generateShareableListEventBridgePayload,
   generateShareableListItemEventBridgePayload,
@@ -29,6 +33,7 @@ describe('Snowplow event helpers', () => {
     moderationStatus: ModerationStatus.VISIBLE,
     moderatedBy: null,
     moderationReason: null,
+    moderationDetails: null,
     createdAt: new Date('2023-01-01 10:10:10'),
     updatedAt: new Date('2023-01-01 10:10:10'),
   };
@@ -83,6 +88,8 @@ describe('Snowplow event helpers', () => {
     expect(payload.shareableList.shareable_list_external_id).to.equal(
       shareableList.externalId
     );
+    // expect slug to be undefined
+    expect(payload.shareableList.slug).to.equal(undefined);
     // moderationStatus -> moderation_status
     expect(payload.shareableList.moderation_status).to.equal(
       shareableList.moderationStatus
@@ -127,6 +134,7 @@ describe('Snowplow event helpers', () => {
 
     // SHAREABLE_LIST_PUBLISHED
     // update some properties
+    shareableList.slug = 'updated-random-title';
     shareableList.status = ListStatus.PUBLIC;
     shareableList.updatedAt = new Date('2023-02-01 10:15:45');
     newUpdatedAt = shareableList.updatedAt;
@@ -140,6 +148,8 @@ describe('Snowplow event helpers', () => {
     expect(payload.eventType).to.equal(
       EventBridgeEventType.SHAREABLE_LIST_PUBLISHED
     );
+    // expect slug to not be null
+    expect(payload.shareableList.slug).to.equal(shareableList.slug);
     // check that status was updated to PUBLIC
     expect(payload.shareableList.status).to.equal(ListStatus.PUBLIC);
     // updatedAt -> updated_at in seconds
@@ -185,6 +195,8 @@ describe('Snowplow event helpers', () => {
     // SHAREABLE_LIST_HIDDEN
     // update some properties
     shareableList.moderationStatus = ModerationStatus.HIDDEN;
+    shareableList.moderationReason = ShareableListModerationReason.SPAM;
+    shareableList.moderationDetails = 'more details here';
     shareableList.updatedAt = new Date('2023-02-03 05:15:43');
     newUpdatedAt = shareableList.updatedAt;
     payload = await generateShareableListEventBridgePayload(
@@ -193,13 +205,21 @@ describe('Snowplow event helpers', () => {
     );
     // shareableList obj must not be null
     expect(payload.shareableList).to.not.be.null;
-    // check that the payload event type is for shareable-list-unpublished
+    // check that the payload event type is for shareable-list-hidden
     expect(payload.eventType).to.equal(
       EventBridgeEventType.SHAREABLE_LIST_HIDDEN
     );
     // check that moderation_status was updated to HIDDEN
     expect(payload.shareableList.moderation_status).to.equal(
       ModerationStatus.HIDDEN
+    );
+    // check that moderation_reason exists
+    expect(payload.shareableList.moderation_reason).to.equal(
+      ShareableListModerationReason.SPAM
+    );
+    // check that moderation_details exists
+    expect(payload.shareableList.moderation_details).to.equal(
+      'more details here'
     );
     // updatedAt -> updated_at in seconds
     expect(payload.shareableList.updated_at).to.equal(

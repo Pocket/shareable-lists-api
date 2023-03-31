@@ -24,7 +24,7 @@ export async function searchShareableList(
   const list = await dbSearchShareableList(db, externalId);
 
   if (!list) {
-    throw new NotFoundError(externalId);
+    throw new NotFoundError(`List ${externalId} cannot be found.`);
   }
 
   return list;

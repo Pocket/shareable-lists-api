@@ -1,7 +1,7 @@
 import xss from 'xss';
 
 import { PrismaClient } from '@prisma/client';
-import { ForbiddenError } from '@pocket-tools/apollo-utils';
+import { ForbiddenError, UserInputError } from '@pocket-tools/apollo-utils';
 
 import { IPublicContext } from '../context';
 import { ACCESS_DENIED_ERROR } from '../../shared/constants';
@@ -69,4 +69,25 @@ export async function validateUserId(
   }
 
   return userId;
+}
+
+/**
+ * throws an error if the string value of itemId is not numeric
+ *
+ * itemId values must be strings when coming in from clients due to legacy
+ * issues, yet needs to be stored as a number to match the canonical item
+ * database table.
+ *
+ * @param itemId string | undefined
+ * @returns void
+ */
+export function validateItemId(itemId?: string) {
+  if (!itemId) return;
+
+  if (
+    itemId &&
+    (isNaN(itemId as unknown as number) || isNaN(parseInt(itemId)))
+  ) {
+    throw new UserInputError(`${itemId} is an invalid itemId`);
+  }
 }

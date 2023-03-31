@@ -29,5 +29,10 @@ export default {
     release: process.env.GIT_SHA || '',
     environment: process.env.NODE_ENV || 'development',
   },
-  slugify: { lower: true, remove: /[*+~.()'"!:@]/g },
+  slugify: {
+    locale: 'en',
+    lower: true,
+    remove: /[*+~.()'"!:@]/g,
+    strict: true,
+  },
 };

@@ -36,13 +36,14 @@ export interface EventBridgeEventOptions {
  */
 export type SnowplowShareableList = {
   shareable_list_external_id: string;
-  slug: string;
+  slug?: string;
   title: string;
   description?: string;
   status: ListStatus;
   moderation_status: ModerationStatus;
   moderated_by?: string;
   moderation_reason?: string;
+  moderation_details?: string;
   created_at: number; // snowplow schema requires this field in seconds
   updated_at?: number; // snowplow schema requires this field in seconds
 };
