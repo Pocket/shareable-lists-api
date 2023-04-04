@@ -386,11 +386,8 @@ describe('public queries: ShareableList', () => {
         moderationStatus: ModerationStatus.VISIBLE,
       });
 
-      // Create a couple of list items, the first is missing an itemId (to
-      // mimic old data where itemId was not captured).
-      // once we backfill old data, we can remove the itemId: 0 below.
-      // https://getpocket.atlassian.net/browse/OSL-338
-      await createShareableListItemHelper(db, { list: newList, itemId: 0 });
+      // Create a couple of list items
+      await createShareableListItemHelper(db, { list: newList });
       await createShareableListItemHelper(db, { list: newList });
 
       // Run the query we're testing
@@ -421,6 +418,7 @@ describe('public queries: ShareableList', () => {
       // Let's run through the visible props of each item
       // to make sure they're all there
       result.body.data.shareableListPublic.listItems.forEach((listItem) => {
+        expect(listItem.itemId).not.to.be.empty;
         expect(listItem.url).not.to.be.empty;
         expect(listItem.title).not.to.be.empty;
         expect(listItem.excerpt).not.to.be.empty;
