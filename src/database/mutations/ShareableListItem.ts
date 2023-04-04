@@ -1,6 +1,10 @@
 import { NotFoundError, UserInputError } from '@pocket-tools/apollo-utils';
 import { ModerationStatus, PrismaClient } from '@prisma/client';
-import { CreateShareableListItemInput, ShareableListItem } from '../types';
+import {
+  CreateShareableListItemInput,
+  ShareableListItem,
+  shareableListItemSelectFields,
+} from '../types';
 import { PRISMA_RECORD_NOT_FOUND } from '../../shared/constants';
 import { validateItemId } from '../../public/resolvers/utils';
 
@@ -76,6 +80,7 @@ export async function createShareableListItem(
 
   const listItem = await db.listItem.create({
     data: input,
+    select: shareableListItemSelectFields,
   });
 
   //send event bridge event for shareable-list-item-created event type
@@ -114,7 +119,7 @@ export async function deleteShareableListItem(
   // a not found error should be throw if:
   // - the list item wasn't found
   // - the owner of the associated list does not match the user making the
-  //   request (could be a malicious deletion attmept)
+  //   request (could be a malicious deletion attempt)
   // - the associated list has been removed due to moderation (in which case
   //   the user cannot modify any part of the list)
   if (

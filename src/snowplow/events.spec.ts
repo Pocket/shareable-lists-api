@@ -36,10 +36,11 @@ describe('Snowplow event helpers', () => {
     moderationDetails: null,
     createdAt: new Date('2023-01-01 10:10:10'),
     updatedAt: new Date('2023-01-01 10:10:10'),
+    listItems: [],
   };
 
   const shareableListItem: ShareableListItem = {
-    // externalId: faker.datatype.uuid(),
+    externalId: faker.datatype.uuid(),
     itemId: BigInt(98765),
     url: `${faker.internet.url()}/${faker.lorem.slug(5)}`,
     title: faker.random.words(5),

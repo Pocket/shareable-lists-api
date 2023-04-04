@@ -6,6 +6,7 @@ import {
   ModerateShareableListInput,
   ShareableList,
   ShareableListComplete,
+  shareableListItemSelectFields,
   UpdateShareableListInput,
 } from '../types';
 import {
@@ -27,7 +28,7 @@ import { EventBridgeEventType } from '../../snowplow/types';
  * This mutation creates a shareable list, and _only_ a shareable list
  *
  * @param db
- * @param data
+ * @param listData
  * @param userId
  */
 export async function createShareableList(
@@ -61,7 +62,7 @@ export async function createShareableList(
     );
   }
 
-  // check list title and descipriotn length
+  // check list title and description length
   shareableListTitleDescriptionValidation(
     listData.title,
     listData.description ? listData.description : null
@@ -71,7 +72,7 @@ export async function createShareableList(
   const list: ShareableList = await db.list.create({
     data: { ...listData, userId },
     include: {
-      listItems: true,
+      listItems: { select: shareableListItemSelectFields },
     },
   });
 
@@ -256,7 +257,7 @@ export async function deleteShareableList(
     throw new NotFoundError(`List ${externalId} cannot be found.`);
   }
   // This delete must occur before the list is actually deleted,
-  // due to a foreign key constraint on ListIitems. We should remove this
+  // due to a foreign key constraint on ListItems. We should remove this
   // foreign key constraint for a number of reasons.
   // In the small context here of deletes, the foreign key constraint makes
   // this action both less safe and slower:
@@ -269,8 +270,8 @@ export async function deleteShareableList(
   // Slower: Without the foreign key constraint, we do not need to `await` the result
   // of the list item deletion, it could happen asynchronously
   // For these and similar reasons foreign keys are typically not used in environments
-  // running at high scale (e.g. Etsy, etc)
-  // Leaving this in now so we can discuss and circle back and keep moving :)
+  // running at high scale (e.g. Etsy, etc.)
+  // Leaving this in now, so we can discuss and circle back and keep moving :)
   await deleteAllListItemsForList(db, deleteList.id);
 
   // Now that we've checked that we can delete the list, let's delete it.
@@ -329,7 +330,7 @@ function shareableListTitleDescriptionValidation(
 }
 
 /**
- * updateShareableList mutation does a lot of things so we need to break down the operations in a helper function
+ * updateShareableList mutation does a lot of things, so we need to break down the operations in a helper function
  * to determine what events to send to snowplow
  **/
 function updateShareableListBridgeEventHelper(

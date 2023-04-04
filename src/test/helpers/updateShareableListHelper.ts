@@ -6,7 +6,7 @@ interface UpdateListHelperInput {
 }
 
 /**
- * Updates a Shareabled List
+ * Updates a Shareable List
  *
  * @param prisma
  * @param externalId
