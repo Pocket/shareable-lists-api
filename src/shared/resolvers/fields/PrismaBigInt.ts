@@ -1,7 +1,7 @@
 import * as Sentry from '@sentry/node';
 
 /**
- * Return a Number.
+ * Return a Number or Null (if not resolved).
  * Prisma returns a String when it retrieves the BigInt value stored in
  * the datastore (by appending a "n" char to the value).
  *
@@ -15,7 +15,7 @@ export const PrismaBigIntResolver = (parent, args, context, info) => {
   return parseFieldToInt(parent[info.fieldName]);
 };
 
-function parseFieldToInt(field: string) {
+export function parseFieldToInt(field: string): number | null {
   // as the schema now requires returning a value even when the db is missing the value
   // if !field, we should error to Sentry.
   if (!field) {
