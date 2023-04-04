@@ -18,16 +18,40 @@ describe('Shared Resolver Helpers', () => {
       const itemId = 'abc';
       const resolvedValue = parseFieldToInt(itemId);
       expect(resolvedValue).to.be.null;
+      // Expect Sentry to get invoked and assert message
+      expect(sentryStub.callCount).to.equal(1);
+      expect(sentryStub.getCall(0).firstArg).to.equal('Failed to parse itemId');
     });
     it('should return null if field is null', async () => {
       const itemId = null;
       const resolvedValue = parseFieldToInt(itemId);
       expect(resolvedValue).to.be.null;
+      // Expect Sentry to get invoked and assert message
+      expect(sentryStub.callCount).to.equal(1);
+      expect(sentryStub.getCall(0).firstArg).to.equal('Failed to parse itemId');
+    });
+    it('should return null if field is undefined', async () => {
+      const itemId = undefined;
+      const resolvedValue = parseFieldToInt(itemId);
+      expect(resolvedValue).to.be.null;
+      // Expect Sentry to get invoked and assert message
+      expect(sentryStub.callCount).to.equal(1);
+      expect(sentryStub.getCall(0).firstArg).to.equal('Failed to parse itemId');
+    });
+    it('should return null if field is empty string', async () => {
+      const itemId = '';
+      const resolvedValue = parseFieldToInt(itemId);
+      expect(resolvedValue).to.be.null;
+      // Expect Sentry to get invoked and assert message
+      expect(sentryStub.callCount).to.equal(1);
+      expect(sentryStub.getCall(0).firstArg).to.equal('Failed to parse itemId');
     });
     it('should successfully resolve value to int', async () => {
       const itemId = '12345';
       const resolvedValue = parseFieldToInt(itemId);
-      expect(resolvedValue).to.equal(parseInt(itemId));
+      expect(resolvedValue).to.equal(12345);
+      // Expect Sentry to NOT get invoked
+      expect(sentryStub.callCount).to.equal(0);
     });
   });
 });
