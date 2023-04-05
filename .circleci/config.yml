@@ -50,6 +50,14 @@ jobs:
     steps:
       - checkout
       - run:
+          name: install node modules
+          command: npm ci
+      - run:
+          name: generate client and admin graph schemas
+          command: |
+            export NODE_ENV=production
+            npm run build
+      - run:
           name: install rover
           command: |
             # download and install Rover
