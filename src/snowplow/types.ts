@@ -36,6 +36,7 @@ export interface EventBridgeEventOptions {
  */
 export type SnowplowShareableList = {
   shareable_list_external_id: string;
+  user_id: bigint | number;
   slug?: string;
   title: string;
   description?: string;

@@ -89,6 +89,10 @@ describe('Snowplow event helpers', () => {
     expect(payload.shareableList.shareable_list_external_id).to.equal(
       shareableList.externalId
     );
+    // userId -> user_id
+    expect(payload.shareableList.user_id).to.equal(
+      parseInt(shareableList.userId as unknown as string)
+    );
     // expect slug to be undefined
     expect(payload.shareableList.slug).to.equal(undefined);
     // moderationStatus -> moderation_status
@@ -124,6 +128,10 @@ describe('Snowplow event helpers', () => {
     expect(payload.eventType).to.equal(
       EventBridgeEventType.SHAREABLE_LIST_UPDATED
     );
+    // userId -> user_id
+    expect(payload.shareableList.user_id).to.equal(
+      parseInt(shareableList.userId as unknown as string)
+    );
     // check that title was updated
     expect(payload.shareableList.title).to.equal('Updated random title');
     // check that description was updated
@@ -149,6 +157,10 @@ describe('Snowplow event helpers', () => {
     expect(payload.eventType).to.equal(
       EventBridgeEventType.SHAREABLE_LIST_PUBLISHED
     );
+    // userId -> user_id
+    expect(payload.shareableList.user_id).to.equal(
+      parseInt(shareableList.userId as unknown as string)
+    );
     // expect slug to not be null
     expect(payload.shareableList.slug).to.equal(shareableList.slug);
     // check that status was updated to PUBLIC
@@ -172,6 +184,10 @@ describe('Snowplow event helpers', () => {
     // check that the payload event type is for shareable-list-unpublished
     expect(payload.eventType).to.equal(
       EventBridgeEventType.SHAREABLE_LIST_UNPUBLISHED
+    );
+    // userId -> user_id
+    expect(payload.shareableList.user_id).to.equal(
+      parseInt(shareableList.userId as unknown as string)
     );
     // check that status was updated to PUBLIC
     expect(payload.shareableList.status).to.equal(ListStatus.PRIVATE);
@@ -209,6 +225,10 @@ describe('Snowplow event helpers', () => {
     // check that the payload event type is for shareable-list-hidden
     expect(payload.eventType).to.equal(
       EventBridgeEventType.SHAREABLE_LIST_HIDDEN
+    );
+    // userId -> user_id
+    expect(payload.shareableList.user_id).to.equal(
+      parseInt(shareableList.userId as unknown as string)
     );
     // check that moderation_status was updated to HIDDEN
     expect(payload.shareableList.moderation_status).to.equal(

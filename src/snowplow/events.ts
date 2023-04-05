@@ -22,8 +22,14 @@ import {
 function transformAPIShareableListToSnowplowShareableList(
   shareableList: ShareableListComplete
 ): SnowplowShareableList {
+  // userId should always be present, but if for some reason it cannot be parsed,
+  // return undefined as userId is not required in Snowplow schema.
+  const userId = isNaN(parseInt(shareableList.userId as unknown as string))
+    ? undefined
+    : parseInt(shareableList.userId as unknown as string);
   return {
     shareable_list_external_id: shareableList.externalId,
+    user_id: userId,
     slug: shareableList.slug ? shareableList.slug : undefined,
     title: shareableList.title,
     description: shareableList.description
@@ -148,7 +154,6 @@ export async function sendEventHelper(
       options.listExternalId
     );
   }
-
   // Send payload to Event Bridge.
   try {
     await sendEvent(
