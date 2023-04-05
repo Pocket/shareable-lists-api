@@ -246,6 +246,28 @@ describe('Snowplow event helpers', () => {
     expect(payload.shareableList.updated_at).to.equal(
       Math.floor(newUpdatedAt.getTime() / 1000)
     );
+
+    // Lets mimick a shareable_list_created event with a bad userId
+    shareableList.userId = null;
+    payload = await generateShareableListEventBridgePayload(
+      EventBridgeEventType.SHAREABLE_LIST_CREATED,
+      shareableList
+    );
+    // shareableList obj must not be null
+    expect(payload.shareableList).to.not.be.null;
+    // check that the payload event type is for shareable-list-created
+    expect(payload.eventType).to.equal(
+      EventBridgeEventType.SHAREABLE_LIST_CREATED
+    );
+    // userId -> user_id should be undefined
+    expect(payload.shareableList.user_id).to.equal(undefined);
+    // Expect message to get logged in Sentry
+    expect(sentryStub.callCount).to.equal(1);
+    expect(sentryStub.getCall(0).firstArg).to.equal(
+      'Snowplow: Failed to parse userId'
+    );
+    // set the userId back to a good one
+    shareableList.userId = BigInt(12345);
   });
 
   it('generateShareableListItemEventBridgePayload function', async () => {
@@ -356,7 +378,6 @@ describe('Snowplow event helpers', () => {
         `Failed to send event 'shareable_list_item_created' to event bus`
       );
       expect(consoleSpy.callCount).to.equal(2);
-      console.log(consoleSpy.getCall(0).firstArg.message);
       expect(consoleSpy.getCall(0).firstArg.message).to.contain(
         `Failed to send event 'shareable_list_item_created' to event bus`
       );
