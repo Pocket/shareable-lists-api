@@ -23,10 +23,17 @@ function transformAPIShareableListToSnowplowShareableList(
   shareableList: ShareableListComplete
 ): SnowplowShareableList {
   // userId should always be present, but if for some reason it cannot be parsed,
-  // return undefined as userId is not required in Snowplow schema.
-  const userId = isNaN(parseInt(shareableList.userId as unknown as string))
-    ? undefined
-    : parseInt(shareableList.userId as unknown as string);
+  // return undefined as userId is not required in Snowplow schema. Log to Sentry.
+  let userId;
+  if (
+    shareableList.userId &&
+    isNaN(parseInt(shareableList.userId as unknown as string))
+  ) {
+    userId = undefined;
+    Sentry.captureException('Snowplow: Failed to parse userId');
+  } else {
+    userId = parseInt(shareableList.userId as unknown as string);
+  }
   return {
     shareable_list_external_id: shareableList.externalId,
     user_id: userId,
