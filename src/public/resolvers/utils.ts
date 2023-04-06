@@ -78,11 +78,11 @@ export async function validateUserId(
  * issues, yet needs to be stored as a number to match the canonical item
  * database table.
  *
- * @param itemId string | undefined
+ * @param itemId string
  * @returns void
  */
-export function validateItemId(itemId?: string) {
-  if (!itemId) return;
+export function validateItemId(itemId: string) {
+  if (!itemId) throw new UserInputError(`itemId is missing`);
 
   if (
     itemId &&
