@@ -47,7 +47,8 @@ describe('Shared Resolver Helpers', () => {
       expect(sentryStub.getCall(0).firstArg).to.equal('Failed to parse itemId');
     });
     it('should successfully resolve value to int', async () => {
-      const itemId = '12345';
+      // db returns BigInts in 1234n format
+      const itemId = '12345n';
       const resolvedValue = parseFieldToInt(itemId);
       expect(resolvedValue).to.equal(12345);
       // Expect Sentry to NOT get invoked

@@ -16,11 +16,11 @@ export const PrismaBigIntResolver = (parent, args, context, info) => {
 };
 
 export function parseFieldToInt(field: string): number {
+  const parsedField = parseInt(field);
   // if for some reason the value is corrupt in the db, log to Sentry
-  if (!field || isNaN(parseInt(field))) {
+  if (!field || isNaN(parsedField)) {
     Sentry.captureException('Failed to parse itemId');
     return null;
   }
-  const parsedField = parseInt(field);
   return parsedField;
 }
