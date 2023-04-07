@@ -1,4 +1,4 @@
-import { ListStatus, ModerationStatus, PrismaClient } from '@prisma/client';
+import { Visibility, ModerationStatus, PrismaClient } from '@prisma/client';
 import { ShareableList, ShareableListComplete } from '../types';
 import { ForbiddenError, NotFoundError } from '@pocket-tools/apollo-utils';
 import { ACCESS_DENIED_ERROR } from '../../shared/constants';
@@ -50,7 +50,7 @@ export async function getShareableListPublic(
     where: {
       externalId,
       slug,
-      status: ListStatus.PUBLIC,
+      status: Visibility.PUBLIC,
     },
     include: {
       listItems: true,

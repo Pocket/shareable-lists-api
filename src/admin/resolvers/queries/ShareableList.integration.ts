@@ -1,7 +1,7 @@
 import { ApolloServer } from '@apollo/server';
 import {
   List,
-  ListStatus,
+  Visibility,
   ModerationStatus,
   PrismaClient,
 } from '@prisma/client';
@@ -84,7 +84,7 @@ describe('admin queries: ShareableList', () => {
     it('should return a list with all props if it exists', async () => {
       // make list public
       await updateShareableListHelper(db, shareableList.externalId, {
-        status: ListStatus.PUBLIC,
+        status: Visibility.PUBLIC,
         slug: slugify(shareableList.title, config.slugify),
       });
 
@@ -113,7 +113,7 @@ describe('admin queries: ShareableList', () => {
       expect(list.description).to.equal(shareableList.description);
 
       // Default status values
-      expect(list.status).to.equal(ListStatus.PUBLIC);
+      expect(list.status).to.equal(Visibility.PUBLIC);
       expect(list.moderationStatus).to.equal(ModerationStatus.VISIBLE);
 
       // Variable values that just need to be non-null - we know Prisma

@@ -1,4 +1,4 @@
-import { ListStatus, PilotUser, PrismaClient } from '@prisma/client';
+import { Visibility, PilotUser, PrismaClient } from '@prisma/client';
 import {
   createPilotUserHelper,
   createShareableListHelper,
@@ -44,7 +44,7 @@ async function main() {
     if (Math.random() > 0.5) {
       await updateShareableList(
         prisma,
-        { externalId: list.externalId, status: ListStatus.PUBLIC },
+        { externalId: list.externalId, status: Visibility.PUBLIC },
         randomUser.userId
       );
     }

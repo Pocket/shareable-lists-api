@@ -1,4 +1,4 @@
-import { ListStatus, ModerationStatus } from '@prisma/client';
+import { Visibility, ModerationStatus } from '@prisma/client';
 import { ShareableListComplete, ShareableListItem } from '../database/types';
 
 export type ShareableListEventBusPayload = {
@@ -40,7 +40,7 @@ export type SnowplowShareableList = {
   slug?: string;
   title: string;
   description?: string;
-  status: ListStatus;
+  status: Visibility;
   moderation_status: ModerationStatus;
   moderated_by?: string;
   moderation_reason?: string;
