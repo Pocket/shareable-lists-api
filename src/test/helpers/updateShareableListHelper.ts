@@ -1,7 +1,7 @@
-import { List, ListStatus, PrismaClient } from '@prisma/client';
+import { List, Visibility, PrismaClient } from '@prisma/client';
 
 interface UpdateListHelperInput {
-  status: ListStatus;
+  status: Visibility;
   slug: string;
 }
 

@@ -1,5 +1,5 @@
 import { NotFoundError, UserInputError } from '@pocket-tools/apollo-utils';
-import { ListStatus, ModerationStatus, PrismaClient } from '@prisma/client';
+import { Visibility, ModerationStatus, PrismaClient } from '@prisma/client';
 import slugify from 'slugify';
 import {
   CreateShareableListInput,
@@ -145,7 +145,7 @@ export async function updateShareableList(
   // If there is no slug and the list is being shared with the world,
   // let's generate a unique slug from the title. Once set, it will not be
   // updated to sync with any further title edits.
-  if (data.status === ListStatus.PUBLIC && !list.slug) {
+  if (data.status === Visibility.PUBLIC && !list.slug) {
     // run the title through the slugify function
     const slugifiedTitle = slugify(data.title ?? list.title, config.slugify);
 
@@ -341,14 +341,14 @@ function updateShareableListBridgeEventHelper(
   // check if list status was updated
   if (data.status !== list.status) {
     // if list was published, send event bridge event for shareable-list-published event type
-    if (data.status === ListStatus.PUBLIC) {
+    if (data.status === Visibility.PUBLIC) {
       sendEventHelper(EventBridgeEventType.SHAREABLE_LIST_PUBLISHED, {
         shareableList: updatedList as ShareableListComplete,
         isShareableListEventType: true,
       });
     }
     // else if list was unpublished, send event bridge event for shareable-list-unpublished event type
-    else if (data.status === ListStatus.PRIVATE) {
+    else if (data.status === Visibility.PRIVATE) {
       sendEventHelper(EventBridgeEventType.SHAREABLE_LIST_UNPUBLISHED, {
         shareableList: updatedList as ShareableListComplete,
         isShareableListEventType: true,

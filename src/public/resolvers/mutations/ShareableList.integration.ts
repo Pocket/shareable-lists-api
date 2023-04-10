@@ -5,7 +5,7 @@ import request from 'supertest';
 import { ApolloServer } from '@apollo/server';
 import {
   List,
-  ListStatus,
+  Visibility,
   ModerationStatus,
   PilotUser,
   PrismaClient,
@@ -159,7 +159,7 @@ describe('public mutations: ShareableList', () => {
       expect(list.title).to.equal(
         'My list to share&lt;script&gt;alert("Hello World!")&lt;/script&gt;'
       );
-      expect(list.status).to.equal(ListStatus.PRIVATE);
+      expect(list.status).to.equal(Visibility.PRIVATE);
       expect(list.moderationStatus).to.equal(ModerationStatus.VISIBLE);
 
       // user entity should match the creator's id
@@ -240,7 +240,7 @@ describe('public mutations: ShareableList', () => {
       expect(list.title).to.equal(
         'My list to share&lt;script&gt;alert("Hello World!")&lt;/script&gt;'
       );
-      expect(list.status).to.equal(ListStatus.PRIVATE);
+      expect(list.status).to.equal(Visibility.PRIVATE);
       expect(list.moderationStatus).to.equal(ModerationStatus.VISIBLE);
 
       // user entity should match the creator's id
@@ -341,7 +341,7 @@ describe('public mutations: ShareableList', () => {
       expect(result.body.data.createShareableList).to.exist;
       expect(result.body.data.createShareableList.title).to.equal(title1);
       expect(result.body.data.createShareableList.status).to.equal(
-        ListStatus.PRIVATE
+        Visibility.PRIVATE
       );
       expect(result.body.data.createShareableList.moderationStatus).to.equal(
         ModerationStatus.VISIBLE
@@ -369,7 +369,7 @@ describe('public mutations: ShareableList', () => {
       );
       expect(result.body.data.createShareableList.description).to.equal(null);
       expect(result.body.data.createShareableList.status).to.equal(
-        ListStatus.PRIVATE
+        Visibility.PRIVATE
       );
       expect(result.body.data.createShareableList.moderationStatus).to.equal(
         ModerationStatus.VISIBLE
@@ -527,7 +527,7 @@ describe('public mutations: ShareableList', () => {
         externalId: listToUpdate.externalId,
         title: 'This Will Be A Brand New Title',
         description: faker.lorem.sentences(2),
-        status: ListStatus.PRIVATE,
+        status: Visibility.PRIVATE,
       };
 
       const result = await request(app)
@@ -648,7 +648,7 @@ describe('public mutations: ShareableList', () => {
     it('should generate a slug if a list is being made public for the first time', async () => {
       const data: UpdateShareableListInput = {
         externalId: listToUpdate.externalId,
-        status: ListStatus.PUBLIC,
+        status: Visibility.PUBLIC,
       };
 
       const result = await request(app)
@@ -669,7 +669,7 @@ describe('public mutations: ShareableList', () => {
 
       // Verify that the updates have taken place
       const updatedList = result.body.data.updateShareableList;
-      expect(updatedList.status).to.equal(ListStatus.PUBLIC);
+      expect(updatedList.status).to.equal(Visibility.PUBLIC);
       expect(updatedList.slug).not.to.be.empty;
 
       // Does the slug match the current title?
@@ -682,7 +682,7 @@ describe('public mutations: ShareableList', () => {
       const data: UpdateShareableListInput = {
         externalId: listToUpdate.externalId,
         title: 'This Title is Different',
-        status: ListStatus.PUBLIC,
+        status: Visibility.PUBLIC,
       };
 
       const result = await request(app)
@@ -703,7 +703,7 @@ describe('public mutations: ShareableList', () => {
 
       // Verify that the updates have taken place
       const updatedList = result.body.data.updateShareableList;
-      expect(updatedList.status).to.equal(ListStatus.PUBLIC);
+      expect(updatedList.status).to.equal(Visibility.PUBLIC);
       expect(updatedList.slug).not.to.be.empty;
 
       // Does the slug match the updated title?
@@ -720,7 +720,7 @@ describe('public mutations: ShareableList', () => {
       // make list 1 PUBLIC
       dataList1 = {
         externalId: firstList.externalId,
-        status: ListStatus.PUBLIC,
+        status: Visibility.PUBLIC,
       };
 
       let result = await request(app)
@@ -741,7 +741,7 @@ describe('public mutations: ShareableList', () => {
 
       // Verify that the updates have taken place
       const updatedList = result.body.data.updateShareableList;
-      expect(updatedList.status).to.equal(ListStatus.PUBLIC);
+      expect(updatedList.status).to.equal(Visibility.PUBLIC);
       expect(updatedList.slug).not.to.be.empty;
 
       // Does the slug match the list 1 title?
@@ -773,7 +773,7 @@ describe('public mutations: ShareableList', () => {
 
       // Verify that the updates have taken place
       const updatedList1a = result.body.data.updateShareableList;
-      expect(updatedList1a.status).to.equal(ListStatus.PUBLIC);
+      expect(updatedList1a.status).to.equal(Visibility.PUBLIC);
       expect(updatedList1a.title).to.equal(dataList1.title);
       // We don't expect the slug to be updated. Tt should match the original generated slug (hangover-hotel).
       expect(updatedList1a.slug).to.equal(updatedList.slug);
@@ -786,7 +786,7 @@ describe('public mutations: ShareableList', () => {
       // make list 2 PUBLIC
       const dataList2 = {
         externalId: secondList.externalId,
-        status: ListStatus.PUBLIC,
+        status: Visibility.PUBLIC,
       };
 
       result = await request(app)
@@ -807,7 +807,7 @@ describe('public mutations: ShareableList', () => {
 
       // Verify that the updates have taken place
       const updatedList2 = result.body.data.updateShareableList;
-      expect(updatedList2.status).to.equal(ListStatus.PUBLIC);
+      expect(updatedList2.status).to.equal(Visibility.PUBLIC);
       expect(updatedList2.title).to.equal(secondList.title);
       // Expect the slug to equal hangover-hotel-2
       expect(updatedList2.slug).to.equal('hangover-hotel-2');
@@ -817,7 +817,7 @@ describe('public mutations: ShareableList', () => {
       const data: UpdateShareableListInput = {
         externalId: listToUpdate.externalId,
         title: 'This 👏 Title 👏 Is 👏 Full 👏 Of 👏 Emojis',
-        status: ListStatus.PUBLIC,
+        status: Visibility.PUBLIC,
       };
 
       const result = await request(app)
@@ -838,7 +838,7 @@ describe('public mutations: ShareableList', () => {
 
       // Verify that the updates have taken place
       const updatedList = result.body.data.updateShareableList;
-      expect(updatedList.status).to.equal(ListStatus.PUBLIC);
+      expect(updatedList.status).to.equal(Visibility.PUBLIC);
       expect(updatedList.slug).not.to.be.empty;
 
       // Does the slug look as expected?
@@ -849,7 +849,7 @@ describe('public mutations: ShareableList', () => {
       const data: UpdateShareableListInput = {
         externalId: listToUpdate.externalId,
         title: '👀 😱 😈 💚 👌 🔮️',
-        status: ListStatus.PUBLIC,
+        status: Visibility.PUBLIC,
       };
 
       const result = await request(app)
@@ -870,7 +870,7 @@ describe('public mutations: ShareableList', () => {
 
       // Verify that the updates have taken place
       const updatedList = result.body.data.updateShareableList;
-      expect(updatedList.status).to.equal(ListStatus.PUBLIC);
+      expect(updatedList.status).to.equal(Visibility.PUBLIC);
       expect(updatedList.slug).not.to.be.empty;
 
       // Since the slug is whittled away into nothingness with the removal
@@ -887,7 +887,7 @@ describe('public mutations: ShareableList', () => {
       // make list 1 PUBLIC
       const dataList1 = {
         externalId: firstList.externalId,
-        status: ListStatus.PUBLIC,
+        status: Visibility.PUBLIC,
       };
 
       let result = await request(app)
@@ -908,7 +908,7 @@ describe('public mutations: ShareableList', () => {
 
       // Verify that the updates have taken place
       const updatedList = result.body.data.updateShareableList;
-      expect(updatedList.status).to.equal(ListStatus.PUBLIC);
+      expect(updatedList.status).to.equal(Visibility.PUBLIC);
       expect(updatedList.slug).not.to.be.empty;
 
       // Is the slug the expected neutral name?
@@ -922,7 +922,7 @@ describe('public mutations: ShareableList', () => {
       // make list 2 PUBLIC
       const dataList2 = {
         externalId: secondList.externalId,
-        status: ListStatus.PUBLIC,
+        status: Visibility.PUBLIC,
       };
 
       result = await request(app)
@@ -943,7 +943,7 @@ describe('public mutations: ShareableList', () => {
 
       // Verify that the updates have taken place
       const updatedList2 = result.body.data.updateShareableList;
-      expect(updatedList2.status).to.equal(ListStatus.PUBLIC);
+      expect(updatedList2.status).to.equal(Visibility.PUBLIC);
       expect(updatedList2.title).to.equal(secondList.title);
       // Expect the slug to equal shared-list-2
       expect(updatedList2.slug).to.equal('shared-list-2');
@@ -958,7 +958,7 @@ describe('public mutations: ShareableList', () => {
       // make list 1 PUBLIC
       const dataList1 = {
         externalId: firstList.externalId,
-        status: ListStatus.PUBLIC,
+        status: Visibility.PUBLIC,
       };
 
       let result = await request(app)
@@ -978,7 +978,7 @@ describe('public mutations: ShareableList', () => {
 
       // Verify that the updates have taken place
       const updatedList = result.body.data.updateShareableList;
-      expect(updatedList.status).to.equal(ListStatus.PUBLIC);
+      expect(updatedList.status).to.equal(Visibility.PUBLIC);
       expect(updatedList.slug).not.to.be.empty;
 
       // Does the slug match the list 1 title (hangover-hotel)?
@@ -996,7 +996,7 @@ describe('public mutations: ShareableList', () => {
       // make list 2 PUBLIC
       const dataList2 = {
         externalId: secondList.externalId,
-        status: ListStatus.PUBLIC,
+        status: Visibility.PUBLIC,
       };
 
       result = await request(app)
@@ -1016,7 +1016,7 @@ describe('public mutations: ShareableList', () => {
 
       // Verify that the updates have taken place
       const updatedList2 = result.body.data.updateShareableList;
-      expect(updatedList2.status).to.equal(ListStatus.PUBLIC);
+      expect(updatedList2.status).to.equal(Visibility.PUBLIC);
       expect(updatedList2.title).to.equal(secondList.title);
       // Expect the slug to equal hangover-hotel
       expect(updatedList2.slug).to.equal(
@@ -1029,7 +1029,7 @@ describe('public mutations: ShareableList', () => {
       const data: UpdateShareableListInput = {
         externalId: listToUpdate.externalId,
         title: 'This Title Could Not Be More Different',
-        status: ListStatus.PUBLIC,
+        status: Visibility.PUBLIC,
       };
 
       const result = await request(app)
@@ -1056,7 +1056,7 @@ describe('public mutations: ShareableList', () => {
         externalId: listToUpdate.externalId,
         title: 'Suddenly This List is Private Again',
         description: 'I really should have kept this to myself',
-        status: ListStatus.PRIVATE,
+        status: Visibility.PRIVATE,
       };
 
       const result2 = await request(app)
@@ -1076,7 +1076,7 @@ describe('public mutations: ShareableList', () => {
 
       // Verify that the updates have taken place
       const updatedList = result2.body.data.updateShareableList;
-      expect(updatedList.status).to.equal(ListStatus.PRIVATE);
+      expect(updatedList.status).to.equal(Visibility.PRIVATE);
       expect(updatedList.title).to.equal(data2.title);
       expect(updatedList.description).to.equal(data2.description);
 
