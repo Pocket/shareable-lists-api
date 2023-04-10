@@ -10,6 +10,7 @@ import { startPublicServer } from './public/server';
 import { getPublicContext, IPublicContext } from './public/context';
 import { getAdminContext, IAdminContext } from './admin/context';
 import { startAdminServer } from './admin/server';
+import deleteUserDataRouter from './public/routes/deleteUserData';
 
 /**
  * Initialize an express server.
@@ -38,6 +39,8 @@ export async function startServer(port: number): Promise<{
 
   // JSON parser to enable POST body with JSON
   app.use(express.json());
+  // Add route to delete user data
+  app.use('/deleteUserData', deleteUserDataRouter);
 
   // expose a health check url
   app.get('/.well-known/apollo/server-health', (req, res) => {
