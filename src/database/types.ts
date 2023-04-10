@@ -1,4 +1,4 @@
-import { ListStatus, ModerationStatus, Prisma } from '@prisma/client';
+import { Visibility, ModerationStatus, Prisma } from '@prisma/client';
 
 /**
  * Source of truth: https://getpocket.atlassian.net/wiki/spaces/PE/pages/2584150049/Pocket+Shared+Data
@@ -106,7 +106,7 @@ export type UpdateShareableListInput = {
   externalId: string;
   title?: string;
   description?: string;
-  status?: ListStatus;
+  status?: Visibility;
   // Not in the public schema but here in the DB input type
   // because it's generated in the DB resolver if required.
   slug?: string;

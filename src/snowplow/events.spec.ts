@@ -2,7 +2,7 @@ import sinon from 'sinon';
 import { expect } from 'chai';
 import * as Sentry from '@sentry/node';
 import { EventBridgeClient } from '@aws-sdk/client-eventbridge';
-import { ListStatus, ModerationStatus } from '@prisma/client';
+import { Visibility, ModerationStatus } from '@prisma/client';
 import {
   ShareableListModerationReason,
   ShareableListComplete,
@@ -29,7 +29,7 @@ describe('Snowplow event helpers', () => {
     slug: null,
     title: 'Fake Random Title',
     description: faker.lorem.sentences(2),
-    status: ListStatus.PRIVATE,
+    status: Visibility.PRIVATE,
     moderationStatus: ModerationStatus.VISIBLE,
     moderatedBy: null,
     moderationReason: null,
@@ -144,7 +144,7 @@ describe('Snowplow event helpers', () => {
     // SHAREABLE_LIST_PUBLISHED
     // update some properties
     shareableList.slug = 'updated-random-title';
-    shareableList.status = ListStatus.PUBLIC;
+    shareableList.status = Visibility.PUBLIC;
     shareableList.updatedAt = new Date('2023-02-01 10:15:45');
     newUpdatedAt = shareableList.updatedAt;
     payload = await generateShareableListEventBridgePayload(
@@ -164,7 +164,7 @@ describe('Snowplow event helpers', () => {
     // expect slug to not be null
     expect(payload.shareableList.slug).to.equal(shareableList.slug);
     // check that status was updated to PUBLIC
-    expect(payload.shareableList.status).to.equal(ListStatus.PUBLIC);
+    expect(payload.shareableList.status).to.equal(Visibility.PUBLIC);
     // updatedAt -> updated_at in seconds
     expect(payload.shareableList.updated_at).to.equal(
       Math.floor(newUpdatedAt.getTime() / 1000)
@@ -172,7 +172,7 @@ describe('Snowplow event helpers', () => {
 
     // SHAREABLE_LIST_UNPUBLISHED
     // update some properties
-    shareableList.status = ListStatus.PRIVATE;
+    shareableList.status = Visibility.PRIVATE;
     shareableList.updatedAt = new Date('2023-02-02 10:15:07');
     newUpdatedAt = shareableList.updatedAt;
     payload = await generateShareableListEventBridgePayload(
@@ -190,7 +190,7 @@ describe('Snowplow event helpers', () => {
       parseInt(shareableList.userId as unknown as string)
     );
     // check that status was updated to PUBLIC
-    expect(payload.shareableList.status).to.equal(ListStatus.PRIVATE);
+    expect(payload.shareableList.status).to.equal(Visibility.PRIVATE);
     // updatedAt -> updated_at in seconds
     expect(payload.shareableList.updated_at).to.equal(
       Math.floor(newUpdatedAt.getTime() / 1000)

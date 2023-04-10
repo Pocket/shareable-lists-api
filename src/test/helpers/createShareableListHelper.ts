@@ -1,6 +1,6 @@
 import {
   List,
-  ListStatus,
+  Visibility,
   ModerationStatus,
   PrismaClient,
 } from '@prisma/client';
@@ -11,7 +11,7 @@ interface ListHelperInput {
   title: string;
   description?: string;
   slug?: string;
-  status?: ListStatus;
+  status?: Visibility;
   moderationStatus?: ModerationStatus;
 }
 

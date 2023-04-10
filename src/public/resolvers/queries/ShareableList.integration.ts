@@ -5,7 +5,7 @@ import request from 'supertest';
 import { ApolloServer } from '@apollo/server';
 import {
   List,
-  ListStatus,
+  Visibility,
   ModerationStatus,
   PilotUser,
   PrismaClient,
@@ -150,7 +150,7 @@ describe('public queries: ShareableList', () => {
       expect(list.description).to.equal(shareableList.description);
 
       // Default status values
-      expect(list.status).to.equal(ListStatus.PRIVATE);
+      expect(list.status).to.equal(Visibility.PRIVATE);
       expect(list.moderationStatus).to.equal(ModerationStatus.VISIBLE);
 
       // Variable values that just need to be non-null - we know Prisma
@@ -239,7 +239,7 @@ describe('public queries: ShareableList', () => {
         userId: parseInt(headers.userId),
         title: 'This is a list that does not comply with our policies',
         slug: 'this-is-a-list-that-does-not-comply',
-        status: ListStatus.PUBLIC,
+        status: Visibility.PUBLIC,
         moderationStatus: ModerationStatus.HIDDEN,
       });
 
@@ -267,7 +267,7 @@ describe('public queries: ShareableList', () => {
         userId: parseInt(headers.userId),
         title: 'This is a list that is Private',
         slug: 'this-is-a-list-that-is-private',
-        status: ListStatus.PRIVATE,
+        status: Visibility.PRIVATE,
         moderationStatus: ModerationStatus.VISIBLE,
       });
 
@@ -297,7 +297,7 @@ describe('public queries: ShareableList', () => {
         userId: parseInt(headers.userId),
         title: 'This is a list',
         slug: 'this-is-a-list',
-        status: ListStatus.PUBLIC,
+        status: Visibility.PUBLIC,
         moderationStatus: ModerationStatus.VISIBLE,
       });
 
@@ -327,7 +327,7 @@ describe('public queries: ShareableList', () => {
         userId: parseInt(headers.userId),
         title: 'This is a list that does comply with our policies',
         slug: 'this-is-a-list-that-does-comply',
-        status: ListStatus.PUBLIC,
+        status: Visibility.PUBLIC,
         moderationStatus: ModerationStatus.VISIBLE,
       });
 
@@ -358,7 +358,7 @@ describe('public queries: ShareableList', () => {
       expect(list.description).to.equal(newList.description);
 
       // Default status values
-      expect(list.status).to.equal(ListStatus.PUBLIC);
+      expect(list.status).to.equal(Visibility.PUBLIC);
       expect(list.moderationStatus).to.equal(ModerationStatus.VISIBLE);
 
       // Variable values that just need to be non-null - we know Prisma
@@ -382,7 +382,7 @@ describe('public queries: ShareableList', () => {
         userId: parseInt(headers.userId),
         title: 'This is a new list',
         slug: 'the-slug',
-        status: ListStatus.PUBLIC,
+        status: Visibility.PUBLIC,
         moderationStatus: ModerationStatus.VISIBLE,
       });
 
@@ -502,7 +502,7 @@ describe('public queries: ShareableList', () => {
           listArray[i].description
         );
         expect(result.body.data.shareableLists[i].status).to.equal(
-          ListStatus.PRIVATE
+          Visibility.PRIVATE
         );
         expect(result.body.data.shareableLists[i].moderationStatus).to.equal(
           ModerationStatus.VISIBLE
