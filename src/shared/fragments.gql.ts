@@ -40,6 +40,7 @@ export const ShareableListPublicProps = gql`
     listItems {
       ...ShareableListItemPublicProps
     }
+    listItemNoteVisibility
   }
   ${ShareableListItemPublicProps}
 `;

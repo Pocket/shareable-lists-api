@@ -73,6 +73,7 @@ const shareableListSelectFields = {
   createdAt: true,
   updatedAt: true,
   listItems: { select: shareableListItemSelectFields },
+  listItemNoteVisibility: true,
 };
 const shareableList = Prisma.validator<Prisma.ListArgs>()({
   select: shareableListSelectFields,
@@ -100,6 +101,7 @@ export type CreateShareableListInput = {
   title: string;
   description?: string;
   listItem?: CreateShareableListItemInput;
+  listItemNoteVisibility?: Visibility;
 };
 
 export type UpdateShareableListInput = {
@@ -107,6 +109,7 @@ export type UpdateShareableListInput = {
   title?: string;
   description?: string;
   status?: Visibility;
+  listItemNoteVisibility?: Visibility;
   // Not in the public schema but here in the DB input type
   // because it's generated in the DB resolver if required.
   slug?: string;

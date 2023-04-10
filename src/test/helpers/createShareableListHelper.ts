@@ -13,6 +13,7 @@ interface ListHelperInput {
   slug?: string;
   status?: Visibility;
   moderationStatus?: ModerationStatus;
+  listItemNoteVisibility?: Visibility;
 }
 
 /**
@@ -34,6 +35,7 @@ export async function createShareableListHelper(
     slug: data.slug ?? undefined,
     status: data.status ?? undefined,
     moderationStatus: data.moderationStatus ?? ModerationStatus.VISIBLE,
+    listItemNoteVisibility: data.listItemNoteVisibility ?? undefined,
   };
 
   return await prisma.list.create({

@@ -78,6 +78,8 @@ describe('public queries: ShareableList', () => {
     shareableList2 = await createShareableListHelper(db, {
       userId: parseInt(headers.userId),
       title: 'This is a second test list',
+      // set list item notes public
+      listItemNoteVisibility: Visibility.PUBLIC,
     });
   });
 
@@ -167,6 +169,9 @@ describe('public queries: ShareableList', () => {
 
       // Empty list items array
       expect(list.listItems).to.have.lengthOf(0);
+
+      // default list item note visibility (not set explicitly upon creation)
+      expect(list.listItemNoteVisibility).to.equal(Visibility.PRIVATE);
     });
 
     it('should return a list with list items', async () => {
@@ -488,31 +493,28 @@ describe('public queries: ShareableList', () => {
 
       // Expect the array length to contain 2 lists
       expect(result.body.data.shareableLists.length).to.equal(2);
+
       // We also want to assert that the first list returned in the array is the most recently created
       const listArray = [shareableList2, shareableList];
+
+      let list;
+
       // Loop over both lists and check their values are as expected
       for (let i = 0; i < listArray.length; i++) {
-        expect(result.body.data.shareableLists[i].title).to.equal(
-          listArray[i].title
-        );
-        expect(result.body.data.shareableLists[i].slug).to.equal(
-          listArray[i].slug
-        );
-        expect(result.body.data.shareableLists[i].description).to.equal(
-          listArray[i].description
-        );
-        expect(result.body.data.shareableLists[i].status).to.equal(
-          Visibility.PRIVATE
-        );
-        expect(result.body.data.shareableLists[i].moderationStatus).to.equal(
-          ModerationStatus.VISIBLE
-        );
-        expect(result.body.data.shareableLists[i].createdAt).not.to.be.empty;
-        expect(result.body.data.shareableLists[i].updatedAt).not.to.be.empty;
-        expect(result.body.data.shareableLists[i].externalId).not.to.be.empty;
+        list = result.body.data.shareableLists[i];
+
+        expect(list.title).to.equal(listArray[i].title);
+        expect(list.slug).to.equal(listArray[i].slug);
+        expect(list.description).to.equal(listArray[i].description);
+        expect(list.status).to.equal(Visibility.PRIVATE);
+        expect(list.moderationStatus).to.equal(ModerationStatus.VISIBLE);
+        expect(list.createdAt).not.to.be.empty;
+        expect(list.updatedAt).not.to.be.empty;
+        expect(list.externalId).not.to.be.empty;
         // Empty list items array
-        expect(result.body.data.shareableLists[i].listItems).to.have.lengthOf(
-          0
+        expect(list.listItems).to.have.lengthOf(0);
+        expect(list.listItemNoteVisibility).to.equal(
+          listArray[i].listItemNoteVisibility
         );
       }
     });
