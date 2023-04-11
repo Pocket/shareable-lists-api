@@ -133,11 +133,9 @@ describe('public mutations: ShareableList', () => {
       expect(result.body.errors[0].message).to.equal(ACCESS_DENIED_ERROR);
     });
 
-    it('should create a new List without ListItem', async () => {
-      const title = 'My list to share<script>alert("Hello World!")</script>';
-
+    it('should not cache the results', async () => {
       const data: CreateShareableListInput = {
-        title: title,
+        title: faker.lorem.words(5),
         description: faker.lorem.sentences(2),
       };
 
@@ -149,24 +147,68 @@ describe('public mutations: ShareableList', () => {
           variables: { listData: data },
         });
 
+      expect(result.body.errors).not.to.exist;
+
       // This mutation should not be cached, expect headers.cache-control = no-store
       expect(result.headers['cache-control']).to.equal('no-store');
+    });
+
+    it('should escape HTML in the title and description', async () => {
+      const data: CreateShareableListInput = {
+        title: 'My list to share<script>alert("Hello World!")</script>',
+        description:
+          'A description to share<script>alert("Hello World!")</script>',
+      };
+
+      const result = await request(app)
+        .post(graphQLUrl)
+        .set(headers)
+        .send({
+          query: print(CREATE_SHAREABLE_LIST),
+          variables: { listData: data },
+        });
+
+      expect(result.body.data.createShareableList.title).to.equal(
+        'My list to share&lt;script&gt;alert("Hello World!")&lt;/script&gt;'
+      );
+
+      expect(result.body.data.createShareableList.description).to.equal(
+        'A description to share&lt;script&gt;alert("Hello World!")&lt;/script&gt;'
+      );
+    });
+
+    it('should create a new List with default visibilities', async () => {
+      const data: CreateShareableListInput = {
+        title: faker.lorem.words(4),
+        description: faker.lorem.sentences(2),
+      };
+
+      const result = await request(app)
+        .post(graphQLUrl)
+        .set(headers)
+        .send({
+          query: print(CREATE_SHAREABLE_LIST),
+          variables: { listData: data },
+        });
 
       expect(result.body.data).to.exist;
 
       const list = result.body.data.createShareableList;
 
-      expect(list.title).to.equal(
-        'My list to share&lt;script&gt;alert("Hello World!")&lt;/script&gt;'
-      );
-      expect(list.status).to.equal(Visibility.PRIVATE);
-      expect(list.moderationStatus).to.equal(ModerationStatus.VISIBLE);
+      // as passed in explicitly
+      expect(list.title).to.equal(data.title);
+      expect(list.description).to.equal(data.description);
 
       // user entity should match the creator's id
       expect(list.user).to.deep.equal({ id: headers.userId });
 
       // expect no listItems in result
       expect(list.listItems.length).to.equal(0);
+
+      // fields that should have default values
+      expect(list.status).to.equal(Visibility.PRIVATE);
+      expect(list.moderationStatus).to.equal(ModerationStatus.VISIBLE);
+      expect(list.listItemNoteVisibility).to.equal(Visibility.PRIVATE);
     });
 
     it('should not create a new List with a ListItem with an invalid itemId', async () => {
@@ -205,9 +247,8 @@ describe('public mutations: ShareableList', () => {
     });
 
     it('should create a new List with a ListItem', async () => {
-      const title = 'My list to share<script>alert("Hello World!")</script>';
       const listData: CreateShareableListInput = {
-        title: title,
+        title: faker.lorem.words(4),
         description: faker.lorem.sentences(2),
       };
 
@@ -230,25 +271,27 @@ describe('public mutations: ShareableList', () => {
           variables: { listData, listItemData },
         });
 
-      // This mutation should not be cached, expect headers.cache-control = no-store
-      expect(result.headers['cache-control']).to.equal('no-store');
-
       expect(result.body.data).to.exist;
 
       const list = result.body.data.createShareableList;
 
-      expect(list.title).to.equal(
-        'My list to share&lt;script&gt;alert("Hello World!")&lt;/script&gt;'
-      );
-      expect(list.status).to.equal(Visibility.PRIVATE);
-      expect(list.moderationStatus).to.equal(ModerationStatus.VISIBLE);
+      // specified list properties should be as expected
+      expect(list.title).to.equal(listData.title);
+      expect(list.description).to.equal(listData.description);
 
-      // user entity should match the creator's id
-      expect(list.user).to.deep.equal({ id: headers.userId });
-
-      // expect 1 listItem in result
+      // expect 1 listItem in result with all supplied data
       expect(list.listItems.length).to.equal(1);
-      expect(list.listItems[0].title).to.equal(listItemData.title);
+
+      const listItem = list.listItems[0];
+
+      expect(listItem.title).to.equal(listItemData.title);
+      expect(listItem.url).to.equal(listItemData.url);
+      expect(listItem.itemId).to.equal(listItemData.itemId);
+      expect(listItem.excerpt).to.equal(listItemData.excerpt);
+      expect(listItem.imageUrl).to.equal(listItemData.imageUrl);
+      expect(listItem.publisher).to.equal(listItemData.publisher);
+      expect(listItem.authors).to.equal(listItemData.authors);
+      expect(listItem.sortOrder).to.equal(listItemData.sortOrder);
     });
 
     it('should not create List with existing title for the same userId', async () => {
@@ -322,12 +365,15 @@ describe('public mutations: ShareableList', () => {
         title: `Best Abstraction Art List`,
         userId: parseInt('8765'),
       });
+
       const title1 = list1.title;
+
       // create new List with title1 value for the same user
       const data: CreateShareableListInput = {
         title: title1,
         description: faker.lorem.sentences(2),
       };
+
       const result = await request(app)
         .post(graphQLUrl)
         .set(headers)
@@ -336,16 +382,7 @@ describe('public mutations: ShareableList', () => {
           variables: { listData: data },
         });
 
-      // This mutation should not be cached, expect headers.cache-control = no-store
-      expect(result.headers['cache-control']).to.equal('no-store');
-      expect(result.body.data.createShareableList).to.exist;
       expect(result.body.data.createShareableList.title).to.equal(title1);
-      expect(result.body.data.createShareableList.status).to.equal(
-        Visibility.PRIVATE
-      );
-      expect(result.body.data.createShareableList.moderationStatus).to.equal(
-        ModerationStatus.VISIBLE
-      );
     });
 
     it('should create List with a missing description', async () => {
@@ -353,6 +390,7 @@ describe('public mutations: ShareableList', () => {
       const data: CreateShareableListInput = {
         title: `List with missing description`,
       };
+
       const result = await request(app)
         .post(graphQLUrl)
         .set(headers)
@@ -361,19 +399,30 @@ describe('public mutations: ShareableList', () => {
           variables: { listData: data },
         });
 
-      // This mutation should not be cached, expect headers.cache-control = no-store
-      expect(result.headers['cache-control']).to.equal('no-store');
-      expect(result.body.data.createShareableList).to.exist;
-      expect(result.body.data.createShareableList.title).to.equal(
-        'List with missing description'
-      );
-      expect(result.body.data.createShareableList.description).to.equal(null);
-      expect(result.body.data.createShareableList.status).to.equal(
-        Visibility.PRIVATE
-      );
-      expect(result.body.data.createShareableList.moderationStatus).to.equal(
-        ModerationStatus.VISIBLE
-      );
+      const list = result.body.data.createShareableList;
+
+      expect(list).to.exist;
+      expect(list.title).to.equal(data.title);
+      expect(list.description).to.equal(null);
+    });
+
+    it('should create List with a PUBLIC listItemNoteVisibility', async () => {
+      const data: CreateShareableListInput = {
+        title: `My side projects`,
+        listItemNoteVisibility: Visibility.PUBLIC,
+      };
+
+      const result = await request(app)
+        .post(graphQLUrl)
+        .set(headers)
+        .send({
+          query: print(CREATE_SHAREABLE_LIST),
+          variables: { listData: data },
+        });
+
+      expect(
+        result.body.data.createShareableList.listItemNoteVisibility
+      ).to.equal(data.listItemNoteVisibility);
     });
   });
 
@@ -528,6 +577,7 @@ describe('public mutations: ShareableList', () => {
         title: 'This Will Be A Brand New Title',
         description: faker.lorem.sentences(2),
         status: Visibility.PRIVATE,
+        listItemNoteVisibility: Visibility.PUBLIC,
       };
 
       const result = await request(app)
@@ -552,6 +602,9 @@ describe('public mutations: ShareableList', () => {
       expect(updatedList.title).to.equal(data.title);
       expect(updatedList.description).to.equal(data.description);
       expect(updatedList.status).to.equal(data.status);
+      expect(updatedList.listItemNoteVisibility).to.equal(
+        data.listItemNoteVisibility
+      );
 
       // Check that props that shouldn't have changed stayed the same
       expect(updatedList.slug).to.equal(listToUpdate.slug);

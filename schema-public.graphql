@@ -26,7 +26,7 @@ type ShareableList implements ShareableListInterface {
   """
   The status of the list. Defaults to PRIVATE.
   """
-  status: ShareableListStatus!
+  status: ShareableListVisibility!
   """
   The moderation status of the list. Defaults to VISIBLE.
   """
@@ -44,6 +44,10 @@ type ShareableList implements ShareableListInterface {
   Pocket Saves that have been added to this list by the Pocket user.
   """
   listItems: [ShareableListItem!]!
+  """
+  The visibility of notes added to list items for this list.
+  """
+  listItemNoteVisibility: ShareableListVisibility!
 }
 
 """
@@ -76,7 +80,7 @@ type ShareableListPublic implements ShareableListInterface
   """
   The status of the list. Defaults to PRIVATE.
   """
-  status: ShareableListStatus!
+  status: ShareableListVisibility!
   """
   The moderation status of the list. Defaults to VISIBLE.
   """
@@ -102,6 +106,7 @@ Input data for creating a Shareable List.
 input CreateShareableListInput {
   title: String!
   description: String
+  listItemNoteVisibility: ShareableListVisibility
 }
 
 """
@@ -111,7 +116,8 @@ input UpdateShareableListInput {
   externalId: ID!
   title: String
   description: String
-  status: ShareableListStatus
+  status: ShareableListVisibility
+  listItemNoteVisibility: ShareableListVisibility
 }
 
 """

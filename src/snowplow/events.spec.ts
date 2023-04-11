@@ -37,6 +37,7 @@ describe('Snowplow event helpers', () => {
     createdAt: new Date('2023-01-01 10:10:10'),
     updatedAt: new Date('2023-01-01 10:10:10'),
     listItems: [],
+    listItemNoteVisibility: Visibility.PRIVATE,
   };
 
   const shareableListItem: ShareableListItem = {
