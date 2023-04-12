@@ -60,6 +60,8 @@ model ListItem {
   url        String?  @db.VarChar(1000)
   title      String?  @db.VarChar(300)
   excerpt    String?  @db.Text
+  // Optional user-supplied note to accompany the item. Length of 300 enforced at graph level
+  note       String?  @db.VarChar(1000)
   imageUrl   String?  @db.VarChar(1000)
   publisher  String?  @db.VarChar(300)
   authors    String?  @db.VarChar(1000)
