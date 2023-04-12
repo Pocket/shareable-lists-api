@@ -1,12 +1,12 @@
-import { List, ListStatus, PrismaClient } from '@prisma/client';
+import { List, Visibility, PrismaClient } from '@prisma/client';
 
 interface UpdateListHelperInput {
-  status: ListStatus;
+  status: Visibility;
   slug: string;
 }
 
 /**
- * Updates a Shareabled List
+ * Updates a Shareable List
  *
  * @param prisma
  * @param externalId

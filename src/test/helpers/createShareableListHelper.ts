@@ -1,6 +1,6 @@
 import {
   List,
-  ListStatus,
+  Visibility,
   ModerationStatus,
   PrismaClient,
 } from '@prisma/client';
@@ -11,8 +11,9 @@ interface ListHelperInput {
   title: string;
   description?: string;
   slug?: string;
-  status?: ListStatus;
+  status?: Visibility;
   moderationStatus?: ModerationStatus;
+  listItemNoteVisibility?: Visibility;
 }
 
 /**
@@ -34,6 +35,7 @@ export async function createShareableListHelper(
     slug: data.slug ?? undefined,
     status: data.status ?? undefined,
     moderationStatus: data.moderationStatus ?? ModerationStatus.VISIBLE,
+    listItemNoteVisibility: data.listItemNoteVisibility ?? undefined,
   };
 
   return await prisma.list.create({

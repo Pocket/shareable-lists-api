@@ -22,8 +22,18 @@ import {
 function transformAPIShareableListToSnowplowShareableList(
   shareableList: ShareableListComplete
 ): SnowplowShareableList {
+  // userId should always be present, but if for some reason it cannot be parsed,
+  // return undefined as userId is not required in Snowplow schema. Log to Sentry.
+  let userId;
+  if (isNaN(parseInt(shareableList.userId as unknown as string))) {
+    userId = undefined;
+    Sentry.captureException('Snowplow: Failed to parse userId');
+  } else {
+    userId = parseInt(shareableList.userId as unknown as string);
+  }
   return {
     shareable_list_external_id: shareableList.externalId,
+    user_id: userId,
     slug: shareableList.slug ? shareableList.slug : undefined,
     title: shareableList.title,
     description: shareableList.description
@@ -50,6 +60,8 @@ function transformAPIShareableListToSnowplowShareableList(
 /**
  * This function takes in the API Shareable List Item object and transforms it into a Snowplow Shareable List Item object
  * @param shareableListItem
+ * @param externalId
+ * @param listExternalId
  */
 function transformAPIShareableListItemToSnowplowShareableListItem(
   shareableListItem: ShareableListItem,
@@ -146,7 +158,6 @@ export async function sendEventHelper(
       options.listExternalId
     );
   }
-
   // Send payload to Event Bridge.
   try {
     await sendEvent(
@@ -178,6 +189,8 @@ export async function sendEventHelper(
  *
  *
  * @param eventPayload the payload to send to event bus
+ * @param isShareableListEventType
+ * @param isShareableListItemEventType
  */
 export async function sendEvent(
   eventPayload: any,

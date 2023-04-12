@@ -2,7 +2,7 @@ import sinon from 'sinon';
 import { expect } from 'chai';
 import * as Sentry from '@sentry/node';
 import { EventBridgeClient } from '@aws-sdk/client-eventbridge';
-import { ListStatus, ModerationStatus } from '@prisma/client';
+import { Visibility, ModerationStatus } from '@prisma/client';
 import {
   ShareableListModerationReason,
   ShareableListComplete,
@@ -29,17 +29,19 @@ describe('Snowplow event helpers', () => {
     slug: null,
     title: 'Fake Random Title',
     description: faker.lorem.sentences(2),
-    status: ListStatus.PRIVATE,
+    status: Visibility.PRIVATE,
     moderationStatus: ModerationStatus.VISIBLE,
     moderatedBy: null,
     moderationReason: null,
     moderationDetails: null,
     createdAt: new Date('2023-01-01 10:10:10'),
     updatedAt: new Date('2023-01-01 10:10:10'),
+    listItems: [],
+    listItemNoteVisibility: Visibility.PRIVATE,
   };
 
   const shareableListItem: ShareableListItem = {
-    // externalId: faker.datatype.uuid(),
+    externalId: faker.datatype.uuid(),
     itemId: BigInt(98765),
     url: `${faker.internet.url()}/${faker.lorem.slug(5)}`,
     title: faker.random.words(5),
@@ -88,6 +90,10 @@ describe('Snowplow event helpers', () => {
     expect(payload.shareableList.shareable_list_external_id).to.equal(
       shareableList.externalId
     );
+    // userId -> user_id
+    expect(payload.shareableList.user_id).to.equal(
+      parseInt(shareableList.userId as unknown as string)
+    );
     // expect slug to be undefined
     expect(payload.shareableList.slug).to.equal(undefined);
     // moderationStatus -> moderation_status
@@ -123,6 +129,10 @@ describe('Snowplow event helpers', () => {
     expect(payload.eventType).to.equal(
       EventBridgeEventType.SHAREABLE_LIST_UPDATED
     );
+    // userId -> user_id
+    expect(payload.shareableList.user_id).to.equal(
+      parseInt(shareableList.userId as unknown as string)
+    );
     // check that title was updated
     expect(payload.shareableList.title).to.equal('Updated random title');
     // check that description was updated
@@ -135,7 +145,7 @@ describe('Snowplow event helpers', () => {
     // SHAREABLE_LIST_PUBLISHED
     // update some properties
     shareableList.slug = 'updated-random-title';
-    shareableList.status = ListStatus.PUBLIC;
+    shareableList.status = Visibility.PUBLIC;
     shareableList.updatedAt = new Date('2023-02-01 10:15:45');
     newUpdatedAt = shareableList.updatedAt;
     payload = await generateShareableListEventBridgePayload(
@@ -148,10 +158,14 @@ describe('Snowplow event helpers', () => {
     expect(payload.eventType).to.equal(
       EventBridgeEventType.SHAREABLE_LIST_PUBLISHED
     );
+    // userId -> user_id
+    expect(payload.shareableList.user_id).to.equal(
+      parseInt(shareableList.userId as unknown as string)
+    );
     // expect slug to not be null
     expect(payload.shareableList.slug).to.equal(shareableList.slug);
     // check that status was updated to PUBLIC
-    expect(payload.shareableList.status).to.equal(ListStatus.PUBLIC);
+    expect(payload.shareableList.status).to.equal(Visibility.PUBLIC);
     // updatedAt -> updated_at in seconds
     expect(payload.shareableList.updated_at).to.equal(
       Math.floor(newUpdatedAt.getTime() / 1000)
@@ -159,7 +173,7 @@ describe('Snowplow event helpers', () => {
 
     // SHAREABLE_LIST_UNPUBLISHED
     // update some properties
-    shareableList.status = ListStatus.PRIVATE;
+    shareableList.status = Visibility.PRIVATE;
     shareableList.updatedAt = new Date('2023-02-02 10:15:07');
     newUpdatedAt = shareableList.updatedAt;
     payload = await generateShareableListEventBridgePayload(
@@ -172,8 +186,12 @@ describe('Snowplow event helpers', () => {
     expect(payload.eventType).to.equal(
       EventBridgeEventType.SHAREABLE_LIST_UNPUBLISHED
     );
+    // userId -> user_id
+    expect(payload.shareableList.user_id).to.equal(
+      parseInt(shareableList.userId as unknown as string)
+    );
     // check that status was updated to PUBLIC
-    expect(payload.shareableList.status).to.equal(ListStatus.PRIVATE);
+    expect(payload.shareableList.status).to.equal(Visibility.PRIVATE);
     // updatedAt -> updated_at in seconds
     expect(payload.shareableList.updated_at).to.equal(
       Math.floor(newUpdatedAt.getTime() / 1000)
@@ -209,6 +227,10 @@ describe('Snowplow event helpers', () => {
     expect(payload.eventType).to.equal(
       EventBridgeEventType.SHAREABLE_LIST_HIDDEN
     );
+    // userId -> user_id
+    expect(payload.shareableList.user_id).to.equal(
+      parseInt(shareableList.userId as unknown as string)
+    );
     // check that moderation_status was updated to HIDDEN
     expect(payload.shareableList.moderation_status).to.equal(
       ModerationStatus.HIDDEN
@@ -225,6 +247,28 @@ describe('Snowplow event helpers', () => {
     expect(payload.shareableList.updated_at).to.equal(
       Math.floor(newUpdatedAt.getTime() / 1000)
     );
+
+    // Lets mimick a shareable_list_created event with a bad userId
+    shareableList.userId = null;
+    payload = await generateShareableListEventBridgePayload(
+      EventBridgeEventType.SHAREABLE_LIST_CREATED,
+      shareableList
+    );
+    // shareableList obj must not be null
+    expect(payload.shareableList).to.not.be.null;
+    // check that the payload event type is for shareable-list-created
+    expect(payload.eventType).to.equal(
+      EventBridgeEventType.SHAREABLE_LIST_CREATED
+    );
+    // userId -> user_id should be undefined
+    expect(payload.shareableList.user_id).to.equal(undefined);
+    // Expect message to get logged in Sentry
+    expect(sentryStub.callCount).to.equal(1);
+    expect(sentryStub.getCall(0).firstArg).to.equal(
+      'Snowplow: Failed to parse userId'
+    );
+    // set the userId back to a good one
+    shareableList.userId = BigInt(12345);
   });
 
   it('generateShareableListItemEventBridgePayload function', async () => {
@@ -335,7 +379,6 @@ describe('Snowplow event helpers', () => {
         `Failed to send event 'shareable_list_item_created' to event bus`
       );
       expect(consoleSpy.callCount).to.equal(2);
-      console.log(consoleSpy.getCall(0).firstArg.message);
       expect(consoleSpy.getCall(0).firstArg.message).to.contain(
         `Failed to send event 'shareable_list_item_created' to event bus`
       );

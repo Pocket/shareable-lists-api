@@ -5,7 +5,7 @@ import request from 'supertest';
 import { ApolloServer } from '@apollo/server';
 import {
   List,
-  ListStatus,
+  Visibility,
   ModerationStatus,
   PilotUser,
   PrismaClient,
@@ -78,6 +78,8 @@ describe('public queries: ShareableList', () => {
     shareableList2 = await createShareableListHelper(db, {
       userId: parseInt(headers.userId),
       title: 'This is a second test list',
+      // set list item notes public
+      listItemNoteVisibility: Visibility.PUBLIC,
     });
   });
 
@@ -150,7 +152,7 @@ describe('public queries: ShareableList', () => {
       expect(list.description).to.equal(shareableList.description);
 
       // Default status values
-      expect(list.status).to.equal(ListStatus.PRIVATE);
+      expect(list.status).to.equal(Visibility.PRIVATE);
       expect(list.moderationStatus).to.equal(ModerationStatus.VISIBLE);
 
       // Variable values that just need to be non-null - we know Prisma
@@ -167,6 +169,9 @@ describe('public queries: ShareableList', () => {
 
       // Empty list items array
       expect(list.listItems).to.have.lengthOf(0);
+
+      // default list item note visibility (not set explicitly upon creation)
+      expect(list.listItemNoteVisibility).to.equal(Visibility.PRIVATE);
     });
 
     it('should return a list with list items', async () => {
@@ -239,7 +244,7 @@ describe('public queries: ShareableList', () => {
         userId: parseInt(headers.userId),
         title: 'This is a list that does not comply with our policies',
         slug: 'this-is-a-list-that-does-not-comply',
-        status: ListStatus.PUBLIC,
+        status: Visibility.PUBLIC,
         moderationStatus: ModerationStatus.HIDDEN,
       });
 
@@ -267,7 +272,7 @@ describe('public queries: ShareableList', () => {
         userId: parseInt(headers.userId),
         title: 'This is a list that is Private',
         slug: 'this-is-a-list-that-is-private',
-        status: ListStatus.PRIVATE,
+        status: Visibility.PRIVATE,
         moderationStatus: ModerationStatus.VISIBLE,
       });
 
@@ -297,7 +302,7 @@ describe('public queries: ShareableList', () => {
         userId: parseInt(headers.userId),
         title: 'This is a list',
         slug: 'this-is-a-list',
-        status: ListStatus.PUBLIC,
+        status: Visibility.PUBLIC,
         moderationStatus: ModerationStatus.VISIBLE,
       });
 
@@ -327,7 +332,7 @@ describe('public queries: ShareableList', () => {
         userId: parseInt(headers.userId),
         title: 'This is a list that does comply with our policies',
         slug: 'this-is-a-list-that-does-comply',
-        status: ListStatus.PUBLIC,
+        status: Visibility.PUBLIC,
         moderationStatus: ModerationStatus.VISIBLE,
       });
 
@@ -358,7 +363,7 @@ describe('public queries: ShareableList', () => {
       expect(list.description).to.equal(newList.description);
 
       // Default status values
-      expect(list.status).to.equal(ListStatus.PUBLIC);
+      expect(list.status).to.equal(Visibility.PUBLIC);
       expect(list.moderationStatus).to.equal(ModerationStatus.VISIBLE);
 
       // Variable values that just need to be non-null - we know Prisma
@@ -382,15 +387,12 @@ describe('public queries: ShareableList', () => {
         userId: parseInt(headers.userId),
         title: 'This is a new list',
         slug: 'the-slug',
-        status: ListStatus.PUBLIC,
+        status: Visibility.PUBLIC,
         moderationStatus: ModerationStatus.VISIBLE,
       });
 
-      // Create a couple of list items, the first is missing an itemId (to
-      // mimic old data where itemId was not captured).
-      // once we backfill old data, we can remove the itemId: 0 below.
-      // https://getpocket.atlassian.net/browse/OSL-338
-      await createShareableListItemHelper(db, { list: newList, itemId: 0 });
+      // Create a couple of list items
+      await createShareableListItemHelper(db, { list: newList });
       await createShareableListItemHelper(db, { list: newList });
 
       // Run the query we're testing
@@ -421,6 +423,7 @@ describe('public queries: ShareableList', () => {
       // Let's run through the visible props of each item
       // to make sure they're all there
       result.body.data.shareableListPublic.listItems.forEach((listItem) => {
+        expect(listItem.itemId).not.to.be.empty;
         expect(listItem.url).not.to.be.empty;
         expect(listItem.title).not.to.be.empty;
         expect(listItem.excerpt).not.to.be.empty;
@@ -490,31 +493,28 @@ describe('public queries: ShareableList', () => {
 
       // Expect the array length to contain 2 lists
       expect(result.body.data.shareableLists.length).to.equal(2);
+
       // We also want to assert that the first list returned in the array is the most recently created
       const listArray = [shareableList2, shareableList];
+
+      let list;
+
       // Loop over both lists and check their values are as expected
       for (let i = 0; i < listArray.length; i++) {
-        expect(result.body.data.shareableLists[i].title).to.equal(
-          listArray[i].title
-        );
-        expect(result.body.data.shareableLists[i].slug).to.equal(
-          listArray[i].slug
-        );
-        expect(result.body.data.shareableLists[i].description).to.equal(
-          listArray[i].description
-        );
-        expect(result.body.data.shareableLists[i].status).to.equal(
-          ListStatus.PRIVATE
-        );
-        expect(result.body.data.shareableLists[i].moderationStatus).to.equal(
-          ModerationStatus.VISIBLE
-        );
-        expect(result.body.data.shareableLists[i].createdAt).not.to.be.empty;
-        expect(result.body.data.shareableLists[i].updatedAt).not.to.be.empty;
-        expect(result.body.data.shareableLists[i].externalId).not.to.be.empty;
+        list = result.body.data.shareableLists[i];
+
+        expect(list.title).to.equal(listArray[i].title);
+        expect(list.slug).to.equal(listArray[i].slug);
+        expect(list.description).to.equal(listArray[i].description);
+        expect(list.status).to.equal(Visibility.PRIVATE);
+        expect(list.moderationStatus).to.equal(ModerationStatus.VISIBLE);
+        expect(list.createdAt).not.to.be.empty;
+        expect(list.updatedAt).not.to.be.empty;
+        expect(list.externalId).not.to.be.empty;
         // Empty list items array
-        expect(result.body.data.shareableLists[i].listItems).to.have.lengthOf(
-          0
+        expect(list.listItems).to.have.lengthOf(0);
+        expect(list.listItemNoteVisibility).to.equal(
+          listArray[i].listItemNoteVisibility
         );
       }
     });
@@ -549,7 +549,7 @@ describe('public queries: ShareableList', () => {
       // There should be two list items for the second List in the array
       expect(result.body.data.shareableLists[1].listItems).to.have.lengthOf(2);
 
-      // Let's double check the returned array is ordered correctly
+      // Let's double-check the returned array is ordered correctly
       expect(result.body.data.shareableLists[0].title).to.equal(
         shareableList2.title
       );

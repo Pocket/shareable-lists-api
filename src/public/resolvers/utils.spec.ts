@@ -10,18 +10,18 @@ import { sanitizeMutationInput, validateItemId } from './utils';
 
 describe('utility functions', () => {
   describe('validateItemId', () => {
-    it('does not throw an error for a missing itemId', () => {
+    it('does throw an error for a missing or empty itemId', () => {
       expect(() => {
         validateItemId(null);
-      }).not.to.throw();
+      }).to.throw(UserInputError);
 
       expect(() => {
         validateItemId(undefined);
-      }).not.to.throw();
+      }).to.throw(UserInputError);
 
       expect(() => {
-        validateItemId();
-      }).not.to.throw();
+        validateItemId('');
+      }).to.throw(UserInputError);
     });
 
     it('throws an error for a non-numeric itemId', () => {

@@ -1,3 +1,5 @@
+import * as Sentry from '@sentry/node';
+
 /**
  * Return a Number.
  * Prisma returns a String when it retrieves the BigInt value stored in
@@ -13,15 +15,12 @@ export const PrismaBigIntResolver = (parent, args, context, info) => {
   return parseFieldToInt(parent[info.fieldName]);
 };
 
-function parseFieldToInt(field: string) {
-  // as the schema now requires returning a value even when the db is missing
-  // an itemId, we need to return an empty string (and not null)
-  // once we backfill, if !field, we should error to sentry.
-  // https://getpocket.atlassian.net/browse/OSL-338
-  if (!field) {
-    return '';
-  }
+export function parseFieldToInt(field: string): number {
   const parsedField = parseInt(field);
-  // same here - if the parsed value is NaN, fall back to an empty string
-  return isNaN(parsedField) ? '' : parsedField;
+  // if for some reason the value is corrupt in the db, log to Sentry
+  if (!field || isNaN(parsedField)) {
+    Sentry.captureException('Failed to parse itemId');
+    return null;
+  }
+  return parsedField;
 }

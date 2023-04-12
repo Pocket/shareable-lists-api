@@ -8,7 +8,7 @@ import { ShareableList } from '../../../database/types';
 import { validateUserId } from '../utils';
 
 /**
- * Resolver for the public 'shareableList` query.
+ * Resolver for the public `shareableList` query.
  *
  * @param parent
  * @param externalId

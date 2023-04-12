@@ -1,7 +1,7 @@
 import { isPilotUser as dbIsPilotUser } from '../../../database/queries';
 
 /**
- * Resolver for the public 'isPilotUser` query.
+ * Resolver for the public `isPilotUser` query.
  *
  * @param parent
  * @param _ // no input on this query

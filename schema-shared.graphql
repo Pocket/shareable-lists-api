@@ -21,15 +21,15 @@ A URL to a web page or image.
 scalar Url
 
 """
-The status of a Shareable List. Defaults to PRIVATE - visible only to its owner.
+The visibility levels used (e.g. list, list item note) in the Shareable List API. Defaults to PRIVATE - visible only to its owner.
 """
-enum ShareableListStatus {
+enum ShareableListVisibility {
   """
-  The list is only visible to its owner - the Pocket user who created it.
+  Only visible to its owner - the Pocket user who created it.
   """
   PRIVATE
   """
-  The list has been shared and can be viewed by anyone in the world.
+  Can be viewed by anyone in the world.
   """
   PUBLIC
 }
@@ -134,7 +134,7 @@ interface ShareableListInterface {
   """
   The status of the list. Defaults to PRIVATE.
   """
-  status: ShareableListStatus!
+  status: ShareableListVisibility!
   """
   The moderation status of the list. Defaults to VISIBLE.
   """
