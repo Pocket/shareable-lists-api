@@ -50,6 +50,14 @@ jobs:
     steps:
       - checkout
       - run:
+          name: install node modules
+          command: npm ci
+      - run:
+          name: generate client and admin graph schemas
+          command: |
+            export NODE_ENV=production
+            npm run build
+      - run:
           name: install rover
           command: |
             # download and install Rover
@@ -57,16 +65,6 @@ jobs:
 
             # This allows the PATH changes to persist to the next `run` step
             echo 'export PATH=$HOME/.rover/bin:$PATH' >> $BASH_ENV
-      - run:
-          name: build public schema
-          # We have to send one file for the federated schema which means we have to concat our shared schema
-          # to the public schema before pushing up to apollo studio (this happens in the next step)
-          command: cat schema-shared.graphql schema-public.graphql > schema-client-api.graphql
-      - run:
-          name: build admin schema
-          # We have to send one file for the federated schema which means we have to concat our shared schema
-          # to the admin schema before pushing up to apollo studio (this happens in the next step)
-          command: cat schema-shared.graphql schema-admin.graphql > schema-admin-api.graphql
       - run:
           name: check service - public api
           command: rover subgraph check pocket-client-api@current --schema ./schema-client-api.graphql --name=shareable-lists-api
@@ -215,16 +213,18 @@ jobs:
 workflows:
   all:
     jobs:
+      - build:
+          context: pocket
+
       - test_integrations:
           <<: *not_main
           context: pocket
           name: test_integrations
           command: 'npm run test-integrations'
 
-      - apollo
-
-      - build:
-          context: pocket
+      - apollo:
+          requires:
+            - build
 
       # Try building the ECS docker image on each branch
       - pocket/docker_build:
