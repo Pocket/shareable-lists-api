@@ -3,7 +3,6 @@ import { Router } from 'express';
 import { checkSchema, Schema, validationResult } from 'express-validator';
 import * as Sentry from '@sentry/node';
 import { client } from '../../database/client';
-import { nanoid } from 'nanoid';
 
 const router = Router();
 const db = client();
