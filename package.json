@@ -54,7 +54,7 @@
     "@faker-js/faker": "7.6.0",
     "@pocket-tools/eslint-config": "2.0.0",
     "@types/chai": "4.3.4",
-    "@types/jest": "29.4.4",
+    "@types/jest": "29.5.0",
     "@types/node": "^18.11.19",
     "chai": "4.3.7",
     "dotenv": "16.0.3",
