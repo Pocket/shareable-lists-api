@@ -65,6 +65,7 @@ export async function createShareableListItem(
     url: data.url,
     title: data.title ?? undefined,
     excerpt: data.excerpt ?? undefined,
+    note: data.note ?? undefined,
     imageUrl: data.imageUrl ?? undefined,
     publisher: data.publisher ?? undefined,
     authors: data.authors ?? undefined,

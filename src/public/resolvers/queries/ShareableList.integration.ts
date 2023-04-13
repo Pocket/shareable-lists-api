@@ -208,6 +208,7 @@ describe('public queries: ShareableList', () => {
         expect(listItem.url).not.to.be.empty;
         expect(listItem.title).not.to.be.empty;
         expect(listItem.excerpt).not.to.be.empty;
+        expect(listItem.note).not.to.be.empty;
         expect(listItem.imageUrl).not.to.be.empty;
         expect(listItem.publisher).not.to.be.empty;
         expect(listItem.authors).not.to.be.empty;
@@ -389,6 +390,7 @@ describe('public queries: ShareableList', () => {
         slug: 'the-slug',
         status: Visibility.PUBLIC,
         moderationStatus: ModerationStatus.VISIBLE,
+        listItemNoteVisibility: Visibility.PRIVATE,
       });
 
       // Create a couple of list items
@@ -427,6 +429,65 @@ describe('public queries: ShareableList', () => {
         expect(listItem.url).not.to.be.empty;
         expect(listItem.title).not.to.be.empty;
         expect(listItem.excerpt).not.to.be.empty;
+        // note should be empty because the visibility on the list is PRIVATE
+        expect(listItem.note).to.be.null;
+        expect(listItem.imageUrl).not.to.be.empty;
+        expect(listItem.publisher).not.to.be.empty;
+        expect(listItem.authors).not.to.be.empty;
+        expect(listItem.sortOrder).to.be.a('number');
+        expect(listItem.createdAt).not.to.be.empty;
+        expect(listItem.updatedAt).not.to.be.empty;
+      });
+    });
+
+    it('should return a list with list items and public notes', async () => {
+      const newList = await createShareableListHelper(db, {
+        userId: parseInt(headers.userId),
+        title: 'This is a new list',
+        slug: 'the-slug',
+        status: Visibility.PUBLIC,
+        moderationStatus: ModerationStatus.VISIBLE,
+        listItemNoteVisibility: Visibility.PUBLIC,
+      });
+
+      // Create a couple of list items
+      await createShareableListItemHelper(db, { list: newList });
+      await createShareableListItemHelper(db, { list: newList });
+
+      // Run the query we're testing
+      const result = await request(app)
+        .post(graphQLUrl)
+        .send({
+          query: print(GET_SHAREABLE_LIST_PUBLIC),
+          variables: {
+            externalId: newList.externalId,
+            slug: newList.slug,
+          },
+        });
+
+      // This query should be cached, expect headers.cache-control = max-age=60, public
+      expect(result.headers['cache-control']).to.equal('max-age=60, public');
+
+      // A result should be returned
+      expect(result.body.data.shareableListPublic).not.to.be.null;
+
+      // There should be no errors
+      expect(result.body.errors).to.be.undefined;
+
+      // There should be two list items
+      expect(result.body.data.shareableListPublic.listItems).to.have.lengthOf(
+        2
+      );
+
+      // Let's run through the visible props of each item
+      // to make sure they're all there
+      result.body.data.shareableListPublic.listItems.forEach((listItem) => {
+        expect(listItem.itemId).not.to.be.empty;
+        expect(listItem.url).not.to.be.empty;
+        expect(listItem.title).not.to.be.empty;
+        expect(listItem.excerpt).not.to.be.empty;
+        // note should not be empty because the visibility on the list is PUBLIC
+        expect(listItem.note).not.to.be.empty;
         expect(listItem.imageUrl).not.to.be.empty;
         expect(listItem.publisher).not.to.be.empty;
         expect(listItem.authors).not.to.be.empty;
@@ -584,6 +645,7 @@ describe('public queries: ShareableList', () => {
         expect(listItem.url).not.to.be.empty;
         expect(listItem.title).not.to.be.empty;
         expect(listItem.excerpt).not.to.be.empty;
+        expect(listItem.note).not.to.be.empty;
         expect(listItem.imageUrl).not.to.be.empty;
         expect(listItem.publisher).not.to.be.empty;
         expect(listItem.authors).not.to.be.empty;

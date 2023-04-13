@@ -67,6 +67,15 @@ export async function getShareableListPublic(
     throw new ForbiddenError(ACCESS_DENIED_ERROR);
   }
 
+  // remove all notes if they should be private
+  // may be able to do this logic in the query above
+  // https://getpocket.atlassian.net/browse/OSL-396
+  if (list.listItemNoteVisibility === Visibility.PRIVATE) {
+    list.listItems.forEach((li) => {
+      li.note = null;
+    });
+  }
+
   return list;
 }
 

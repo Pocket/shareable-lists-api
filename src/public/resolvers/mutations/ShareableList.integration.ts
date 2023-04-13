@@ -337,7 +337,7 @@ describe('public mutations: ShareableList', () => {
       expect(result.body.errors.length).to.equal(1);
       expect(result.body.errors[0].extensions.code).to.equal('BAD_USER_INPUT');
       expect(result.body.errors[0].message).to.contain(
-        'Must be no more than 100 characters in length'
+        `Must be no more than ${LIST_TITLE_MAX_CHARS} characters in length`
       );
     });
 
@@ -357,7 +357,7 @@ describe('public mutations: ShareableList', () => {
       expect(result.body.errors.length).to.equal(1);
       expect(result.body.errors[0].extensions.code).to.equal('BAD_USER_INPUT');
       expect(result.body.errors[0].message).to.contain(
-        'Must be no more than 200 characters in length'
+        `Must be no more than ${LIST_DESCRIPTION_MAX_CHARS} characters in length`
       );
     });
 

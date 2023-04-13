@@ -40,6 +40,7 @@ export const shareableListItemSelectFields =
     url: true,
     title: true,
     excerpt: true,
+    note: true,
     imageUrl: true,
     publisher: true,
     authors: true,
@@ -130,6 +131,7 @@ export type CreateShareableListItemInput = {
   url: string;
   title?: string;
   excerpt?: string;
+  note?: string;
   imageUrl?: string;
   publisher?: string;
   authors?: string;

@@ -11,6 +11,7 @@ export const ShareableListItemPublicProps = gql`
     url
     title
     excerpt
+    note
     imageUrl
     publisher
     authors
