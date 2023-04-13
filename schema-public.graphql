@@ -104,8 +104,8 @@ type ShareableListPublic implements ShareableListInterface
 Input data for creating a Shareable List.
 """
 input CreateShareableListInput {
-  title: String! @constraint(minLength: 3, maxLength: 100)
-  description: String @constraint(minLength: 3, maxLength: 200)
+  title: String! @constraint(maxLength: 100)
+  description: String @constraint(maxLength: 200)
   listItemNoteVisibility: ShareableListVisibility
 }
 
@@ -114,8 +114,8 @@ Input data for updating a Shareable List.
 """
 input UpdateShareableListInput {
   externalId: ID!
-  title: String @constraint(minLength: 3, maxLength: 100)
-  description: String @constraint(minLength: 3, maxLength: 200)
+  title: String @constraint(maxLength: 100)
+  description: String @constraint(maxLength: 200)
   status: ShareableListVisibility
   listItemNoteVisibility: ShareableListVisibility
 }

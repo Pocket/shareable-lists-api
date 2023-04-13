@@ -13,11 +13,7 @@ import {
   createShareableListItem,
   deleteAllListItemsForList,
 } from './ShareableListItem';
-import {
-  LIST_TITLE_MAX_CHARS,
-  LIST_DESCRIPTION_MAX_CHARS,
-  PRISMA_RECORD_NOT_FOUND,
-} from '../../shared/constants';
+import { PRISMA_RECORD_NOT_FOUND } from '../../shared/constants';
 import { getShareableList } from '../queries';
 import config from '../../config';
 import { validateItemId } from '../../public/resolvers/utils';
@@ -61,12 +57,6 @@ export async function createShareableList(
       `A list with the title "${listData.title}" already exists`
     );
   }
-
-  // check list title and description length
-  shareableListTitleDescriptionValidation(
-    listData.title,
-    listData.description ? listData.description : null
-  );
 
   // create ShareableList in db
   const list: ShareableList = await db.list.create({
@@ -135,12 +125,6 @@ export async function updateShareableList(
       );
     }
   }
-
-  // check list title and description length
-  shareableListTitleDescriptionValidation(
-    data.title ? data.title : null,
-    data.description ? data.description : null
-  );
 
   // If there is no slug and the list is being shared with the world,
   // let's generate a unique slug from the title. Once set, it will not be
@@ -305,28 +289,6 @@ export async function deleteShareableList(
     isShareableListEventType: true,
   });
   return deleteList;
-}
-
-/**
- * helper function for validating list title and description length
- */
-function shareableListTitleDescriptionValidation(
-  title: string,
-  description: string
-) {
-  // check the length of the title (fail if title > 100 chars)
-  if (title && title.length > LIST_TITLE_MAX_CHARS) {
-    throw new UserInputError(
-      'List title must not be longer than 100 characters'
-    );
-  }
-
-  // check the length of the description (fail if description > 200 chars)
-  if (description && description.length > LIST_DESCRIPTION_MAX_CHARS) {
-    throw new UserInputError(
-      'List description must not be longer than 200 characters'
-    );
-  }
 }
 
 /**
