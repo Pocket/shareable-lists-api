@@ -9,12 +9,6 @@ const router = Router();
 const db = client();
 
 const deleteUserDataSchema: Schema = {
-  traceId: {
-    in: ['body'],
-    optional: true,
-    isString: true,
-    notEmpty: true,
-  },
   userId: {
     in: ['body'],
     errorMessage: 'Must provide valid userId',
@@ -78,17 +72,15 @@ export async function deleteShareableListItemsForUser(
 /**
  * This method deletes all shareable list data for a user
  * @param userId
- * @param requestId
  */
 async function deleteShareableListUserData(
-  userId: number | bigint,
-  requestId: string
+  userId: number | bigint
 ): Promise<string> {
   const shareableListIds = await getAllShareableListIdsForUser(userId);
   // if there are no lists found for a userId, lets not make unecessary calls
   // to the db
   if (shareableListIds.length === 0) {
-    return `No shareable list data to delete for User ID: ${userId} (requestId='${requestId}')`;
+    return `No shareable list data to delete for User ID: ${userId})`;
   }
   // First, delete all list items if there are any
   await deleteShareableListItemsForUser(shareableListIds);
@@ -101,7 +93,7 @@ async function deleteShareableListUserData(
       // some unexpected DB error, log to Sentry, but don't halt program
       Sentry.captureException('Failed to delete shareable list data: ', error);
     });
-  return `Deleting shareable lists data for User ID: ${userId} (requestId='${requestId}')`;
+  return `Deleting shareable lists data for User ID: ${userId})`;
 }
 
 router.post(
@@ -109,11 +101,10 @@ router.post(
   checkSchema(deleteUserDataSchema),
   validate,
   (req: Request, res: Response) => {
-    const requestId = req.body.traceId ?? nanoid();
     const userId = req.body.userId;
 
     // Delete all shareable lists data for userId from DB
-    deleteShareableListUserData(userId, requestId)
+    deleteShareableListUserData(userId)
       .then((result) => {
         return res.send({
           status: 'OK',
