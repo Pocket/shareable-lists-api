@@ -1,11 +1,12 @@
-import xss from 'xss';
-
+/* eslint @typescript-eslint/no-var-requires: "off" */
 import { PrismaClient } from '@prisma/client';
 import { ForbiddenError, UserInputError } from '@pocket-tools/apollo-utils';
 
 import { IPublicContext } from '../context';
 import { ACCESS_DENIED_ERROR } from '../../shared/constants';
 import { isPilotUser } from '../../database/queries';
+
+const entities = require('entities');
 
 /**
  * Executes a mutation, catches exceptions and records to sentry and console
@@ -39,10 +40,12 @@ export function sanitizeMutationInput<InputType>(input: InputType): InputType {
 
     Object.entries(input).forEach(([key, value]) => {
       // Only transform string values
-      sanitizedInput[key] = typeof value === 'string' ? xss(value) : value;
+      sanitizedInput[key] =
+        typeof value === 'string' ? entities.escapeUTF8(value) : value;
     });
   } else {
-    sanitizedInput = typeof input === 'string' ? xss(input) : input;
+    sanitizedInput =
+      typeof input === 'string' ? entities.escapeUTF8(input) : input;
   }
 
   return sanitizedInput;

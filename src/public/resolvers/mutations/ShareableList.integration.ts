@@ -169,11 +169,11 @@ describe('public mutations: ShareableList', () => {
         });
 
       expect(result.body.data.createShareableList.title).to.equal(
-        'My list to share&lt;script&gt;alert("Hello World!")&lt;/script&gt;'
+        'My list to share&lt;script&gt;alert(&quot;Hello World!&quot;)&lt;/script&gt;'
       );
 
       expect(result.body.data.createShareableList.description).to.equal(
-        'A description to share&lt;script&gt;alert("Hello World!")&lt;/script&gt;'
+        'A description to share&lt;script&gt;alert(&quot;Hello World!&quot;)&lt;/script&gt;'
       );
     });
 
@@ -295,14 +295,15 @@ describe('public mutations: ShareableList', () => {
     });
 
     it('should not create List with existing title for the same userId', async () => {
-      const list1 = await createShareableListHelper(db, {
-        title: `Katerina's List`,
+      // store list title in db encoded
+      await createShareableListHelper(db, {
+        title: `Katerina&apos;s List`,
         userId: parseInt(headers.userId),
       });
-      const title1 = list1.title;
       // create new List with title1 value for the same user
+      // let also make sure the list title gets encoded properly if special chars
       const data: CreateShareableListInput = {
-        title: title1,
+        title: `Katerina's List`,
         description: faker.lorem.sentences(2),
       };
       const result = await request(app)
@@ -316,7 +317,7 @@ describe('public mutations: ShareableList', () => {
       expect(result.body.errors.length).to.equal(1);
       expect(result.body.errors[0].extensions.code).to.equal('BAD_USER_INPUT');
       expect(result.body.errors[0].message).to.equal(
-        `A list with the title "Katerina's List" already exists`
+        `A list with the title "Katerina&apos;s List" already exists`
       );
     });
 

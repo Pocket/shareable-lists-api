@@ -48,7 +48,7 @@ describe('utility functions', () => {
       }).not.to.throw();
     });
   });
-  describe('xssifyMutationInput', () => {
+  describe('sanitizeMutationInput', () => {
     it('transforms strings in a mutation input object', () => {
       const input: CreateShareableListInput = {
         title: 'My <first> list',
@@ -60,7 +60,7 @@ describe('utility functions', () => {
 
       expect(safeInput.title).to.equal('My &lt;first&gt; list');
       expect(safeInput.description).to.equal(
-        'Trying out this new Pocket feature&lt;script&gt;alert("!!!");&lt;/script&gt;'
+        'Trying out this new Pocket feature&lt;script&gt;alert(&quot;!!!&quot;);&lt;/script&gt;'
       );
     });
 
@@ -81,7 +81,7 @@ describe('utility functions', () => {
 
       // dodgy strings are still escaped
       expect(safeInput.imageUrl).to.equal(
-        'https://www.test.com/&lt;script&gt;alert("hello world");&lt;/script&gt;'
+        'https://www.test.com/&lt;script&gt;alert(&quot;hello world&quot;);&lt;/script&gt;'
       );
 
       // numeric inputs go through as-is
