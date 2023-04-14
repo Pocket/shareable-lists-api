@@ -10,3 +10,6 @@ export const PRISMA_RECORD_NOT_FOUND = 'P2025';
 export const LIST_TITLE_MAX_CHARS = 100;
 
 export const LIST_DESCRIPTION_MAX_CHARS = 200;
+
+export const GT_ENCODED = '&gt;'; // >
+export const LT_ENCODED = '&lt;'; // <

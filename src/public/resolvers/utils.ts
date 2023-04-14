@@ -1,10 +1,12 @@
-import xss from 'xss';
-
 import { PrismaClient } from '@prisma/client';
 import { ForbiddenError, UserInputError } from '@pocket-tools/apollo-utils';
 
 import { IPublicContext } from '../context';
-import { ACCESS_DENIED_ERROR } from '../../shared/constants';
+import {
+  ACCESS_DENIED_ERROR,
+  GT_ENCODED,
+  LT_ENCODED,
+} from '../../shared/constants';
 import { isPilotUser } from '../../database/queries';
 
 /**
@@ -26,6 +28,23 @@ export async function executeMutation<T, U>(
 }
 
 /**
+ * Helper function; replaces multiple chars in a string
+ * @param str
+ * @param charsToFindArr
+ * @param replaceWithCharsArr
+ */
+function replaceCharsInStr(
+  str: string,
+  charsToFindArr: string[],
+  replaceWithCharsArr: string[]
+): string {
+  let transformedStr = charsToFindArr.reduce((acc, item, i) => {
+    const regex = new RegExp(item, 'g');
+    return acc.replace(regex, replaceWithCharsArr[i]);
+  }, str);
+  return transformedStr;
+}
+/**
  * Sanitizes mutation inputs.
  *
  * @param input
@@ -34,15 +53,23 @@ export function sanitizeMutationInput<InputType>(input: InputType): InputType {
   // Either a mutation input object or a primitive type
   let sanitizedInput: any;
 
+  const charsToFindArr = ['>', '<']; // find these chars
+  const replaceWithCharsArr = [GT_ENCODED, LT_ENCODED]; // replace with these chars
   if (typeof input === 'object') {
     sanitizedInput = {};
 
     Object.entries(input).forEach(([key, value]) => {
       // Only transform string values
-      sanitizedInput[key] = typeof value === 'string' ? xss(value) : value;
+      sanitizedInput[key] =
+        typeof value === 'string'
+          ? replaceCharsInStr(value, charsToFindArr, replaceWithCharsArr)
+          : value;
     });
   } else {
-    sanitizedInput = typeof input === 'string' ? xss(input) : input;
+    sanitizedInput =
+      typeof input === 'string'
+        ? replaceCharsInStr(input, charsToFindArr, replaceWithCharsArr)
+        : input;
   }
 
   return sanitizedInput;
