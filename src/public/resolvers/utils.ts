@@ -38,7 +38,7 @@ function replaceCharsInStr(
   charsToFindArr: string[],
   replaceWithCharsArr: string[]
 ): string {
-  let transformedStr = charsToFindArr.reduce((acc, item, i) => {
+  const transformedStr = charsToFindArr.reduce((acc, item, i) => {
     const regex = new RegExp(item, 'g');
     return acc.replace(regex, replaceWithCharsArr[i]);
   }, str);
