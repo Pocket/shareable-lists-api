@@ -38,11 +38,11 @@ function replaceCharsInStr(
   charsToFindArr: string[],
   replaceWithCharsArr: string[]
 ): string {
-  const transformedStr = charsToFindArr.reduce((acc, item, i) => {
-    const regex = new RegExp(item, 'g');
-    return acc.replace(regex, replaceWithCharsArr[i]);
-  }, str);
-  return transformedStr;
+  for (let i = 0; i < charsToFindArr.length; i++) {
+    const regex = new RegExp(charsToFindArr[i], 'g');
+    str = str.replace(regex, replaceWithCharsArr[i]);
+  }
+  return str;
 }
 /**
  * Sanitizes mutation inputs.
