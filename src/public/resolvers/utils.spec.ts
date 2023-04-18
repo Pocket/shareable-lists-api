@@ -48,17 +48,17 @@ describe('utility functions', () => {
       }).not.to.throw();
     });
   });
-  describe('xssifyMutationInput', () => {
+  describe('sanitizeMutationInput', () => {
     it('transforms strings in a mutation input object', () => {
       const input: CreateShareableListInput = {
-        title: 'My <first> list',
+        title: `John's <div> list </div>`,
         description:
           'Trying out this new Pocket feature<script>alert("!!!");</script>',
       };
 
       const safeInput = sanitizeMutationInput(input);
 
-      expect(safeInput.title).to.equal('My &lt;first&gt; list');
+      expect(safeInput.title).to.equal(`John's &lt;div&gt; list &lt;/div&gt;`);
       expect(safeInput.description).to.equal(
         'Trying out this new Pocket feature&lt;script&gt;alert("!!!");&lt;/script&gt;'
       );
