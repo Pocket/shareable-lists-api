@@ -23,6 +23,7 @@ import {
   TerraformStack,
 } from 'cdktf';
 import * as fs from 'fs';
+import { SQSLambda } from './SQSLambda';
 
 class ShareableListsAPI extends TerraformStack {
   constructor(scope: Construct, name: string) {
