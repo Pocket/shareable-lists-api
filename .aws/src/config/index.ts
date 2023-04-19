@@ -43,4 +43,9 @@ export const config = {
     environment,
   },
   eventBusName,
+  lambda: {
+    snsTopicName: {
+      userEvents: `PocketEventBridge-${environment}-UserEventTopic`,
+    },
+  },
 };

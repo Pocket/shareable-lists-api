@@ -8,6 +8,8 @@ import {
   PocketSQSWithLambdaTarget,
 } from '@pocket-tools/terraform-modules';
 import { DataAwsSsmParameter } from '@cdktf/provider-aws/lib/data-aws-ssm-parameter';
+import { DataAwsRegion } from '@cdktf/provider-aws/lib/data-aws-region';
+import { DataAwsCallerIdentity } from '@cdktf/provider-aws/lib/data-aws-caller-identity';
 
 export class SQSLambda extends Resource {
   public readonly lambda: PocketSQSWithLambdaTarget;
@@ -16,11 +18,11 @@ export class SQSLambda extends Resource {
     scope: Construct,
     private name: string,
     vpc: PocketVPC,
+    region: DataAwsRegion,
+    caller: DataAwsCallerIdentity,
     pagerDuty?: PocketPagerDuty
   ) {
     super(scope, name);
-
-    const { sentryDsn, gitSha } = this.getEnvVariableValues();
 
     this.lambda = new PocketSQSWithLambdaTarget(this, 'sqs-event-consumer', {
       name: `${config.prefix}-Sqs-Event-Consumer`,
@@ -37,8 +39,8 @@ export class SQSLambda extends Resource {
         timeout: 120,
         reservedConcurrencyLimit: config.reservedConcurrencyLimit,
         environment: {
-          SENTRY_DSN: sentryDsn,
-          GIT_SHA: gitSha,
+          SENTRY_DSN: `arn:aws:ssm:${region.name}:${caller.accountId}:parameter/${config.name}/${config.environment}/SENTRY_DSN`,
+          GIT_SHA: `arn:aws:ssm:${region.name}:${caller.accountId}:parameter/${config.name}/${config.environment}/SERVICE_HASH`,
           ENVIRONMENT:
             config.environment === 'Prod' ? 'production' : 'development',
           SHAREABLE_LISTS_API_URI:
@@ -57,17 +59,5 @@ export class SQSLambda extends Resource {
       },
       tags: config.tags,
     });
-  }
-
-  private getEnvVariableValues() {
-    const sentryDsn = new DataAwsSsmParameter(this, 'sentry-dsn', {
-      name: `/${config.name}/${config.environment}/SENTRY_DSN`,
-    });
-
-    const serviceHash = new DataAwsSsmParameter(this, 'service-hash', {
-      name: `${config.circleCIPrefix}/SERVICE_HASH`,
-    });
-
-    return { sentryDsn: sentryDsn.value, gitSha: serviceHash.value };
   }
 }

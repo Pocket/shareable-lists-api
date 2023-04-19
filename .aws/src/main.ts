@@ -1,15 +1,18 @@
 import { config } from './config';
 import { AwsProvider } from '@cdktf/provider-aws/lib/provider';
+import { SqsQueue } from '@cdktf/provider-aws/lib/sqs-queue';
 import { DataAwsCallerIdentity } from '@cdktf/provider-aws/lib/data-aws-caller-identity';
 import { DataAwsKmsAlias } from '@cdktf/provider-aws/lib/data-aws-kms-alias';
 import { DataAwsRegion } from '@cdktf/provider-aws/lib/data-aws-region';
 import { DataAwsSnsTopic } from '@cdktf/provider-aws/lib/data-aws-sns-topic';
 import { LocalProvider } from '@cdktf/provider-local/lib/provider';
+import { ArchiveProvider } from '@cdktf/provider-archive/lib/provider';
 import { NullProvider } from '@cdktf/provider-null/lib/provider';
 import { PagerdutyProvider } from '@cdktf/provider-pagerduty/lib/provider';
 import {
   ApplicationRedis,
   ApplicationRDSCluster,
+  ApplicationSqsSnsTopicSubscription,
   PocketALBApplication,
   PocketECSCodePipeline,
   PocketPagerDuty,
@@ -31,6 +34,7 @@ class ShareableListsAPI extends TerraformStack {
 
     new AwsProvider(this, 'aws', { region: 'us-east-1' });
     new LocalProvider(this, 'local_provider');
+    new ArchiveProvider(this, 'archive-provider');
     new NullProvider(this, 'null_provider');
     new PagerdutyProvider(this, 'pagerduty_provider', { token: undefined });
 
@@ -44,6 +48,26 @@ class ShareableListsAPI extends TerraformStack {
     const region = new DataAwsRegion(this, 'region');
     const caller = new DataAwsCallerIdentity(this, 'caller');
     const cache = ShareableListsAPI.createElasticache(this, pocketVpc);
+    const sqsLambda = new SQSLambda(
+      this,
+      'sqs-event-consumer',
+      pocketVpc,
+      region,
+      caller
+    );
+    const lambda = sqsLambda.lambda;
+
+    new ApplicationSqsSnsTopicSubscription(
+      this,
+      'user-events-sns-subscription',
+      {
+        name: config.prefix,
+        snsTopicArn: `arn:aws:sns:${pocketVpc.region}:${pocketVpc.accountId}:${config.lambda.snsTopicName.userEvents}`,
+        sqsQueue: lambda.sqsQueueResource,
+        tags: config.tags,
+        dependsOn: [lambda.sqsQueueResource as SqsQueue],
+      }
+    );
 
     const pocketApp = this.createPocketAlbApplication({
       rds: this.createRds(pocketVpc),
