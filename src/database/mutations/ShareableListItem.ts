@@ -4,6 +4,7 @@ import {
   CreateShareableListItemInput,
   ShareableListItem,
   shareableListItemSelectFields,
+  UpdateShareableListItemInput,
 } from '../types';
 import { PRISMA_RECORD_NOT_FOUND } from '../../shared/constants';
 import { validateItemId } from '../../public/resolvers/utils';
@@ -87,6 +88,50 @@ export async function createShareableListItem(
   });
 
   return listItem;
+}
+
+export async function updateShareableListItem(
+  db: PrismaClient,
+  data: UpdateShareableListItemInput,
+  userId: number | bigint
+): Promise<ShareableListItem> {
+  // Retrieve the current record, pre-update
+  const listItem = await db.listItem.findFirst({
+    where: {
+      externalId: data.externalId,
+    },
+    // we need to include the list to check the user id
+    include: {
+      list: true,
+    },
+  });
+
+  // if no list item was found, or this list item is owned by another user,
+  // return a not found error
+  if (!listItem || parseInt(listItem.list.userId as any) !== userId) {
+    throw new NotFoundError(`A list item by that ID could not be found`);
+  }
+
+  // if null was passed, remove from payload (or will break db constraint)
+  if (data.sortOrder === null) {
+    delete data.sortOrder;
+  }
+
+  const updatedListItem = await db.listItem.update({
+    data: {
+      note: data.note,
+      sortOrder: data.sortOrder,
+      updatedAt: new Date().toISOString(),
+    },
+    where: {
+      externalId: data.externalId,
+    },
+  });
+
+  // TODO: send to analytics
+  // https://getpocket.atlassian.net/browse/OSL-397
+
+  return updatedListItem;
 }
 
 /**

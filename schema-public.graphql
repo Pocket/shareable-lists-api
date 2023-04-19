@@ -151,6 +151,12 @@ input CreateShareableListItemWithList {
   sortOrder: Int!
 }
 
+input UpdateShareableListItemInput {
+  externalId: ID!
+  note: String @constraint(maxLength: 300)
+  sortOrder: Int
+}
+
 type Query {
   """
   Looks up and returns a Shareable List with a given external ID for a given user.
@@ -196,6 +202,12 @@ type Mutation {
   createShareableListItem(
     data: CreateShareableListItemInput!
   ): ShareableListItem
+  """
+  Updates a Shareable List Item.
+  """
+  updateShareableListItem(
+    data: UpdateShareableListItemInput!
+  ): ShareableListItem!
   """
   Deletes a Shareable List Item. HIDDEN Lists cannot have their items deleted.
   """
