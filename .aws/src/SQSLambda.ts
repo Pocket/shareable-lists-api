@@ -7,7 +7,6 @@ import {
   PocketVPC,
   PocketSQSWithLambdaTarget,
 } from '@pocket-tools/terraform-modules';
-import { DataAwsSsmParameter } from '@cdktf/provider-aws/lib/data-aws-ssm-parameter';
 import { DataAwsRegion } from '@cdktf/provider-aws/lib/data-aws-region';
 import { DataAwsCallerIdentity } from '@cdktf/provider-aws/lib/data-aws-caller-identity';
 
