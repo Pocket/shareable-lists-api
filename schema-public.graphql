@@ -129,6 +129,7 @@ input CreateShareableListItemInput {
   url: Url!
   title: String
   excerpt: String
+  note: String @constraint(maxLength: 300)
   imageUrl: Url
   publisher: String
   authors: String
@@ -143,6 +144,7 @@ input CreateShareableListItemWithList {
   url: Url!
   title: String
   excerpt: String
+  note: String @constraint(maxLength: 300)
   imageUrl: Url
   publisher: String
   authors: String

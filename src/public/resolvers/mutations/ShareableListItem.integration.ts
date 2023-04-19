@@ -1,5 +1,6 @@
 import { expect } from 'chai';
 import sinon from 'sinon';
+import { faker } from '@faker-js/faker';
 import { print } from 'graphql';
 import request from 'supertest';
 import { ApolloServer } from '@apollo/server';
@@ -26,7 +27,10 @@ import {
   createShareableListItemHelper,
   mockRedisServer,
 } from '../../../test/helpers';
-import { ACCESS_DENIED_ERROR } from '../../../shared/constants';
+import {
+  ACCESS_DENIED_ERROR,
+  LIST_ITEM_NOTE_MAX_CHARS,
+} from '../../../shared/constants';
 
 describe('public mutations: ShareableListItem', () => {
   let app: Express.Application;
@@ -213,7 +217,35 @@ describe('public mutations: ShareableListItem', () => {
       );
     });
 
-    it('should create a new list item', async () => {
+    it('should not create a new list item with note longer than 300 characters', async () => {
+      const data: CreateShareableListItemInput = {
+        listExternalId: list.externalId,
+        itemId: '3834701731',
+        url: 'https://www.test.com/this-is-a-story',
+        title: 'A story is a story',
+        excerpt: '<blink>The best story ever told</blink>',
+        note: faker.random.alpha(LIST_ITEM_NOTE_MAX_CHARS + 1),
+        imageUrl: 'https://www.test.com/thumbnail.jpg',
+        publisher: 'The London Times',
+        authors: 'Charles Dickens, Mark Twain',
+        sortOrder: 10,
+      };
+
+      const result = await request(app)
+        .post(graphQLUrl)
+        .set(headers)
+        .send({
+          query: print(CREATE_SHAREABLE_LIST_ITEM),
+          variables: { data },
+        });
+
+      expect(result.body.errors[0].extensions.code).to.equal('BAD_USER_INPUT');
+      expect(result.body.errors[0].message).to.contain(
+        `Must be no more than ${LIST_ITEM_NOTE_MAX_CHARS} characters in length`
+      );
+    });
+
+    it('should create a new list item without a note', async () => {
       const data: CreateShareableListItemInput = {
         listExternalId: list.externalId,
         itemId: '3834701731',
@@ -233,8 +265,7 @@ describe('public mutations: ShareableListItem', () => {
           query: print(CREATE_SHAREABLE_LIST_ITEM),
           variables: { data },
         });
-      // This mutation should not be cached, expect headers.cache-control = no-store
-      expect(result.headers['cache-control']).to.equal('no-store');
+
       // There should be no errors
       expect(result.body.errors).to.be.undefined;
 
@@ -249,6 +280,59 @@ describe('public mutations: ShareableListItem', () => {
       expect(listItem.title).to.equal(data.title);
       expect(listItem.excerpt).to.equal(
         '&lt;blink&gt;The best story ever told&lt;/blink&gt;'
+      );
+      expect(listItem.note).to.be.null;
+      expect(listItem.imageUrl).to.equal(data.imageUrl);
+      expect(listItem.publisher).to.equal(data.publisher);
+      expect(listItem.authors).to.equal(data.authors);
+      expect(listItem.sortOrder).to.equal(data.sortOrder);
+      expect(listItem.createdAt).not.to.be.empty;
+      expect(listItem.updatedAt).not.to.be.empty;
+    });
+
+    it('should create a new list item with all properties', async () => {
+      const data: CreateShareableListItemInput = {
+        listExternalId: list.externalId,
+        itemId: '3834701731',
+        url: 'https://www.test.com/this-is-a-story',
+        title: 'A story is a story',
+        excerpt: '<blink>The best story ever told</blink>',
+        note: '<div>here is what <strong>i</strong> think about this article...</div>',
+        imageUrl: 'https://www.test.com/thumbnail.jpg',
+        publisher: 'The London Times',
+        authors: 'Charles Dickens, Mark Twain',
+        sortOrder: 10,
+      };
+
+      const result = await request(app)
+        .post(graphQLUrl)
+        .set(headers)
+        .send({
+          query: print(CREATE_SHAREABLE_LIST_ITEM),
+          variables: { data },
+        });
+
+      // This mutation should not be cached, expect headers.cache-control = no-store
+      expect(result.headers['cache-control']).to.equal('no-store');
+
+      // There should be no errors
+      expect(result.body.errors).to.be.undefined;
+
+      // A result should be returned
+      expect(result.body.data.createShareableListItem).not.to.be.null;
+
+      // Assert that all props are returned
+      const listItem = result.body.data.createShareableListItem;
+
+      expect(listItem.externalId).not.to.be.empty;
+      expect(listItem.itemId).to.equal(data.itemId);
+      expect(listItem.url).to.equal(data.url);
+      expect(listItem.title).to.equal(data.title);
+      expect(listItem.excerpt).to.equal(
+        '&lt;blink&gt;The best story ever told&lt;/blink&gt;'
+      );
+      expect(listItem.note).to.equal(
+        '&lt;div&gt;here is what &lt;strong&gt;i&lt;/strong&gt; think about this article...&lt;/div&gt;'
       );
       expect(listItem.imageUrl).to.equal(data.imageUrl);
       expect(listItem.publisher).to.equal(data.publisher);
@@ -308,6 +392,7 @@ describe('public mutations: ShareableListItem', () => {
         url: 'https://www.test.com/another-duplicate-url',
         title: 'A story is a story',
         excerpt: 'The best story ever told',
+        note: 'here is what i think about this article...',
         imageUrl: 'https://www.test.com/thumbnail.jpg',
         publisher: 'The Hogwarts Express',
         authors: 'Charles Dickens, Mark Twain',
@@ -336,6 +421,7 @@ describe('public mutations: ShareableListItem', () => {
       expect(listItem.url).to.equal(data.url);
       expect(listItem.title).to.equal(data.title);
       expect(listItem.excerpt).to.equal(data.excerpt);
+      expect(listItem.note).to.equal(data.note);
       expect(listItem.imageUrl).to.equal(data.imageUrl);
       expect(listItem.publisher).to.equal(data.publisher);
       expect(listItem.authors).to.equal(data.authors);
