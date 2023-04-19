@@ -46,6 +46,7 @@ describe('Snowplow event helpers', () => {
     url: `${faker.internet.url()}/${faker.lorem.slug(5)}`,
     title: faker.random.words(5),
     excerpt: faker.lorem.sentences(2),
+    note: faker.lorem.sentences(1),
     imageUrl: faker.image.cats(),
     publisher: faker.company.name(),
     authors: `${faker.name.fullName()},${faker.name.fullName()}`,

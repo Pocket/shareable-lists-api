@@ -8,6 +8,7 @@ interface ListItemHelperInput {
   url?: string;
   title?: string;
   excerpt?: string;
+  note?: string;
   imageUrl?: string;
   publisher?: string;
   authors?: string;
@@ -31,6 +32,8 @@ export async function createShareableListItemHelper(
     url: data.url ?? `${faker.internet.url()}/${faker.lorem.slug(5)}`,
     title: data.title ?? faker.random.words(5),
     excerpt: data.excerpt ?? faker.lorem.sentences(2),
+    // if `null` is passed in, do not add a note to the list item
+    note: data.note === undefined ? faker.lorem.sentences(2) : data.note,
     imageUrl: data.imageUrl ?? faker.image.cats(),
     publisher: data.publisher ?? faker.company.name(),
     authors: data.authors ?? faker.name.fullName(),
