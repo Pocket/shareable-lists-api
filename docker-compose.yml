@@ -1,7 +1,7 @@
 version: '3.1'
 services:
   mysql:
-    image: mysql:5.7@sha256:9202fc6bc8fa63615e6bfc0049fc660f712d164220c5c54d86519870c305ea48
+    image: mysql:5.7@sha256:f57eef421000aaf8332a91ab0b6c96b3c83ed2a981c29e6528b21ce10197cd16
     platform: linux/amd64
     env_file:
       - ./.docker/local.env
@@ -12,12 +12,12 @@ services:
       - TZ=UTC
 
   redis:
-    image: redis:7@sha256:e50c7e23f79ae81351beacb20e004720d4bed657415e68c2b1a2b5557c075ce0
+    image: redis:7@sha256:f50031a49f41e493087fb95f96fdb3523bb25dcf6a3f0b07c588ad3cdbe1d0aa
     ports:
       - '6379:6379'
 
   localstack:
-    image: localstack/localstack@sha256:6ce2c98bb8013e6c94615edf2753829ec16762f641fdbdbe1238f6f3267a0e0f
+    image: localstack/localstack@sha256:bc717a094646a8265db68dd9da367f02208c041a72e91df0fc0e88439ba7bd82
     platform: linux/amd64
     env_file:
       - .docker/local.env
