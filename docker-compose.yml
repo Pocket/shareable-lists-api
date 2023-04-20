@@ -12,7 +12,7 @@ services:
       - TZ=UTC
 
   redis:
-    image: redis:7@sha256:e50c7e23f79ae81351beacb20e004720d4bed657415e68c2b1a2b5557c075ce0
+    image: redis:7@sha256:f50031a49f41e493087fb95f96fdb3523bb25dcf6a3f0b07c588ad3cdbe1d0aa
     ports:
       - '6379:6379'
 
