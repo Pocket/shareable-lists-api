@@ -16,9 +16,8 @@ const githubConnectionArn = isDev
 const branch = isDev ? 'dev' : 'main';
 const eventBusName = `PocketEventBridge-${environment}-Shared-Event-Bus`;
 
-//Arbitrary size and count for cache. No logic was used in deciding this.
 const cacheNodes = isDev ? 2 : 2;
-const cacheSize = isDev ? 'cache.t2.micro' : 'cache.t3.medium';
+const cacheSize = isDev ? 'cache.t3.micro' : 'cache.t3.micro';
 
 export const config = {
   name,
