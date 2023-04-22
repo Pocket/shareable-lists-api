@@ -181,6 +181,8 @@ type Mutation {
   createShareableList(
     listData: CreateShareableListInput!
     listItemData: CreateShareableListItemWithList
+      @deprecated(reason: "use listItemsData")
+    listItemsData: [CreateShareableListItemWithList]
   ): ShareableList
   """
   Deletes a Shareable List.
@@ -195,7 +197,13 @@ type Mutation {
   """
   createShareableListItem(
     data: CreateShareableListItemInput!
-  ): ShareableListItem
+  ): ShareableListItem @deprecated(reason: "use createShareableListItems")
+  """
+  Creates 1-x Shareable List Items.
+  """
+  createShareableListItems(
+    items: [CreateShareableListItemInput!]!
+  ): [ShareableListItem]
   """
   Deletes a Shareable List Item. HIDDEN Lists cannot have their items deleted.
   """
