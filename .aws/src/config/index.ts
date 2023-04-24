@@ -37,9 +37,15 @@ export const config = {
   rds,
   cacheNodes,
   cacheSize,
+  reservedConcurrencyLimit: 1, // A maximum of 1 instance of the Lambda shall be running at whatever time needed.
   tags: {
     service: name,
     environment,
   },
   eventBusName,
+  lambda: {
+    snsTopicName: {
+      userEvents: `PocketEventBridge-${environment}-UserEventTopic`,
+    },
+  },
 };
