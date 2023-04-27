@@ -33,23 +33,24 @@ export function getAdminServer(
     ApolloServerPluginLandingPageDisabled(),
     ApolloServerPluginInlineTrace(),
   ];
-  const nonProdPlugins = [
+  const nonProdPlugins = [ApolloServerPluginLandingPageGraphQLPlayground()];
+  const localPlugins = [
     ApolloServerPluginLandingPageGraphQLPlayground(),
     ApolloServerPluginInlineTraceDisabled(),
-    // Usage reporting is enabled by default if you have APOLLO_KEY in your environment
     ApolloServerPluginUsageReportingDisabled(),
   ];
-
-  const plugins =
-    process.env.NODE_ENV === 'production'
-      ? defaultPlugins.concat(prodPlugins)
-      : defaultPlugins.concat(nonProdPlugins);
+  const plugins = [
+    ...defaultPlugins,
+    ...(process.env.NODE_ENV === 'production' ? prodPlugins : []),
+    ...(process.env.NODE_ENV === 'development' ? nonProdPlugins : []),
+    ...(process.env.NODE_ENV === 'local' ? localPlugins : []),
+  ];
 
   return new ApolloServer<IAdminContext>({
     schema,
     plugins,
-    // OSL-202 (https://getpocket.atlassian.net/browse/OSL-202) needs to get done in order
-    // to stop masking Apollo Errors.
+    // to do: update our apollo utils to leverage logger & add graphql-level request logging,
+    // have sentry config there just pull from logged errors (instead of dupes)
     formatError: errorHandler,
   });
 }

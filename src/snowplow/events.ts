@@ -14,6 +14,7 @@ import {
   ShareableListEventBusPayload,
   ShareableListItemEventBusPayload,
 } from './types';
+import Logger from '../logger';
 
 /**
  * This function takes in the API Shareable List object and transforms it into a Snowplow Shareable List object
@@ -167,17 +168,16 @@ export async function sendEventHelper(
     );
   } catch (error) {
     // In the unlikely event that the payload generator throws an error,
-    // log to Sentry and Cloudwatch but don't halt program
+    // report error but don't halt program
     const failedEventError = new Error(
       `Failed to send event '${
         payload.eventType
       }' to event bus. Event Body:\n ${JSON.stringify(payload)}`
     );
-    // Don't halt program, but capture the failure in Sentry and Cloudwatch
     Sentry.addBreadcrumb(failedEventError);
     Sentry.captureException(error);
-    console.log(failedEventError);
-    console.log(error);
+    Logger.error(failedEventError);
+    Logger.error(error);
   }
 }
 
@@ -229,6 +229,6 @@ export async function sendEvent(
 
     // Don't halt program, but capture the failure in Sentry and Cloudwatch
     Sentry.captureException(failedEventError);
-    console.log(failedEventError);
+    Logger.info(failedEventError);
   }
 }

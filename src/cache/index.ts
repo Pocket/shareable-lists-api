@@ -2,6 +2,7 @@ import Keyv from 'keyv';
 import { KeyvAdapter } from '@apollo/utils.keyvadapter';
 import { ErrorsAreMissesCache } from '@apollo/utils.keyvaluecache';
 import config from '../config';
+import Logger from '../logger';
 
 /**
  * Sets up the connection to the Redis cluster. ErrorsAreMissesCache wrapper provides error tolerance for cache backends.
@@ -11,7 +12,7 @@ export function getRedisCache() {
   const keyv = new Keyv(
     `redis://${config.redis.primaryEndpoint}:${config.redis.port}`
   ).on('error', function (message) {
-    console.error(`Redis cache error: ${message}`);
+    Logger.error(`Redis cache error: ${message}`);
   });
   const cache = new ErrorsAreMissesCache(new KeyvAdapter(keyv));
   return cache;

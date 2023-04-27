@@ -1,6 +1,7 @@
 import AWSXRay from 'aws-xray-sdk-core';
 import https from 'https';
 import { startServer } from './express';
+import Logger from './logger';
 
 //Set XRAY to just log if the context is missing instead of a runtime error
 AWSXRay.setContextMissingStrategy('LOG_ERROR');
@@ -17,9 +18,10 @@ AWSXRay.capturePromise();
 
 //Set XRay to use the host header to open its segment name.
 AWSXRay.middleware.enableDynamicNaming('*');
+AWSXRay.setLogger(Logger);
 
 (async () => {
   const { adminUrl, publicUrl } = await startServer(4029);
-  console.log(`🚀 Public server ready at http://localhost:4029${publicUrl}`);
-  console.log(`🚀 Public server ready at http://localhost:4029${adminUrl}`);
+  Logger.info(`🚀 Public server ready at http://localhost:4029${publicUrl}`);
+  Logger.info(`🚀 Public server ready at http://localhost:4029${adminUrl}`);
 })();

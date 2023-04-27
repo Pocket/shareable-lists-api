@@ -264,14 +264,6 @@ class ShareableListsAPI extends TerraformStack {
           },
           envVars: [
             {
-              name: 'AWS_XRAY_CONTEXT_MISSING',
-              value: 'LOG_ERROR',
-            },
-            {
-              name: 'AWS_XRAY_LOG_LEVEL',
-              value: 'silent',
-            },
-            {
               name: 'NODE_ENV',
               value: process.env.NODE_ENV,
             },

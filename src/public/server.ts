@@ -42,25 +42,33 @@ export function getPublicServer(
     ApolloServerPluginLandingPageDisabled(),
     ApolloServerPluginInlineTrace(),
   ];
-  const nonProdPlugins = [
+  const nonProdPlugins = [ApolloServerPluginLandingPageGraphQLPlayground()];
+  const localPlugins = [
     ApolloServerPluginLandingPageGraphQLPlayground(),
     ApolloServerPluginInlineTraceDisabled(),
-    // Usage reporting is enabled by default if you have APOLLO_KEY in your environment
     ApolloServerPluginUsageReportingDisabled(),
   ];
-  const plugins =
-    process.env.NODE_ENV === 'production'
-      ? defaultPlugins.concat(prodPlugins)
-      : defaultPlugins.concat(nonProdPlugins);
+  const plugins = [
+    ...defaultPlugins,
+    ...(process.env.NODE_ENV === 'production' ? prodPlugins : []),
+    ...(process.env.NODE_ENV === 'development' ? nonProdPlugins : []),
+    ...(process.env.NODE_ENV === 'local' ? localPlugins : []),
+  ];
 
   return new ApolloServer<IPublicContext>({
     schema,
     plugins,
     cache,
+    // to do: update our apollo utils to leverage logger & add graphql-level request logging,
+    // have sentry config there just pull from logged errors (instead of dupes)
     formatError: errorHandler,
   });
 }
 
+/**
+ * Create and start the apollo server. Required to await server.start()
+ * before applying middleware.
+ */
 export async function startPublicServer(
   httpServer: Server
 ): Promise<ApolloServer<IPublicContext>> {

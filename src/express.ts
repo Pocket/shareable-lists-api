@@ -1,16 +1,18 @@
-import * as Sentry from '@sentry/node';
-import express from 'express';
-import http from 'http';
-import cors from 'cors';
-import xrayExpress from 'aws-xray-sdk-express';
-import { ApolloServer } from '@apollo/server';
-import { expressMiddleware } from '@apollo/server/express4';
-import config from './config';
-import { startPublicServer } from './public/server';
-import { getPublicContext, IPublicContext } from './public/context';
 import { getAdminContext, IAdminContext } from './admin/context';
 import { startAdminServer } from './admin/server';
+import config from './config';
+import morganMiddleware from './morgan';
+import { getPublicContext, IPublicContext } from './public/context';
 import deleteUserDataRouter from './public/routes/deleteUserData';
+import { startPublicServer } from './public/server';
+import { ApolloServer } from '@apollo/server';
+import { expressMiddleware } from '@apollo/server/express4';
+import * as Sentry from '@sentry/node';
+import xrayExpress from 'aws-xray-sdk-express';
+import cors from 'cors';
+import express from 'express';
+import http from 'http';
+import rTracer from 'cls-rtracer';
 
 /**
  * Initialize an express server.
@@ -24,6 +26,9 @@ export async function startServer(port: number): Promise<{
   publicServer: ApolloServer<IPublicContext>;
   publicUrl: string;
 }> {
+  /**
+   * Sentry Error Reporting Setup
+   */
   Sentry.init({
     ...config.sentry,
     debug: config.sentry.environment === 'development',
@@ -34,11 +39,16 @@ export async function startServer(port: number): Promise<{
   const app = express();
   const httpServer = http.createServer(app);
 
-  // If there is no host header (really there always should be...) then use shareable-lists-api as the name
+  // Logging: Enable morgan http request logging & injection of logging ids
+  app.use(morganMiddleware);
+  app.use(rTracer.expressMiddleware());
+
+  // Tracing: If theres no host header then use name=shareable-lists-api
   app.use(xrayExpress.openSegment('shareable-lists-api'));
 
   // JSON parser to enable POST body with JSON
   app.use(express.json());
+
   // Add route to delete user data
   app.use('/deleteUserData', deleteUserDataRouter);
 
@@ -50,7 +60,6 @@ export async function startServer(port: number): Promise<{
   // set up the admin server
   const adminServer = await startAdminServer(httpServer);
   const adminUrl = '/admin';
-
   app.use(
     adminUrl,
     cors<cors.CorsRequest>(),
@@ -62,7 +71,6 @@ export async function startServer(port: number): Promise<{
   // set up the public server
   const publicServer = await startPublicServer(httpServer);
   const publicUrl = '/';
-
   app.use(
     publicUrl,
     cors<cors.CorsRequest>(),
@@ -71,7 +79,7 @@ export async function startServer(port: number): Promise<{
     })
   );
 
-  //Make sure the express app has the xray close segment handler
+  // Tracing: Ensure express app has xray close segment handler
   app.use(xrayExpress.closeSegment());
 
   await new Promise<void>((resolve) => httpServer.listen({ port }, resolve));
