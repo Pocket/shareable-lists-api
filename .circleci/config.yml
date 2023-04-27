@@ -55,6 +55,7 @@ slack-fail-post-step: &slack-fail-post-step
 jobs:
   apollo:
     docker:
+      # 22.04.2 LTS (Jammy Jellyfish)
       - image: cimg/node:18.16
     steps:
       - checkout
@@ -115,6 +116,7 @@ jobs:
 
   build:
     docker:
+      # 22.04.2 LTS (Jammy Jellyfish)
       - image: cimg/node:18.16
     steps:
       - checkout
@@ -128,7 +130,7 @@ jobs:
           name: generate prisma client
           command: npm run db:generate-client
       - run:
-          name:
+          name: Run Build
           command: |
             export NODE_ENV=production
             npm run build
@@ -152,14 +154,15 @@ jobs:
         type: string
     docker:
       # The application
+      # 22.04.2 LTS (Jammy Jellyfish)
       - image: cimg/node:18.16
         auth:
           username: $DOCKERHUB_USERNAME
           password: $DOCKERHUB_PASSWORD
         environment:
-          - NODE_ENV=test
-          - AWS_XRAY_LOG_LEVEL=silent
-          - AWS_XRAY_CONTEXT_MISSING=LOG_ERROR
+          NODE_ENV: test
+          AWS_XRAY_LOG_LEVEL: silent
+          AWS_XRAY_CONTEXT_MISSING: IGNORE_ERROR
       # Example for snowplow service
       - image: pocket/snowplow-micro:prod
         auth:
@@ -273,8 +276,7 @@ workflows:
 
       # Build & Deploy the Prod Docker Image
       - pocket/docker_build:
-          <<: *only_main
-          <<: *slack-fail-post-step
+          <<: [*only_main, *slack-fail-post-step]
           context: pocket
           name: build_docker_prod
           aws-access-key-id: Prod_AWS_ACCESS_KEY
@@ -290,8 +292,7 @@ workflows:
 
       # Prod
       - pocket/execute_codepipeline:
-          <<: *only_main
-          <<: *slack-fail-post-step
+          <<: [*only_main, *slack-fail-post-step]
           context: pocket
           name: deploy_prod
           environment: Prod
@@ -306,8 +307,7 @@ workflows:
 
       # Prod
       - pocket/setup_deploy_params:
-          <<: *only_main
-          <<: *slack-fail-post-step
+          <<: [*only_main, *slack-fail-post-step]
           name: setup-deploy-params-prod
           aws_access_key_id: Prod_AWS_ACCESS_KEY
           aws_secret_access_key: Prod_AWS_SECRET_ACCESS_KEY
