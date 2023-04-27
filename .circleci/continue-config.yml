@@ -5,6 +5,7 @@ setup: false
 orbs:
   pocket: pocket/circleci-orbs@2.1.1
   aws-cli: circleci/aws-cli@3.1.5
+  slack: circleci/slack@4.1
 # the default pipeline parameters, which will be updated according to
 # the results of the path-filtering orb
 parameters:
@@ -15,6 +16,14 @@ parameters:
   build-on-change:
     type: boolean
     default: false
+
+# Use for notifying failure of step
+slack-fail-post-step: &slack-fail-post-step
+  post-steps:
+    - slack/notify:
+        branch_pattern: main
+        event: fail
+        template: basic_fail_1
 
 # Workflow shortcuts
 not_dev_main: &not_dev_main
@@ -60,6 +69,7 @@ jobs:
         type: boolean
         default: true
     docker:
+      # 22.04.2 LTS (Jammy Jellyfish)
       - image: cimg/node:18.16
         auth:
           username: $DOCKERHUB_USERNAME
@@ -108,6 +118,7 @@ jobs:
         type: string
         description: The relative path containing the lambda source code
     docker:
+      # 22.04.2 LTS (Jammy Jellyfish)
       - image: cimg/node:18.16
         auth:
           username: $DOCKERHUB_USERNAME
@@ -118,12 +129,6 @@ jobs:
           AWS_XRAY_CONTEXT_MISSING: LOG_ERROR
     steps:
       - checkout
-      - restore_cache:
-          keys:
-            # when lock file changes, use increasingly general patterns to restore cache
-            # If this gets our of sync, you can increment the version (vX).  Just be
-            # sure to match that version when saving the cache as well.
-            - node-v2-<< parameters.path >>-{{ checksum "package-lock.json" }}
       - run:
           name: Authenticate with GitHub package registry
           command: echo "//npm.pkg.github.com/:_authToken=${GITHUB_TOKEN}" > ~/.npmrc
@@ -132,11 +137,6 @@ jobs:
           command: |
             cd << parameters.path >>
             npm ci
-      # Save the cache to avoid extraneous downloads
-      - save_cache:
-          key: node-v2-<< parameters.path >>-{{ checksum "package-lock.json" }}
-          paths:
-            - << parameters.path >>/node_modules
       - run:
           name: run tests
           command: |
@@ -181,7 +181,7 @@ workflows:
 
       # Build & Deploy Production Lambdas
       - lambda:
-          <<: *only_main
+          <<: [*only_main, *slack-fail-post-step]
           context: pocket
           name: deploy_lambda_events_prod
           env_lower_name: prod
