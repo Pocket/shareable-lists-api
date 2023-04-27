@@ -1,31 +1,31 @@
-version: '3.1'
+version: '3.8'
 services:
   mysql:
-    image: mysql:8.0@sha256:a43f6e7e7f3a5e5b90f857fbed4e3103ece771b19f0f75880f767cf66bbb6577
-    platform: linux/amd64
+    image: mysql:5.7
     env_file:
       - ./.docker/local.env
-    ports:
-      - '3306:3306'
     environment:
       - MYSQL_ALLOW_EMPTY_PASSWORD=yes
       - TZ=UTC
+    healthcheck:
+      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
+    platform: linux/amd64
+    ports:
+      - '3306:3306'
 
   redis:
     image: redis:7@sha256:f50031a49f41e493087fb95f96fdb3523bb25dcf6a3f0b07c588ad3cdbe1d0aa
+    healthcheck:
+      test: ["CMD", "redis-cli","ping"]
     ports:
       - '6379:6379'
 
   localstack:
     image: localstack/localstack@sha256:7f65e55e2c260d138d9be1ea4c5c9d0008dbfa4267a42377c09e298260dd8877
-    platform: linux/amd64
     env_file:
       - .docker/local.env
-    ports:
-      - '4566:4566'
-      - '8080:8080'
-    volumes:
-      - ./.docker/localstack:/docker-entrypoint-initaws.d
     environment:
       - LOCALSTACK_API_KEY=${LOCALSTACK_API_KEY}
       - DEBUG=1
@@ -36,21 +36,51 @@ services:
       - EXTRA_CORS_ALLOWED_HEADERS=Content-Disposition, Content-Type, x-amz-acl
       - EXTRA_CORS_EXPOSE_HEADERS=ETag
       - HOSTNAME_EXTERNAL=localstack
+    healthcheck:
+      test:
+        - CMD
+        - bash
+        - -c
+        - curl --write-out '%{http_code}' --silent --output /dev/null http://localhost:4566/_localstack/health
+      interval: 5s
+      timeout: 10s
+      start_period: 10s
+    platform: linux/amd64
+    ports:
+      - '4566:4566'
+      - '8080:8080'
+    volumes:
+      - ./.docker/localstack:/docker-entrypoint-initaws.d
+
+  otlpcollector:
+      image: amazon/aws-otel-collector
+      command: --config=/etc/ecs/ecs-default-config.yaml --set=service.telemetry.logs.level=debug
+      env_file:
+        - .docker/local.env
+      ports:
+        - '4137:4137'
+        - '4138:4138'
 
   app:
-    image: node:18@sha256:d9946ebbeb3ca08ccaa24a8220d7da1f9e9fd749d489913faeed89e02f70a202
-    platform: linux/amd64
-    working_dir: /app
-    ports:
-      - '4029:4029'
-    volumes:
-      - ./:/app
+    # Debian GNU/Linux 11 (bullseye)
+    image: node:18-slim@sha256:b8a9ad50d8833a2aede22170a517e64c79776e9145811d7f6649bb123fb4e258
+    command: "bash -c 'cd /app && npm i && npm run start:dev'"
+    depends_on:
+      localstack:
+        condition: service_healthy
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      otlpcollector:
+        condition: service_started
     env_file:
       - .docker/local.env
     environment:
       - NODE_ENV=local
-    command: "bash -c 'cd /app && npm i && npm run start:dev'"
-    depends_on:
-      - mysql
-      - localstack
-      - redis
+    platform: linux/amd64
+    ports:
+      - '4029:4029'
+    volumes:
+      - ./:/app
+    working_dir: /app
