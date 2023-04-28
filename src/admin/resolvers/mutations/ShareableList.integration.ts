@@ -95,6 +95,29 @@ describe('admin mutations: ShareableList', () => {
       expect(result.body.data.moderateShareableList).to.be.null;
       expect(result.body.errors[0].extensions.code).to.equal('NOT_FOUND');
     });
+    it('will fail to hide list if moderationReason is not passed', async () => {
+      const theList = await createShareableListHelper(db, {
+        userId: 12345,
+        title: 'Moderate this list',
+        moderationStatus: 'VISIBLE',
+      });
+      expect(theList.moderationStatus).to.equal('VISIBLE');
+      const data = {
+        externalId: theList.externalId,
+        moderationStatus: 'HIDDEN',
+      };
+      const result = await request(app)
+        .post(graphQLUrl)
+        .set(validHeaders)
+        .send({
+          query: print(MODERATE_SHAREABLE_LIST),
+          variables: {
+            data: data,
+          },
+        });
+      expect(result.body.data.moderateShareableList).to.be.null;
+      expect(result.body.errors[0].extensions.code).to.equal('BAD_USER_INPUT');
+    });
     it('can make a visible list hidden', async () => {
       const theList = await createShareableListHelper(db, {
         userId: 12345,
@@ -124,6 +147,30 @@ describe('admin mutations: ShareableList', () => {
       expect(moderatedList.moderationReason).to.equal(data.moderationReason);
       expect(moderatedList.moderationDetails).to.equal(data.moderationDetails);
     });
+    it('will fail to restore list if listRestorationReason is not passed', async () => {
+      const theList = await createShareableListHelper(db, {
+        userId: 12345,
+        title: 'Moderate this list',
+        moderationStatus: 'HIDDEN',
+      });
+      expect(theList.moderationStatus).to.equal('HIDDEN');
+      const data = {
+        externalId: theList.externalId,
+        moderationStatus: 'VISIBLE',
+        listRestorationReason: '\n', // should not consider this as valid input
+      };
+      const result = await request(app)
+        .post(graphQLUrl)
+        .set(validHeaders)
+        .send({
+          query: print(MODERATE_SHAREABLE_LIST),
+          variables: {
+            data: data,
+          },
+        });
+      expect(result.body.data.moderateShareableList).to.be.null;
+      expect(result.body.errors[0].extensions.code).to.equal('BAD_USER_INPUT');
+    });
     it('can make a hidden list visible', async () => {
       const theList = await createShareableListHelper(db, {
         userId: 12345,
@@ -134,10 +181,7 @@ describe('admin mutations: ShareableList', () => {
       const data = {
         externalId: theList.externalId,
         moderationStatus: 'VISIBLE',
-        // we don't have a list of reasons for making a list visible, so pass
-        // ShareableListModerationReason enum val as this field is required
-        moderationReason: ShareableListModerationReason.FRAUD,
-        moderationDetails: 'making list visible',
+        listRestorationReason: 'making list visible now',
       };
       const result = await request(app)
         .post(graphQLUrl)
@@ -152,8 +196,9 @@ describe('admin mutations: ShareableList', () => {
       expect(moderatedList).to.not.be.null;
       expect(moderatedList.externalId).to.equal(theList.externalId);
       expect(moderatedList.moderationStatus).to.equal(data.moderationStatus);
-      expect(moderatedList.moderationReason).to.equal(data.moderationReason);
-      expect(moderatedList.moderationDetails).to.equal(data.moderationDetails);
+      expect(moderatedList.listRestorationReason).to.equal(
+        data.listRestorationReason
+      );
     });
     it('moderationDetails is optional', async () => {
       const theList = await createShareableListHelper(db, {
