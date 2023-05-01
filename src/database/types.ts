@@ -90,6 +90,7 @@ const shareableListCompleteSelectFields = {
   moderatedBy: true,
   moderationReason: true,
   moderationDetails: true,
+  restorationReason: true,
 };
 const shareableListComplete = Prisma.validator<Prisma.ListArgs>()({
   select: shareableListCompleteSelectFields,
@@ -119,8 +120,10 @@ export type UpdateShareableListInput = {
 export type ModerateShareableListInput = {
   externalId: string;
   moderationStatus: ModerationStatus;
-  moderationReason: ShareableListModerationReason;
+  // optional here, but enforced on the front-end
+  moderationReason?: ShareableListModerationReason;
   moderationDetails?: string;
+  restorationReason?: string;
   // not in the schema, copied from the request user data when updating
   moderatedBy: string;
 };

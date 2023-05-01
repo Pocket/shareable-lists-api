@@ -81,6 +81,10 @@ type ShareableListComplete implements ShareableListInterface {
   The optional details why the list was moderated.
   """
   moderationDetails: String
+  """
+  The reason why a list was restored (set from hidden to visible).
+  """
+  restorationReason: String
 }
 
 type Query {
@@ -96,8 +100,9 @@ Input data for removing (moderating) a ShareableList
 input ModerateShareableListInput {
   externalId: ID!
   moderationStatus: ShareableListModerationStatus!
-  moderationReason: ShareableListModerationReason!
+  moderationReason: ShareableListModerationReason
   moderationDetails: String
+  restorationReason: String
 }
 
 type Mutation {
