@@ -34,7 +34,7 @@ model List {
   moderatedBy             String?          @db.VarChar(255)
   moderationReason        String?          @db.Text
   moderationDetails       String?          @db.Text
-  listRestorationReason   String?          @db.Text
+  restorationReason       String?          @db.Text
   listItemNoteVisibility  Visibility       @default(PRIVATE)
   createdAt               DateTime         @default(now()) @db.DateTime(0)
   updatedAt               DateTime         @updatedAt

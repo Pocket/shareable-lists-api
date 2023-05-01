@@ -36,16 +36,15 @@ export async function moderateShareableList(
       throw new UserInputError(`Moderation reason required.`);
     }
   }
-  // if list is set to visible, enforce listRestorationReason is also passed
+  // if list is set to visible, enforce restorationReason is also passed
   if (data.moderationStatus === ModerationStatus.VISIBLE) {
     if (
-      !data.listRestorationReason ||
-      (data.listRestorationReason &&
-        data.listRestorationReason.trim().length === 0)
+      !data.restorationReason ||
+      (data.restorationReason && data.restorationReason.trim().length === 0)
     ) {
       throw new UserInputError(`List restoration reason required.`);
     }
-    data.listRestorationReason = data.listRestorationReason.trim();
+    data.restorationReason = data.restorationReason.trim();
   }
   return await dbModerateShareableList(db, data);
 }

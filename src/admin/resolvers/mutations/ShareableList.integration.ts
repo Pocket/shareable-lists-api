@@ -147,7 +147,7 @@ describe('admin mutations: ShareableList', () => {
       expect(moderatedList.moderationReason).to.equal(data.moderationReason);
       expect(moderatedList.moderationDetails).to.equal(data.moderationDetails);
     });
-    it('will fail to restore list if listRestorationReason is not passed', async () => {
+    it('will fail to restore list if restorationReason is not passed', async () => {
       const theList = await createShareableListHelper(db, {
         userId: 12345,
         title: 'Moderate this list',
@@ -157,7 +157,7 @@ describe('admin mutations: ShareableList', () => {
       const data = {
         externalId: theList.externalId,
         moderationStatus: 'VISIBLE',
-        listRestorationReason: '\n', // should not consider this as valid input
+        restorationReason: '\n', // should not consider this as valid input
       };
       const result = await request(app)
         .post(graphQLUrl)
@@ -181,7 +181,7 @@ describe('admin mutations: ShareableList', () => {
       const data = {
         externalId: theList.externalId,
         moderationStatus: 'VISIBLE',
-        listRestorationReason: 'making list visible now',
+        restorationReason: 'making list visible now',
       };
       const result = await request(app)
         .post(graphQLUrl)
@@ -196,9 +196,7 @@ describe('admin mutations: ShareableList', () => {
       expect(moderatedList).to.not.be.null;
       expect(moderatedList.externalId).to.equal(theList.externalId);
       expect(moderatedList.moderationStatus).to.equal(data.moderationStatus);
-      expect(moderatedList.listRestorationReason).to.equal(
-        data.listRestorationReason
-      );
+      expect(moderatedList.restorationReason).to.equal(data.restorationReason);
     });
     it('moderationDetails is optional', async () => {
       const theList = await createShareableListHelper(db, {

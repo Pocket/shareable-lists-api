@@ -34,7 +34,7 @@ describe('Snowplow event helpers', () => {
     moderatedBy: null,
     moderationReason: null,
     moderationDetails: null,
-    listRestorationReason: null,
+    restorationReason: null,
     createdAt: new Date('2023-01-01 10:10:10'),
     updatedAt: new Date('2023-01-01 10:10:10'),
     listItems: [],

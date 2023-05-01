@@ -84,7 +84,7 @@ type ShareableListComplete implements ShareableListInterface {
   """
   The reason why a list was restored (set from hidden to visible).
   """
-  listRestorationReason: String
+  restorationReason: String
 }
 
 type Query {
@@ -102,7 +102,7 @@ input ModerateShareableListInput {
   moderationStatus: ShareableListModerationStatus!
   moderationReason: ShareableListModerationReason
   moderationDetails: String
-  listRestorationReason: String
+  restorationReason: String
 }
 
 type Mutation {
