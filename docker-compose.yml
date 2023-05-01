@@ -1,7 +1,7 @@
 version: '3.8'
 services:
   mysql:
-    image: mysql:5.7
+    image: mysql:5.7@sha256:f57eef421000aaf8332a91ab0b6c96b3c83ed2a981c29e6528b21ce10197cd16
     env_file:
       - ./.docker/local.env
     environment:
@@ -53,7 +53,7 @@ services:
       - ./.docker/localstack:/docker-entrypoint-initaws.d
 
   otlpcollector:
-      image: amazon/aws-otel-collector
+      image: amazon/aws-otel-collector@sha256:a94db15e754ce67149d67c0a6f366bec3fa93b59626757a1436d3fb833f7cafc
       command: --config=/etc/ecs/ecs-default-config.yaml --set=service.telemetry.logs.level=debug
       env_file:
         - .docker/local.env
