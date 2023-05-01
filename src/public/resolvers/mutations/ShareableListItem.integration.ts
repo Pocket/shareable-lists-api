@@ -15,9 +15,13 @@ import {
 import { startServer } from '../../../express';
 import { IPublicContext } from '../../context';
 import { client } from '../../../database/client';
-import { CreateShareableListItemInput } from '../../../database/types';
+import {
+  CreateShareableListItemInput,
+  UpdateShareableListItemInput,
+} from '../../../database/types';
 import {
   CREATE_SHAREABLE_LIST_ITEM,
+  UPDATE_SHAREABLE_LIST_ITEM,
   DELETE_SHAREABLE_LIST_ITEM,
 } from './sample-mutations.gql';
 import {
@@ -428,6 +432,289 @@ describe('public mutations: ShareableListItem', () => {
       expect(listItem.sortOrder).to.equal(data.sortOrder);
       expect(listItem.createdAt).not.to.be.empty;
       expect(listItem.updatedAt).not.to.be.empty;
+    });
+  });
+
+  describe('updateShareableListItem', () => {
+    let shareableList1: List;
+    let shareableList2: List;
+    let listItem1: ListItem;
+    let listItem2: ListItem;
+
+    let clock;
+    // for strong checks on createdAt and updatedAt values
+    const arbitraryTimestamp = 1664400000000;
+    const oneDay = 86400000;
+
+    beforeEach(async () => {
+      await clearDb(db);
+
+      // create pilot users
+      pilotUser1 = await createPilotUserHelper(db, {
+        userId: parseInt(headers.userId),
+      });
+
+      pilotUser2 = await createPilotUserHelper(db, {
+        userId: 7732025862,
+      });
+
+      // Create a VISIBLE List for pilot user 1
+      shareableList1 = await createShareableListHelper(db, {
+        userId: parseInt(headers.userId),
+        title: 'Simon Le Bon List',
+      });
+
+      // Create a ListItem
+      listItem1 = await createShareableListItemHelper(db, {
+        list: shareableList1,
+      });
+
+      // Create a VISIBLE List for pilot user 2
+      shareableList2 = await createShareableListHelper(db, {
+        userId: pilotUser2.userId,
+        title: 'Aux Merveilleux de Fred',
+      });
+
+      // Create a ListItem
+      listItem2 = await createShareableListItemHelper(db, {
+        list: shareableList2,
+      });
+    });
+
+    it('should update a shareable list item', async () => {
+      const data: UpdateShareableListItemInput = {
+        externalId: listItem1.externalId,
+        note: '<strong>new</strong> note!',
+        sortOrder: 3,
+      };
+
+      const result = await request(app)
+        .post(graphQLUrl)
+        .set(headers)
+        .send({
+          query: print(UPDATE_SHAREABLE_LIST_ITEM),
+          variables: { data },
+        });
+
+      // There should be no errors
+      expect(result.body.errors).to.be.undefined;
+
+      // A result should be returned
+      expect(result.body.data.updateShareableListItem).not.to.be.null;
+
+      const listItem = result.body.data.updateShareableListItem;
+
+      // the properties should be updated
+      expect(listItem.note).to.equal('&lt;strong&gt;new&lt;/strong&gt; note!');
+      expect(listItem.sortOrder).to.equal(data.sortOrder);
+    });
+
+    it('should update the updatedAt value', async () => {
+      // Create a ListItem (specifically here to verify timestamps)
+      listItem1 = await createShareableListItemHelper(db, {
+        list: shareableList1,
+      });
+
+      // stub the clock so we can directly check createdAt and updatedAt
+      clock = sinon.useFakeTimers({
+        now: arbitraryTimestamp,
+        shouldAdvanceTime: false,
+      });
+
+      // advance the clock one day to mimic an update made a day after create
+      clock.tick(oneDay);
+
+      const data: UpdateShareableListItemInput = {
+        externalId: listItem1.externalId,
+        sortOrder: 3,
+      };
+
+      // do some kind of sleep
+
+      const result = await request(app)
+        .post(graphQLUrl)
+        .set(headers)
+        .send({
+          query: print(UPDATE_SHAREABLE_LIST_ITEM),
+          variables: { data },
+        });
+
+      expect(
+        Date.parse(result.body.data.updateShareableListItem.updatedAt)
+      ).to.equal(arbitraryTimestamp + oneDay);
+
+      clock.restore();
+    });
+
+    it('should not update a shareable list item with a note greater than 300 characters', async () => {
+      const data: UpdateShareableListItemInput = {
+        externalId: listItem1.externalId,
+        note: faker.random.alpha(LIST_ITEM_NOTE_MAX_CHARS + 1),
+        sortOrder: 3,
+      };
+
+      const result = await request(app)
+        .post(graphQLUrl)
+        .set(headers)
+        .send({
+          query: print(UPDATE_SHAREABLE_LIST_ITEM),
+          variables: { data },
+        });
+
+      expect(result.body.errors[0].extensions.code).to.equal('BAD_USER_INPUT');
+      expect(result.body.errors[0].message).to.contain(
+        `Must be no more than ${LIST_ITEM_NOTE_MAX_CHARS} characters in length`
+      );
+    });
+
+    it('should not update a shareable list item for an invalid external id', async () => {
+      // list item 2 does not belong to the default user in the headers
+      const data: UpdateShareableListItemInput = {
+        externalId: 'totallyInvalidId',
+        note: 'test',
+        sortOrder: 3,
+      };
+
+      const result = await request(app)
+        .post(graphQLUrl)
+        .set(headers)
+        .send({
+          query: print(UPDATE_SHAREABLE_LIST_ITEM),
+          variables: { data },
+        });
+
+      expect(result.body.errors[0].extensions.code).to.equal('NOT_FOUND');
+      expect(result.body.errors[0].message).to.contain(
+        'Error - Not Found: A list item by that ID could not be found'
+      );
+    });
+
+    it('should not update a shareable list item for a different user', async () => {
+      // list item 2 does not belong to the default user in the headers
+      const data: UpdateShareableListItemInput = {
+        externalId: listItem2.externalId,
+        note: 'test',
+        sortOrder: 3,
+      };
+
+      const result = await request(app)
+        .post(graphQLUrl)
+        .set(headers)
+        .send({
+          query: print(UPDATE_SHAREABLE_LIST_ITEM),
+          variables: { data },
+        });
+
+      expect(result.body.errors[0].extensions.code).to.equal('NOT_FOUND');
+      expect(result.body.errors[0].message).to.contain(
+        'Error - Not Found: A list item by that ID could not be found'
+      );
+    });
+
+    it('should not update a list item for a non-pilot user', async () => {
+      const data: UpdateShareableListItemInput = {
+        externalId: listItem1.externalId,
+        note: 'test',
+      };
+
+      const result = await request(app)
+        .post(graphQLUrl)
+        .set({
+          userId: '848135',
+        })
+        .send({
+          query: print(UPDATE_SHAREABLE_LIST_ITEM),
+          variables: { data },
+        });
+
+      expect(result.body.data).to.be.null;
+
+      expect(result.body.errors[0].extensions.code).to.equal('FORBIDDEN');
+      expect(result.body.errors[0].message).to.equal(ACCESS_DENIED_ERROR);
+    });
+
+    it('should update a shareable list item and delete a note', async () => {
+      const data: UpdateShareableListItemInput = {
+        externalId: listItem1.externalId,
+        note: null,
+      };
+
+      const result = await request(app)
+        .post(graphQLUrl)
+        .set(headers)
+        .send({
+          query: print(UPDATE_SHAREABLE_LIST_ITEM),
+          variables: { data },
+        });
+
+      // There should be no errors
+      expect(result.body.errors).to.be.undefined;
+
+      // A result should be returned
+      expect(result.body.data.updateShareableListItem).not.to.be.null;
+
+      const listItem = result.body.data.updateShareableListItem;
+
+      // note should be gone
+      expect(listItem.note).to.be.null;
+
+      // sort order should be unchanged
+      expect(listItem.sortOrder).to.equal(listItem1.sortOrder);
+    });
+
+    it('should update a shareable list item sort order', async () => {
+      const data: UpdateShareableListItemInput = {
+        externalId: listItem1.externalId,
+        sortOrder: 4,
+      };
+
+      const result = await request(app)
+        .post(graphQLUrl)
+        .set(headers)
+        .send({
+          query: print(UPDATE_SHAREABLE_LIST_ITEM),
+          variables: { data },
+        });
+
+      // There should be no errors
+      expect(result.body.errors).to.be.undefined;
+
+      // A result should be returned
+      expect(result.body.data.updateShareableListItem).not.to.be.null;
+
+      const listItem = result.body.data.updateShareableListItem;
+
+      // sort order should be updated
+      expect(listItem.sortOrder).to.equal(data.sortOrder);
+
+      // note should be retained
+      expect(listItem.note).to.equal(listItem1.note);
+    });
+
+    it('should disregard a sort order of null', async () => {
+      const data: UpdateShareableListItemInput = {
+        externalId: listItem1.externalId,
+        sortOrder: null,
+      };
+
+      const result = await request(app)
+        .post(graphQLUrl)
+        .set(headers)
+        .send({
+          query: print(UPDATE_SHAREABLE_LIST_ITEM),
+          variables: { data },
+        });
+
+      // There should be no errors
+      expect(result.body.errors).to.be.undefined;
+
+      // A result should be returned
+      expect(result.body.data.updateShareableListItem).not.to.be.null;
+
+      const listItem = result.body.data.updateShareableListItem;
+
+      // sort order should be updated
+      expect(listItem.sortOrder).to.equal(listItem1.sortOrder);
     });
   });
 

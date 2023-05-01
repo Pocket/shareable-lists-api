@@ -2,10 +2,12 @@ import { IPublicContext } from '../../context';
 import {
   CreateShareableListItemInput,
   ShareableListItem,
+  UpdateShareableListItemInput,
 } from '../../../database/types';
 import {
   createShareableListItem as dbCreateShareableListItem,
   deleteShareableListItem as dbDeleteShareableListItem,
+  updateShareableListItem as dbUpdateShareableListItem,
 } from '../../../database/mutations';
 import { executeMutation } from '../utils';
 
@@ -23,6 +25,23 @@ export async function createShareableListItem(
     context,
     data,
     dbCreateShareableListItem
+  );
+}
+
+/**
+ * @param parent not used
+ * @param data UpdateShareableListItemInput
+ * @param context IPublicContext
+ */
+export async function updateShareableListItem(
+  parent,
+  { data },
+  context: IPublicContext
+): Promise<ShareableListItem> {
+  return await executeMutation<UpdateShareableListItemInput, ShareableListItem>(
+    context,
+    data,
+    dbUpdateShareableListItem
   );
 }
 

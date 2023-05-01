@@ -140,3 +140,9 @@ export type CreateShareableListItemInput = {
   authors?: string;
   sortOrder: number;
 };
+
+export type UpdateShareableListItemInput = {
+  externalId: string;
+  note?: string;
+  sortOrder?: number;
+};
