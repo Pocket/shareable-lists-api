@@ -141,8 +141,19 @@ export type CreateShareableListItemInput = {
   sortOrder: number;
 };
 
+/**
+ * Input for updating a single shareable list item
+ */
 export type UpdateShareableListItemInput = {
   externalId: string;
   note?: string;
   sortOrder?: number;
+};
+
+/**
+ * Input for updating an array of shareable list items
+ */
+export type UpdateShareableListItemsInput = {
+  externalId: string;
+  sortOrder: number;
 };

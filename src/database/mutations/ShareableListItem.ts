@@ -5,6 +5,7 @@ import {
   ShareableListItem,
   shareableListItemSelectFields,
   UpdateShareableListItemInput,
+  UpdateShareableListItemsInput,
 } from '../types';
 import { PRISMA_RECORD_NOT_FOUND } from '../../shared/constants';
 import { validateItemId } from '../../public/resolvers/utils';
@@ -90,6 +91,13 @@ export async function createShareableListItem(
   return listItem;
 }
 
+/**
+ * This mutation updates a single shareable list item.
+ *
+ * @param db
+ * @param data
+ * @param userId
+ */
 export async function updateShareableListItem(
   db: PrismaClient,
   data: UpdateShareableListItemInput,
@@ -132,6 +140,57 @@ export async function updateShareableListItem(
   // https://getpocket.atlassian.net/browse/OSL-397
 
   return updatedListItem;
+}
+
+/**
+ * This mutation updates an array of shareable list items, targeting sortOrder.
+ *
+ * @param db
+ * @param data
+ * @param userId
+ */
+export async function updateShareableListItems(
+  db: PrismaClient,
+  data: UpdateShareableListItemsInput[],
+  userId: number | bigint
+): Promise<ShareableListItem[]> {
+  // store the updated shareable list items result here
+  const updatedShareableListItems = [];
+
+  // lets create an interactive transaction of sequential db calls,
+  // where we can traverse through the array input and update each
+  // shareable list item.
+  // if one call fails, the entire transaction fails.
+  await db.$transaction(async (db) => {
+    for (const value of Object.values(data)) {
+      const listItem = await db.listItem.findFirst({
+        where: {
+          externalId: value.externalId,
+        },
+        // we need to include the list to check the user id
+        include: {
+          list: true,
+        },
+      });
+      if (!listItem) {
+        throw new NotFoundError(`A list item by that ID could not be found`);
+      }
+      if (parseInt(listItem.list.userId as any) !== userId) {
+        throw new NotFoundError(`A list item by that ID could not be found`);
+      }
+      const updatedItem = await db.listItem.update({
+        data: {
+          sortOrder: value.sortOrder,
+          updatedAt: new Date().toISOString(),
+        },
+        where: {
+          externalId: value.externalId,
+        },
+      });
+      updatedShareableListItems.push(updatedItem);
+    }
+  });
+  return updatedShareableListItems;
 }
 
 /**

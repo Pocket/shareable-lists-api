@@ -3,11 +3,13 @@ import {
   CreateShareableListItemInput,
   ShareableListItem,
   UpdateShareableListItemInput,
+  UpdateShareableListItemsInput,
 } from '../../../database/types';
 import {
   createShareableListItem as dbCreateShareableListItem,
   deleteShareableListItem as dbDeleteShareableListItem,
   updateShareableListItem as dbUpdateShareableListItem,
+  updateShareableListItems as dbUpdateShareableListItems,
 } from '../../../database/mutations';
 import { executeMutation } from '../utils';
 
@@ -43,6 +45,22 @@ export async function updateShareableListItem(
     data,
     dbUpdateShareableListItem
   );
+}
+
+/**
+ * @param parent not used
+ * @param data UpdateShareableListItemsInput
+ * @param context IPublicContext
+ */
+export async function updateShareableListItems(
+  parent,
+  { data },
+  context: IPublicContext
+): Promise<ShareableListItem[]> {
+  return await executeMutation<
+    UpdateShareableListItemsInput[],
+    ShareableListItem[]
+  >(context, data, dbUpdateShareableListItems);
 }
 
 /**
