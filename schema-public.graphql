@@ -151,10 +151,21 @@ input CreateShareableListItemWithList {
   sortOrder: Int!
 }
 
+"""
+Input data for updating a single Shareable List Item.
+"""
 input UpdateShareableListItemInput {
   externalId: ID!
   note: String @constraint(maxLength: 300)
   sortOrder: Int
+}
+
+"""
+Input data for updating an array of Shareable List Items, targeting sortOrder.
+"""
+input UpdateShareableListItemsInput {
+  externalId: ID!
+  sortOrder: Int!
 }
 
 type Query {
@@ -203,11 +214,18 @@ type Mutation {
     data: CreateShareableListItemInput!
   ): ShareableListItem
   """
-  Updates a Shareable List Item.
+  Updates a single Shareable List Item.
   """
   updateShareableListItem(
     data: UpdateShareableListItemInput!
   ): ShareableListItem!
+  """
+  Updates an array of Shareable List Items (sortOrder).
+  """
+  updateShareableListItems(
+    data: [UpdateShareableListItemsInput!]!
+      @constraint(minItems: 1, maxItems: 30)
+  ): [ShareableListItem!]!
   """
   Deletes a Shareable List Item. HIDDEN Lists cannot have their items deleted.
   """

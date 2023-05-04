@@ -16,6 +16,7 @@ import {
   createShareableListItem,
   deleteShareableListItem,
   updateShareableListItem,
+  updateShareableListItems,
 } from './mutations/ShareableListItem';
 
 export const resolvers = {
@@ -35,6 +36,7 @@ export const resolvers = {
     updateShareableList,
     createShareableListItem,
     updateShareableListItem,
+    updateShareableListItems,
     deleteShareableListItem,
   },
   Query: {

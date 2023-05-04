@@ -9,4 +9,5 @@ export {
   createShareableListItem,
   deleteShareableListItem,
   updateShareableListItem,
+  updateShareableListItems,
 } from './mutations/ShareableListItem';
