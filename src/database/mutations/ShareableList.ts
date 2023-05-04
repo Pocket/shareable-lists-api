@@ -160,7 +160,16 @@ export async function updateShareableList(
     data,
     where: { externalId: data.externalId },
     include: {
-      listItems: true,
+      listItems: {
+        orderBy: [
+          {
+            sortOrder: 'asc',
+          },
+          {
+            createdAt: 'asc',
+          },
+        ],
+      },
     },
   });
 
@@ -195,7 +204,15 @@ export async function moderateShareableList(
     .update({
       data: data,
       where: { externalId: data.externalId },
-      include: { listItems: true },
+      include: {
+        listItems: {
+          orderBy: [
+            {
+              sortOrder: 'asc',
+            },
+          ],
+        },
+      },
     })
     .catch((error) => {
       if (error.code === PRISMA_RECORD_NOT_FOUND) {

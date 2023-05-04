@@ -174,10 +174,27 @@ describe('public queries: ShareableList', () => {
       expect(list.listItemNoteVisibility).to.equal(Visibility.PRIVATE);
     });
 
-    it('should return a list with list items', async () => {
-      // Create a couple of list items
-      await createShareableListItemHelper(db, { list: shareableList });
-      await createShareableListItemHelper(db, { list: shareableList });
+    it('should return a list with sorted list items', async () => {
+      // Create a couple of list items with specific sortOrders
+      await createShareableListItemHelper(db, {
+        list: shareableList,
+        sortOrder: 2,
+      });
+      await createShareableListItemHelper(db, {
+        list: shareableList,
+        sortOrder: 1,
+      });
+
+      // Create a couple more with unset/0 (default) sort orders
+      await createShareableListItemHelper(db, {
+        list: shareableList,
+        itemId: 12345, // set itemId so we can check proper fallback sorting
+      });
+
+      await createShareableListItemHelper(db, {
+        list: shareableList,
+        itemId: 67890, // set itemId so we can check proper fallback sorting
+      });
 
       // Run the query we're testing
       const result = await request(app)
@@ -200,11 +217,13 @@ describe('public queries: ShareableList', () => {
       expect(result.body.errors).to.be.undefined;
 
       // There should be two list items
-      expect(result.body.data.shareableList.listItems).to.have.lengthOf(2);
+      expect(result.body.data.shareableList.listItems).to.have.lengthOf(4);
+
+      const listItems = result.body.data.shareableList.listItems;
 
       // Let's run through the visible props of each item
       // to make sure they're all there
-      result.body.data.shareableList.listItems.forEach((listItem) => {
+      listItems.forEach((listItem) => {
         expect(listItem.url).not.to.be.empty;
         expect(listItem.title).not.to.be.empty;
         expect(listItem.excerpt).not.to.be.empty;
@@ -216,6 +235,17 @@ describe('public queries: ShareableList', () => {
         expect(listItem.createdAt).not.to.be.empty;
         expect(listItem.updatedAt).not.to.be.empty;
       });
+
+      // make sure list items are sorted in ascending order
+      // items with the same sortOrder should be returned by createdAt asc
+      expect(listItems[0].sortOrder).to.equal(0);
+      // 12345 was created first
+      expect(listItems[0].itemId).to.equal('12345');
+      expect(listItems[1].sortOrder).to.equal(0);
+      // 67890 was created second
+      expect(listItems[1].itemId).to.equal('67890');
+      expect(listItems[2].sortOrder).to.equal(1);
+      expect(listItems[3].sortOrder).to.equal(2);
     });
   });
 
@@ -383,7 +413,7 @@ describe('public queries: ShareableList', () => {
       expect(list.listItems).to.have.lengthOf(0);
     });
 
-    it('should return a list with list items', async () => {
+    it('should return a list with sorted list items', async () => {
       const newList = await createShareableListHelper(db, {
         userId: parseInt(headers.userId),
         title: 'This is a new list',
@@ -393,9 +423,13 @@ describe('public queries: ShareableList', () => {
         listItemNoteVisibility: Visibility.PRIVATE,
       });
 
-      // Create a couple of list items
-      await createShareableListItemHelper(db, { list: newList });
-      await createShareableListItemHelper(db, { list: newList });
+      // Create a couple of list items with specific sort orders
+      await createShareableListItemHelper(db, { list: newList, sortOrder: 2 });
+      await createShareableListItemHelper(db, { list: newList, sortOrder: 1 });
+
+      // Create a couple more with default/0 sort orders
+      await createShareableListItemHelper(db, { list: newList, itemId: 12345 });
+      await createShareableListItemHelper(db, { list: newList, itemId: 67890 });
 
       // Run the query we're testing
       const result = await request(app)
@@ -417,14 +451,14 @@ describe('public queries: ShareableList', () => {
       // There should be no errors
       expect(result.body.errors).to.be.undefined;
 
+      const listItems = result.body.data.shareableListPublic.listItems;
+
       // There should be two list items
-      expect(result.body.data.shareableListPublic.listItems).to.have.lengthOf(
-        2
-      );
+      expect(listItems).to.have.lengthOf(4);
 
       // Let's run through the visible props of each item
       // to make sure they're all there
-      result.body.data.shareableListPublic.listItems.forEach((listItem) => {
+      listItems.forEach((listItem) => {
         expect(listItem.itemId).not.to.be.empty;
         expect(listItem.url).not.to.be.empty;
         expect(listItem.title).not.to.be.empty;
@@ -438,6 +472,17 @@ describe('public queries: ShareableList', () => {
         expect(listItem.createdAt).not.to.be.empty;
         expect(listItem.updatedAt).not.to.be.empty;
       });
+
+      // make sure list items are sorted in ascending order
+      // items with the same sortOrder should be returned by createdAt asc
+      expect(listItems[0].sortOrder).to.equal(0);
+      // 12345 was created first
+      expect(listItems[0].itemId).to.equal('12345');
+      expect(listItems[1].sortOrder).to.equal(0);
+      // 67890 was created second
+      expect(listItems[1].itemId).to.equal('67890');
+      expect(listItems[2].sortOrder).to.equal(1);
+      expect(listItems[3].sortOrder).to.equal(2);
     });
 
     it('should return a list with list items and public notes', async () => {
@@ -580,13 +625,35 @@ describe('public queries: ShareableList', () => {
       }
     });
 
-    it('should return an array of lists with list items for a given userId', async () => {
+    it('should return an array of lists with sorted list items for a given userId', async () => {
       // Create a couple of list items for list1
-      await createShareableListItemHelper(db, { list: shareableList });
-      await createShareableListItemHelper(db, { list: shareableList });
+      await createShareableListItemHelper(db, {
+        list: shareableList,
+        sortOrder: 2,
+      });
+      await createShareableListItemHelper(db, {
+        list: shareableList,
+        sortOrder: 1,
+      });
+
+      // ...and a couple more with default/0 sort order
+      await createShareableListItemHelper(db, {
+        list: shareableList,
+        itemId: 12345,
+      });
+      await createShareableListItemHelper(db, {
+        list: shareableList,
+        itemId: 67890,
+      });
       // Create a couple of list items for list2
-      await createShareableListItemHelper(db, { list: shareableList2 });
-      await createShareableListItemHelper(db, { list: shareableList2 });
+      await createShareableListItemHelper(db, {
+        list: shareableList2,
+        sortOrder: 6,
+      });
+      await createShareableListItemHelper(db, {
+        list: shareableList2,
+        sortOrder: 2,
+      });
 
       // Run the query we're testing
       const result = await request(app)
@@ -607,8 +674,8 @@ describe('public queries: ShareableList', () => {
 
       // There should be two list items for the first List in the array
       expect(result.body.data.shareableLists[0].listItems).to.have.lengthOf(2);
-      // There should be two list items for the second List in the array
-      expect(result.body.data.shareableLists[1].listItems).to.have.lengthOf(2);
+      // There should be four list items for the second List in the array
+      expect(result.body.data.shareableLists[1].listItems).to.have.lengthOf(4);
 
       // Let's double-check the returned array is ordered correctly
       expect(result.body.data.shareableLists[0].title).to.equal(
@@ -625,9 +692,11 @@ describe('public queries: ShareableList', () => {
         id: headers.userId,
       });
 
+      let listItems = result.body.data.shareableLists[0].listItems;
+
       // Let's run through the visible props of each item
       // to make sure they're all there for the first List
-      result.body.data.shareableLists[0].listItems.forEach((listItem) => {
+      listItems.forEach((listItem) => {
         expect(listItem.url).not.to.be.empty;
         expect(listItem.title).not.to.be.empty;
         expect(listItem.excerpt).not.to.be.empty;
@@ -639,9 +708,15 @@ describe('public queries: ShareableList', () => {
         expect(listItem.updatedAt).not.to.be.empty;
       });
 
+      // make sure list items are sorted in ascending order
+      expect(listItems[0].sortOrder).to.equal(2);
+      expect(listItems[1].sortOrder).to.equal(6);
+
+      listItems = result.body.data.shareableLists[1].listItems;
+
       // Let's run through the visible props of each item
       // to make sure they're all there for the second List
-      result.body.data.shareableLists[1].listItems.forEach((listItem) => {
+      listItems.forEach((listItem) => {
         expect(listItem.url).not.to.be.empty;
         expect(listItem.title).not.to.be.empty;
         expect(listItem.excerpt).not.to.be.empty;
@@ -653,6 +728,15 @@ describe('public queries: ShareableList', () => {
         expect(listItem.createdAt).not.to.be.empty;
         expect(listItem.updatedAt).not.to.be.empty;
       });
+
+      // make sure list items are sorted in ascending order
+      expect(listItems[0].sortOrder).to.equal(0);
+      expect(listItems[0].itemId).to.equal('12345');
+      expect(listItems[1].sortOrder).to.equal(0);
+      expect(listItems[1].itemId).to.equal('67890');
+
+      expect(listItems[2].sortOrder).to.equal(1);
+      expect(listItems[3].sortOrder).to.equal(2);
     });
   });
 });

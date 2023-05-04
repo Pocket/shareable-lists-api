@@ -37,7 +37,8 @@ export async function createShareableListItemHelper(
     imageUrl: data.imageUrl ?? faker.image.cats(),
     publisher: data.publisher ?? faker.company.name(),
     authors: data.authors ?? faker.name.fullName(),
-    sortOrder: data.sortOrder ?? faker.datatype.number(),
+    // allow sortOrder to fall back to db default if no specific order given
+    sortOrder: data.sortOrder ?? undefined,
   };
 
   return await prisma.listItem.create({
