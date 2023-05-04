@@ -881,6 +881,50 @@ describe('public mutations: ShareableListItem', () => {
       expect(result.body.errors[0].message).to.contain(
         'Error - Not Found: A list item by that ID could not be found'
       );
+      // lets make sure the valid list item was not updated
+      const validListItem = await db.listItem.findFirst({
+        where: { externalId: listItem1.externalId },
+      });
+      // expect the list item sortOrder not be updated to 1
+      expect(validListItem.sortOrder).not.to.equal(1);
+      // double check sortOrder is original value
+      expect(validListItem.sortOrder).to.equal(listItem1.sortOrder);
+    });
+
+    it('should fail if more than 30 list items are provided as input', async () => {
+      // lets create 31 list items for List 1
+      const externalIds = [];
+      const sortOrders = [];
+      let listItem;
+      const data: UpdateShareableListItemsInput[] = [];
+      for (let i = 0; i < 31; i++) {
+        listItem = await createShareableListItemHelper(db, {
+          list: shareableList1,
+        });
+        externalIds.push(listItem.externalId);
+        sortOrders.push(i);
+      }
+
+      // create the input of 31 list items
+      for (let i = 0; i < externalIds.length; i++) {
+        data.push({
+          externalId: externalIds[i],
+          sortOrder: sortOrders[i],
+        });
+      }
+
+      const result = await request(app)
+        .post(graphQLUrl)
+        .set(headers)
+        .send({
+          query: print(UPDATE_SHAREABLE_LIST_ITEMS),
+          variables: { data },
+        });
+
+      expect(result.body.errors[0].extensions.code).to.equal('BAD_USER_INPUT');
+      expect(result.body.errors[0].message).to.contain(
+        `Variable "$data" at "data" must be no more than 30 in length`
+      );
     });
 
     it('should fail the entire update call if one of the shareable list item is for a different user', async () => {

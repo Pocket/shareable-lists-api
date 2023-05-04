@@ -224,6 +224,7 @@ type Mutation {
   """
   updateShareableListItems(
     data: [UpdateShareableListItemsInput!]!
+      @constraint(minItems: 1, maxItems: 30)
   ): [ShareableListItem!]!
   """
   Deletes a Shareable List Item. HIDDEN Lists cannot have their items deleted.
