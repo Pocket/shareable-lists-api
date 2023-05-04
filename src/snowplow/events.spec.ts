@@ -371,7 +371,6 @@ describe('Snowplow event helpers', () => {
     shareableListItem.note = 'new note updated';
     shareableListItem.sortOrder = 5;
     shareableListItem.updatedAt = new Date('2023-02-05 05:15:43');
-    let newUpdatedAt = shareableListItem.updatedAt;
     payload = await generateShareableListItemEventBridgePayload(
       EventBridgeEventType.SHAREABLE_LIST_ITEM_UPDATED,
       shareableListItem,
