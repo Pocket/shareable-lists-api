@@ -136,8 +136,13 @@ export async function updateShareableListItem(
     },
   });
 
-  // TODO: send to analytics
-  // https://getpocket.atlassian.net/browse/OSL-397
+  //send event bridge event for shareable-list-item-updated event type
+  sendEvent(EventBridgeEventType.SHAREABLE_LIST_ITEM_UPDATED, {
+    shareableListItem: updatedListItem,
+    shareableListItemExternalId: updatedListItem.externalId,
+    listExternalId: listItem.list.externalId,
+    isShareableListItemEventType: true,
+  });
 
   return updatedListItem;
 }
@@ -178,7 +183,7 @@ export async function updateShareableListItems(
       if (parseInt(listItem.list.userId as any) !== userId) {
         throw new NotFoundError(`A list item by that ID could not be found`);
       }
-      const updatedItem = await db.listItem.update({
+      const updatedListItem = await db.listItem.update({
         data: {
           sortOrder: value.sortOrder,
           updatedAt: new Date().toISOString(),
@@ -186,10 +191,29 @@ export async function updateShareableListItems(
         where: {
           externalId: value.externalId,
         },
+        // we need to include the list to get access to the list id
+        include: {
+          list: true,
+        },
       });
-      updatedShareableListItems.push(updatedItem);
+
+      updatedShareableListItems.push(updatedListItem);
     }
   });
+
+  // we don't want to send events to snowplow inside the transaction,
+  // as if one of the items in the input is invalid, we want to prevent valid
+  // updates sent to snowplow as entire transaction call should be failed
+  updatedShareableListItems.forEach((item) => {
+    //send event bridge event for shareable-list-item-updated event type
+    sendEvent(EventBridgeEventType.SHAREABLE_LIST_ITEM_UPDATED, {
+      shareableListItem: item,
+      shareableListItemExternalId: item.externalId,
+      listExternalId: item.list.externalId,
+      isShareableListItemEventType: true,
+    });
+  });
+
   return updatedShareableListItems;
 }
 

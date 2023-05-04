@@ -212,7 +212,12 @@ export async function moderateShareableList(
       isShareableListEventType: true,
     });
   }
-  // TODO: send shareable-list-visible event to Snowplow - OSL-473
+  if (data.moderationStatus === ModerationStatus.VISIBLE) {
+    sendEventHelper(EventBridgeEventType.SHAREABLE_LIST_UNHIDDEN, {
+      shareableList: list as ShareableListComplete,
+      isShareableListEventType: true,
+    });
+  }
   return list;
 }
 

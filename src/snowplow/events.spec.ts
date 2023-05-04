@@ -30,6 +30,7 @@ describe('Snowplow event helpers', () => {
     title: 'Fake Random Title',
     description: faker.lorem.sentences(2),
     status: Visibility.PRIVATE,
+    listItemNoteVisibility: Visibility.PRIVATE,
     moderationStatus: ModerationStatus.VISIBLE,
     moderatedBy: null,
     moderationReason: null,
@@ -38,7 +39,6 @@ describe('Snowplow event helpers', () => {
     createdAt: new Date('2023-01-01 10:10:10'),
     updatedAt: new Date('2023-01-01 10:10:10'),
     listItems: [],
-    listItemNoteVisibility: Visibility.PRIVATE,
   };
 
   const shareableListItem: ShareableListItem = {
@@ -148,6 +148,7 @@ describe('Snowplow event helpers', () => {
     // update some properties
     shareableList.slug = 'updated-random-title';
     shareableList.status = Visibility.PUBLIC;
+    shareableList.listItemNoteVisibility = Visibility.PUBLIC;
     shareableList.updatedAt = new Date('2023-02-01 10:15:45');
     newUpdatedAt = shareableList.updatedAt;
     payload = await generateShareableListEventBridgePayload(
@@ -168,6 +169,10 @@ describe('Snowplow event helpers', () => {
     expect(payload.shareableList.slug).to.equal(shareableList.slug);
     // check that status was updated to PUBLIC
     expect(payload.shareableList.status).to.equal(Visibility.PUBLIC);
+    // check that listItemNoteVisibility was updated to PUBLIC
+    expect(payload.shareableList.list_item_note_visibility).to.equal(
+      Visibility.PUBLIC
+    );
     // updatedAt -> updated_at in seconds
     expect(payload.shareableList.updated_at).to.equal(
       Math.floor(newUpdatedAt.getTime() / 1000)
@@ -176,6 +181,7 @@ describe('Snowplow event helpers', () => {
     // SHAREABLE_LIST_UNPUBLISHED
     // update some properties
     shareableList.status = Visibility.PRIVATE;
+    shareableList.listItemNoteVisibility = Visibility.PRIVATE;
     shareableList.updatedAt = new Date('2023-02-02 10:15:07');
     newUpdatedAt = shareableList.updatedAt;
     payload = await generateShareableListEventBridgePayload(
@@ -192,8 +198,12 @@ describe('Snowplow event helpers', () => {
     expect(payload.shareableList.user_id).to.equal(
       parseInt(shareableList.userId as unknown as string)
     );
-    // check that status was updated to PUBLIC
+    // check that status was updated to PRIVATE
     expect(payload.shareableList.status).to.equal(Visibility.PRIVATE);
+    // check that listItemNoteVisibility was updated to PRIVATE
+    expect(payload.shareableList.list_item_note_visibility).to.equal(
+      Visibility.PRIVATE
+    );
     // updatedAt -> updated_at in seconds
     expect(payload.shareableList.updated_at).to.equal(
       Math.floor(newUpdatedAt.getTime() / 1000)
@@ -250,6 +260,37 @@ describe('Snowplow event helpers', () => {
       Math.floor(newUpdatedAt.getTime() / 1000)
     );
 
+    // SHAREABLE_LIST_UNHIDDEN
+    // update some properties
+    shareableList.moderationStatus = ModerationStatus.VISIBLE;
+    shareableList.restorationReason = 'restoring list';
+    shareableList.updatedAt = new Date('2023-02-04 05:15:43');
+    newUpdatedAt = shareableList.updatedAt;
+    payload = await generateShareableListEventBridgePayload(
+      EventBridgeEventType.SHAREABLE_LIST_UNHIDDEN,
+      shareableList
+    );
+    // shareableList obj must not be null
+    expect(payload.shareableList).to.not.be.null;
+    // check that the payload event type is for shareable-list-hidden
+    expect(payload.eventType).to.equal(
+      EventBridgeEventType.SHAREABLE_LIST_UNHIDDEN
+    );
+    // userId -> user_id
+    expect(payload.shareableList.user_id).to.equal(
+      parseInt(shareableList.userId as unknown as string)
+    );
+    // check that moderation_status was updated to VISIBLE
+    expect(payload.shareableList.moderation_status).to.equal(
+      ModerationStatus.VISIBLE
+    );
+    // check that restoration_reason exists
+    expect(payload.shareableList.restoration_reason).to.equal('restoring list');
+    // updatedAt -> updated_at in seconds
+    expect(payload.shareableList.updated_at).to.equal(
+      Math.floor(newUpdatedAt.getTime() / 1000)
+    );
+
     // Lets mimick a shareable_list_created event with a bad userId
     shareableList.userId = null;
     payload = await generateShareableListEventBridgePayload(
@@ -274,6 +315,7 @@ describe('Snowplow event helpers', () => {
   });
 
   it('generateShareableListItemEventBridgePayload function', async () => {
+    // SHAREABLE_LIST_ITEM_CREATED
     let payload = await generateShareableListItemEventBridgePayload(
       EventBridgeEventType.SHAREABLE_LIST_ITEM_CREATED,
       shareableListItem,
@@ -306,6 +348,16 @@ describe('Snowplow event helpers', () => {
     expect(JSON.stringify(payload.shareableListItem.authors)).to.equal(
       JSON.stringify(shareableListItem.authors.split(','))
     );
+    // publisher
+    expect(payload.shareableListItem.publisher).to.equal(
+      shareableListItem.publisher
+    );
+    // note
+    expect(payload.shareableListItem.note).to.equal(shareableListItem.note);
+    // sortOrder -> sort_order
+    expect(payload.shareableListItem.sort_order).to.equal(
+      shareableListItem.sortOrder
+    );
     // createdAt -> created_at in unix timestamp
     expect(payload.shareableListItem.created_at).to.equal(
       Math.floor(shareableListItem.createdAt.getTime() / 1000)
@@ -315,7 +367,33 @@ describe('Snowplow event helpers', () => {
       Math.floor(shareableListItem.updatedAt.getTime() / 1000)
     );
 
-    // simulate shareable-list-item-deleted event
+    // SHAREABLE_LIST_ITEM_UPDATED
+    shareableListItem.note = 'new note updated';
+    shareableListItem.sortOrder = 5;
+    shareableListItem.updatedAt = new Date('2023-02-05 05:15:43');
+    let newUpdatedAt = shareableListItem.updatedAt;
+    payload = await generateShareableListItemEventBridgePayload(
+      EventBridgeEventType.SHAREABLE_LIST_ITEM_UPDATED,
+      shareableListItem,
+      shareableListItemExternalId,
+      shareableList.externalId
+    );
+    // shareableListItem obj must not be null
+    expect(payload.shareableListItem).to.not.be.null;
+    // check that the payload event type is for shareable-list-item-updated
+    expect(payload.eventType).to.equal(
+      EventBridgeEventType.SHAREABLE_LIST_ITEM_UPDATED
+    );
+    // now check that note & sortOrder were correctly mapped and updated
+    // note
+    expect(payload.shareableListItem.note).to.equal('new note updated');
+    expect(payload.shareableListItem.sort_order).to.equal(5);
+    // updatedAt -> updated_at in unix timestamp
+    expect(payload.shareableListItem.updated_at).to.equal(
+      Math.floor(shareableListItem.updatedAt.getTime() / 1000)
+    );
+
+    // SHAREABLE_LIST_ITEM_DELETED
     payload = await generateShareableListItemEventBridgePayload(
       EventBridgeEventType.SHAREABLE_LIST_ITEM_DELETED,
       shareableListItem,
