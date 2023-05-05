@@ -40,6 +40,7 @@ function transformAPIShareableListToSnowplowShareableList(
       ? shareableList.description
       : undefined,
     status: shareableList.status,
+    list_item_note_visibility: shareableList.listItemNoteVisibility,
     moderation_status: shareableList.moderationStatus,
     moderated_by: shareableList.moderatedBy
       ? shareableList.moderatedBy
@@ -49,6 +50,9 @@ function transformAPIShareableListToSnowplowShareableList(
       : undefined,
     moderation_details: shareableList.moderationDetails
       ? shareableList.moderationDetails
+      : undefined,
+    restoration_reason: shareableList.restorationReason
+      ? shareableList.restorationReason
       : undefined,
     created_at: Math.floor(shareableList.createdAt.getTime() / 1000),
     updated_at: shareableList.updatedAt
@@ -83,6 +87,7 @@ function transformAPIShareableListItemToSnowplowShareableListItem(
     publisher: shareableListItem.publisher
       ? shareableListItem.publisher
       : undefined,
+    note: shareableListItem.note ? shareableListItem.note : undefined,
     sort_order: shareableListItem.sortOrder,
     created_at: Math.floor(shareableListItem.createdAt.getTime() / 1000),
     updated_at: shareableListItem.updatedAt
