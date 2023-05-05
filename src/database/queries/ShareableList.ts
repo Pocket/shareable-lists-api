@@ -4,7 +4,7 @@ import { ForbiddenError, NotFoundError } from '@pocket-tools/apollo-utils';
 import { ACCESS_DENIED_ERROR } from '../../shared/constants';
 
 /**
- * This is a public query, which is why we only return
+ * This is an authenticated query, which is why we only return
  * a subset of ShareableList properties.
  * Retrieves a single list for a given userId from the datastore.
  *
@@ -26,14 +26,23 @@ export function getShareableList(
       moderationStatus: ModerationStatus.VISIBLE,
     },
     include: {
-      listItems: true,
+      listItems: {
+        orderBy: [
+          {
+            sortOrder: 'asc',
+          },
+          {
+            createdAt: 'asc',
+          },
+        ],
+      },
     },
   });
 }
 
 /**
- * This query returns a publicly viewable Shareable List,
- * retrieved by its external ID
+ * This query returns a publicly viewable Shareable List retrieved by its
+ * external ID and slug.
  *
  * @param db
  * @param externalId
@@ -53,7 +62,16 @@ export async function getShareableListPublic(
       status: Visibility.PUBLIC,
     },
     include: {
-      listItems: true,
+      listItems: {
+        orderBy: [
+          {
+            sortOrder: 'asc',
+          },
+          {
+            createdAt: 'asc',
+          },
+        ],
+      },
     },
   });
 
@@ -97,7 +115,16 @@ export function getShareableLists(
     },
     orderBy: { updatedAt: 'desc' },
     include: {
-      listItems: true,
+      listItems: {
+        orderBy: [
+          {
+            sortOrder: 'asc',
+          },
+          {
+            createdAt: 'asc',
+          },
+        ],
+      },
     },
   });
 }
@@ -118,7 +145,16 @@ export function searchShareableList(
       externalId,
     },
     include: {
-      listItems: true,
+      listItems: {
+        orderBy: [
+          {
+            sortOrder: 'asc',
+          },
+          {
+            createdAt: 'asc',
+          },
+        ],
+      },
     },
   });
 }
