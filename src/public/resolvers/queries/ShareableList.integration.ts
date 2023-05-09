@@ -7,7 +7,6 @@ import {
   List,
   Visibility,
   ModerationStatus,
-  PilotUser,
   PrismaClient,
 } from '@prisma/client';
 
@@ -35,10 +34,15 @@ describe('public queries: ShareableList', () => {
   let db: PrismaClient;
   let shareableList: List;
   let shareableList2: List;
-  let pilotUser2: PilotUser;
 
-  const headers = {
+  // pilot user is required for public lists
+  const pilotUserHeaders = {
     userId: '123456789',
+  };
+
+  // all other tests use public users
+  const publicUserHeaders = {
+    userId: '987654321',
   };
 
   beforeAll(async () => {
@@ -61,22 +65,18 @@ describe('public queries: ShareableList', () => {
     await clearDb(db);
 
     await createPilotUserHelper(db, {
-      userId: parseInt(headers.userId),
-    });
-
-    pilotUser2 = await createPilotUserHelper(db, {
-      userId: 8009882300,
+      userId: parseInt(pilotUserHeaders.userId),
     });
 
     // create a list to be used in tests (no list items)
     shareableList = await createShareableListHelper(db, {
-      userId: parseInt(headers.userId),
+      userId: parseInt(publicUserHeaders.userId),
       title: 'This is a test list',
     });
 
     // create another list
     shareableList2 = await createShareableListHelper(db, {
-      userId: parseInt(headers.userId),
+      userId: parseInt(publicUserHeaders.userId),
       title: 'This is a second test list',
       // set list item notes public
       listItemNoteVisibility: Visibility.PUBLIC,
@@ -84,7 +84,7 @@ describe('public queries: ShareableList', () => {
   });
 
   describe('shareableList query', () => {
-    it('should not return a list for a user not in the pilot', async () => {
+    it('should not return a list not owned by the given user', async () => {
       // Run the query we're testing
       const result = await request(app)
         .post(graphQLUrl)
@@ -101,14 +101,14 @@ describe('public queries: ShareableList', () => {
       // There should be nothing in results
       expect(result.body.data.shareableList).to.be.null;
 
-      expect(result.body.errors[0].extensions.code).to.equal('FORBIDDEN');
-      expect(result.body.errors[0].message).to.equal(ACCESS_DENIED_ERROR);
+      // And a "Not found" error
+      expect(result.body.errors[0].extensions.code).to.equal('NOT_FOUND');
     });
     it('should return a "Not Found" error if no list exists', async () => {
       // Run the query we're testing
       const result = await request(app)
         .post(graphQLUrl)
-        .set(headers)
+        .set(publicUserHeaders)
         .send({
           query: print(GET_SHAREABLE_LIST),
           variables: {
@@ -127,7 +127,7 @@ describe('public queries: ShareableList', () => {
       // Run the query we're testing
       const result = await request(app)
         .post(graphQLUrl)
-        .set(headers)
+        .set(publicUserHeaders)
         .send({
           query: print(GET_SHAREABLE_LIST),
           variables: {
@@ -165,7 +165,7 @@ describe('public queries: ShareableList', () => {
       expect(list.slug).to.be.null;
 
       // the user entity should be present with the id of the creator
-      expect(list.user).to.deep.equal({ id: headers.userId });
+      expect(list.user).to.deep.equal({ id: publicUserHeaders.userId });
 
       // Empty list items array
       expect(list.listItems).to.have.lengthOf(0);
@@ -199,7 +199,7 @@ describe('public queries: ShareableList', () => {
       // Run the query we're testing
       const result = await request(app)
         .post(graphQLUrl)
-        .set(headers)
+        .set(publicUserHeaders)
         .send({
           query: print(GET_SHAREABLE_LIST),
           variables: {
@@ -272,7 +272,7 @@ describe('public queries: ShareableList', () => {
       // First we need a list that has been taken down
       // create another list
       const list = await createShareableListHelper(db, {
-        userId: parseInt(headers.userId),
+        userId: parseInt(publicUserHeaders.userId),
         title: 'This is a list that does not comply with our policies',
         slug: 'this-is-a-list-that-does-not-comply',
         status: Visibility.PUBLIC,
@@ -300,7 +300,7 @@ describe('public queries: ShareableList', () => {
 
     it('should return a NotFound error if list is Private', async () => {
       const privateList = await createShareableListHelper(db, {
-        userId: parseInt(headers.userId),
+        userId: parseInt(publicUserHeaders.userId),
         title: 'This is a list that is Private',
         slug: 'this-is-a-list-that-is-private',
         status: Visibility.PRIVATE,
@@ -330,7 +330,7 @@ describe('public queries: ShareableList', () => {
 
     it('should return a NotFound error if externalId is valid but slug is invalid', async () => {
       const newList = await createShareableListHelper(db, {
-        userId: parseInt(headers.userId),
+        userId: parseInt(publicUserHeaders.userId),
         title: 'This is a list',
         slug: 'this-is-a-list',
         status: Visibility.PUBLIC,
@@ -360,7 +360,7 @@ describe('public queries: ShareableList', () => {
 
     it('should return a list with all props if it is accessible', async () => {
       const newList = await createShareableListHelper(db, {
-        userId: parseInt(headers.userId),
+        userId: parseInt(pilotUserHeaders.userId),
         title: 'This is a list that does comply with our policies',
         slug: 'this-is-a-list-that-does-comply',
         status: Visibility.PUBLIC,
@@ -415,7 +415,7 @@ describe('public queries: ShareableList', () => {
 
     it('should return a list with sorted list items', async () => {
       const newList = await createShareableListHelper(db, {
-        userId: parseInt(headers.userId),
+        userId: parseInt(pilotUserHeaders.userId),
         title: 'This is a new list',
         slug: 'the-slug',
         status: Visibility.PUBLIC,
@@ -487,7 +487,7 @@ describe('public queries: ShareableList', () => {
 
     it('should return a list with list items and public notes', async () => {
       const newList = await createShareableListHelper(db, {
-        userId: parseInt(headers.userId),
+        userId: parseInt(pilotUserHeaders.userId),
         title: 'This is a new list',
         slug: 'the-slug',
         status: Visibility.PUBLIC,
@@ -544,26 +544,9 @@ describe('public queries: ShareableList', () => {
   });
 
   describe('shareableLists query', () => {
-    it('should not return results for a user not in the pilot', async () => {
-      // Run the query we're testing
-      const result = await request(app)
-        .post(graphQLUrl)
-        .set({
-          userId: '848135',
-        })
-        .send({
-          query: print(GET_SHAREABLE_LISTS),
-        });
-
-      // The returned shareableLists array should be empty
-      expect(result.body.data).to.be.null;
-
-      expect(result.body.errors[0].extensions.code).to.equal('FORBIDDEN');
-      expect(result.body.errors[0].message).to.equal(ACCESS_DENIED_ERROR);
-    });
     it('should return an empty shareableLists array if no lists exist for a given userId', async () => {
       // set headers for userId which has no lists
-      const testHeaders = { userId: pilotUser2.userId };
+      const testHeaders = { userId: '7732025862' };
       // Run the query we're testing
       const result = await request(app)
         .post(graphQLUrl)
@@ -583,7 +566,7 @@ describe('public queries: ShareableList', () => {
       // Run the query we're testing
       const result = await request(app)
         .post(graphQLUrl)
-        .set(headers)
+        .set(publicUserHeaders)
         .send({
           query: print(GET_SHAREABLE_LISTS),
         });
@@ -658,7 +641,7 @@ describe('public queries: ShareableList', () => {
       // Run the query we're testing
       const result = await request(app)
         .post(graphQLUrl)
-        .set(headers)
+        .set(publicUserHeaders)
         .send({
           query: print(GET_SHAREABLE_LISTS),
         });
@@ -686,10 +669,10 @@ describe('public queries: ShareableList', () => {
       );
 
       expect(result.body.data.shareableLists[0].user).to.deep.equal({
-        id: headers.userId,
+        id: publicUserHeaders.userId,
       });
       expect(result.body.data.shareableLists[1].user).to.deep.equal({
-        id: headers.userId,
+        id: publicUserHeaders.userId,
       });
 
       let listItems = result.body.data.shareableLists[0].listItems;

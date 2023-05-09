@@ -47,8 +47,12 @@ describe('public mutations: ShareableListItem', () => {
   let pilotUser1: PilotUser;
   let pilotUser2: PilotUser;
 
-  const headers = {
+  const pilotUserHeaders = {
     userId: '8009882300',
+  };
+
+  const publicUserHeaders = {
+    userId: '123456789',
   };
 
   beforeAll(async () => {
@@ -73,6 +77,7 @@ describe('public mutations: ShareableListItem', () => {
   });
 
   describe('createShareableListItem', () => {
+    let pilotList: List;
     let list: List;
 
     beforeEach(async () => {
@@ -80,42 +85,23 @@ describe('public mutations: ShareableListItem', () => {
 
       // create pilot users
       pilotUser1 = await createPilotUserHelper(db, {
-        userId: parseInt(headers.userId),
+        userId: parseInt(pilotUserHeaders.userId),
       });
 
       pilotUser2 = await createPilotUserHelper(db, {
         userId: 7732025862,
       });
 
-      // Create a parent Shareable List
-      list = await createShareableListHelper(db, {
-        userId: parseInt(headers.userId),
+      // Create a parent Shareable List for pilot & public users
+      pilotList = await createShareableListHelper(db, {
+        userId: parseInt(pilotUserHeaders.userId),
         title: 'This List Will Have Lots of Stories',
       });
-    });
 
-    it('should not create a new item for a user not in the pilot', async () => {
-      const data: CreateShareableListItemInput = {
-        listExternalId: 'this-list-does-not-even-exist',
-        itemId: '1',
-        url: 'https://getpocket.com/discover',
-        sortOrder: 1,
-      };
-
-      const result = await request(app)
-        .post(graphQLUrl)
-        .set({
-          userId: 848135,
-        })
-        .send({
-          query: print(CREATE_SHAREABLE_LIST_ITEM),
-          variables: { data },
-        });
-
-      expect(result.body.data.createShareableListItem).to.be.null;
-
-      expect(result.body.errors[0].extensions.code).to.equal('FORBIDDEN');
-      expect(result.body.errors[0].message).to.equal(ACCESS_DENIED_ERROR);
+      list = await createShareableListHelper(db, {
+        userId: parseInt(publicUserHeaders.userId),
+        title: 'This List Will Have Lots of Stories',
+      });
     });
 
     it("should not create a new item for a list that doesn't exist", async () => {
@@ -128,7 +114,7 @@ describe('public mutations: ShareableListItem', () => {
 
       const result = await request(app)
         .post(graphQLUrl)
-        .set(headers)
+        .set(publicUserHeaders)
         .send({
           query: print(CREATE_SHAREABLE_LIST_ITEM),
           variables: { data },
@@ -143,7 +129,7 @@ describe('public mutations: ShareableListItem', () => {
 
     it('should not create a new item for a list that has been taken down', async () => {
       const hiddenList = await createShareableListHelper(db, {
-        userId: parseInt(headers.userId),
+        userId: parseInt(pilotUserHeaders.userId),
         title: 'This List Has Been Removed',
         moderationStatus: ModerationStatus.HIDDEN,
       });
@@ -157,7 +143,7 @@ describe('public mutations: ShareableListItem', () => {
 
       const result = await request(app)
         .post(graphQLUrl)
-        .set(headers)
+        .set(pilotUserHeaders)
         .send({
           query: print(CREATE_SHAREABLE_LIST_ITEM),
           variables: { data },
@@ -172,7 +158,7 @@ describe('public mutations: ShareableListItem', () => {
 
     it('should not create a list item in a list that belongs to another user', async () => {
       const data: CreateShareableListItemInput = {
-        listExternalId: list.externalId,
+        listExternalId: pilotList.externalId,
         itemId: '1',
         url: 'https://www.test.com/this-is-a-story',
         title: 'This Story Is Trying to Sneak In',
@@ -181,7 +167,7 @@ describe('public mutations: ShareableListItem', () => {
 
       const result = await request(app)
         .post(graphQLUrl)
-        .set({ userId: pilotUser2.userId }) // Note the test list is owned by pilotUser1
+        .set({ userId: publicUserHeaders.userId }) // Note the test list is owned by pilotUser1
         .send({
           query: print(CREATE_SHAREABLE_LIST_ITEM),
           variables: { data },
@@ -210,7 +196,7 @@ describe('public mutations: ShareableListItem', () => {
 
       const result = await request(app)
         .post(graphQLUrl)
-        .set(headers)
+        .set(publicUserHeaders)
         .send({
           query: print(CREATE_SHAREABLE_LIST_ITEM),
           variables: { data },
@@ -239,7 +225,7 @@ describe('public mutations: ShareableListItem', () => {
 
       const result = await request(app)
         .post(graphQLUrl)
-        .set(headers)
+        .set(publicUserHeaders)
         .send({
           query: print(CREATE_SHAREABLE_LIST_ITEM),
           variables: { data },
@@ -266,7 +252,7 @@ describe('public mutations: ShareableListItem', () => {
 
       const result = await request(app)
         .post(graphQLUrl)
-        .set(headers)
+        .set(publicUserHeaders)
         .send({
           query: print(CREATE_SHAREABLE_LIST_ITEM),
           variables: { data },
@@ -312,7 +298,7 @@ describe('public mutations: ShareableListItem', () => {
 
       const result = await request(app)
         .post(graphQLUrl)
-        .set(headers)
+        .set(publicUserHeaders)
         .send({
           query: print(CREATE_SHAREABLE_LIST_ITEM),
           variables: { data },
@@ -352,7 +338,7 @@ describe('public mutations: ShareableListItem', () => {
       // Simulate a pre-existing item with the same URL by adding it straight
       // to the database
       await createShareableListItemHelper(db, {
-        list,
+        list: list,
         url: 'https://www.test.com/duplicate-url',
       });
 
@@ -365,7 +351,7 @@ describe('public mutations: ShareableListItem', () => {
 
       const result = await request(app)
         .post(graphQLUrl)
-        .set(headers)
+        .set(publicUserHeaders)
         .send({
           query: print(CREATE_SHAREABLE_LIST_ITEM),
           variables: { data },
@@ -382,7 +368,7 @@ describe('public mutations: ShareableListItem', () => {
       // Create another list
       const list2 = await createShareableListHelper(db, {
         title: 'Another List By The Same User',
-        userId: parseInt(headers.userId),
+        userId: parseInt(publicUserHeaders.userId),
       });
 
       // Simulate a pre-existing item with the same URL by adding it straight
@@ -407,7 +393,7 @@ describe('public mutations: ShareableListItem', () => {
 
       const result = await request(app)
         .post(graphQLUrl)
-        .set(headers)
+        .set(publicUserHeaders)
         .send({
           query: print(CREATE_SHAREABLE_LIST_ITEM),
           variables: { data },
@@ -451,18 +437,9 @@ describe('public mutations: ShareableListItem', () => {
     beforeEach(async () => {
       await clearDb(db);
 
-      // create pilot users
-      pilotUser1 = await createPilotUserHelper(db, {
-        userId: parseInt(headers.userId),
-      });
-
-      pilotUser2 = await createPilotUserHelper(db, {
-        userId: 7732025862,
-      });
-
       // Create a VISIBLE List for pilot user 1
       shareableList1 = await createShareableListHelper(db, {
-        userId: parseInt(headers.userId),
+        userId: parseInt(pilotUserHeaders.userId),
         title: 'Simon Le Bon List',
       });
 
@@ -471,9 +448,9 @@ describe('public mutations: ShareableListItem', () => {
         list: shareableList1,
       });
 
-      // Create a VISIBLE List for pilot user 2
+      // Create a VISIBLE List for public user
       shareableList2 = await createShareableListHelper(db, {
-        userId: pilotUser2.userId,
+        userId: parseInt(publicUserHeaders.userId),
         title: 'Aux Merveilleux de Fred',
       });
 
@@ -485,14 +462,14 @@ describe('public mutations: ShareableListItem', () => {
 
     it('should update a shareable list item', async () => {
       const data: UpdateShareableListItemInput = {
-        externalId: listItem1.externalId,
+        externalId: listItem2.externalId,
         note: '<strong>new</strong> note!',
         sortOrder: 3,
       };
 
       const result = await request(app)
         .post(graphQLUrl)
-        .set(headers)
+        .set(publicUserHeaders)
         .send({
           query: print(UPDATE_SHAREABLE_LIST_ITEM),
           variables: { data },
@@ -535,7 +512,7 @@ describe('public mutations: ShareableListItem', () => {
 
       const result = await request(app)
         .post(graphQLUrl)
-        .set(headers)
+        .set(pilotUserHeaders)
         .send({
           query: print(UPDATE_SHAREABLE_LIST_ITEM),
           variables: { data },
@@ -557,7 +534,7 @@ describe('public mutations: ShareableListItem', () => {
 
       const result = await request(app)
         .post(graphQLUrl)
-        .set(headers)
+        .set(publicUserHeaders)
         .send({
           query: print(UPDATE_SHAREABLE_LIST_ITEM),
           variables: { data },
@@ -579,7 +556,7 @@ describe('public mutations: ShareableListItem', () => {
 
       const result = await request(app)
         .post(graphQLUrl)
-        .set(headers)
+        .set(publicUserHeaders)
         .send({
           query: print(UPDATE_SHAREABLE_LIST_ITEM),
           variables: { data },
@@ -601,7 +578,9 @@ describe('public mutations: ShareableListItem', () => {
 
       const result = await request(app)
         .post(graphQLUrl)
-        .set(headers)
+        .set({
+          userId: '5555555555',
+        })
         .send({
           query: print(UPDATE_SHAREABLE_LIST_ITEM),
           variables: { data },
@@ -613,37 +592,15 @@ describe('public mutations: ShareableListItem', () => {
       );
     });
 
-    it('should not update a list item for a non-pilot user', async () => {
-      const data: UpdateShareableListItemInput = {
-        externalId: listItem1.externalId,
-        note: 'test',
-      };
-
-      const result = await request(app)
-        .post(graphQLUrl)
-        .set({
-          userId: '848135',
-        })
-        .send({
-          query: print(UPDATE_SHAREABLE_LIST_ITEM),
-          variables: { data },
-        });
-
-      expect(result.body.data).to.be.null;
-
-      expect(result.body.errors[0].extensions.code).to.equal('FORBIDDEN');
-      expect(result.body.errors[0].message).to.equal(ACCESS_DENIED_ERROR);
-    });
-
     it('should update a shareable list item and delete a note', async () => {
       const data: UpdateShareableListItemInput = {
-        externalId: listItem1.externalId,
+        externalId: listItem2.externalId,
         note: null,
       };
 
       const result = await request(app)
         .post(graphQLUrl)
-        .set(headers)
+        .set(publicUserHeaders)
         .send({
           query: print(UPDATE_SHAREABLE_LIST_ITEM),
           variables: { data },
@@ -666,13 +623,13 @@ describe('public mutations: ShareableListItem', () => {
 
     it('should update a shareable list item sort order', async () => {
       const data: UpdateShareableListItemInput = {
-        externalId: listItem1.externalId,
+        externalId: listItem2.externalId,
         sortOrder: 4,
       };
 
       const result = await request(app)
         .post(graphQLUrl)
-        .set(headers)
+        .set(publicUserHeaders)
         .send({
           query: print(UPDATE_SHAREABLE_LIST_ITEM),
           variables: { data },
@@ -690,18 +647,18 @@ describe('public mutations: ShareableListItem', () => {
       expect(listItem.sortOrder).to.equal(data.sortOrder);
 
       // note should be retained
-      expect(listItem.note).to.equal(listItem1.note);
+      expect(listItem.note).to.equal(listItem2.note);
     });
 
     it('should disregard a sort order of null', async () => {
       const data: UpdateShareableListItemInput = {
-        externalId: listItem1.externalId,
+        externalId: listItem2.externalId,
         sortOrder: null,
       };
 
       const result = await request(app)
         .post(graphQLUrl)
-        .set(headers)
+        .set(publicUserHeaders)
         .send({
           query: print(UPDATE_SHAREABLE_LIST_ITEM),
           variables: { data },
@@ -737,7 +694,7 @@ describe('public mutations: ShareableListItem', () => {
 
       // create pilot users
       pilotUser1 = await createPilotUserHelper(db, {
-        userId: parseInt(headers.userId),
+        userId: parseInt(pilotUserHeaders.userId),
       });
 
       pilotUser2 = await createPilotUserHelper(db, {
@@ -746,7 +703,7 @@ describe('public mutations: ShareableListItem', () => {
 
       // Create a VISIBLE List for pilot user 1
       shareableList1 = await createShareableListHelper(db, {
-        userId: parseInt(headers.userId),
+        userId: parseInt(pilotUserHeaders.userId),
         title: 'Simon Le Bon List',
       });
 
@@ -785,7 +742,7 @@ describe('public mutations: ShareableListItem', () => {
 
       const result = await request(app)
         .post(graphQLUrl)
-        .set(headers)
+        .set(pilotUserHeaders)
         .send({
           query: print(UPDATE_SHAREABLE_LIST_ITEMS),
           variables: { data },
@@ -834,7 +791,7 @@ describe('public mutations: ShareableListItem', () => {
 
       const result = await request(app)
         .post(graphQLUrl)
-        .set(headers)
+        .set(pilotUserHeaders)
         .send({
           query: print(UPDATE_SHAREABLE_LIST_ITEMS),
           variables: { data },
@@ -871,7 +828,7 @@ describe('public mutations: ShareableListItem', () => {
 
       const result = await request(app)
         .post(graphQLUrl)
-        .set(headers)
+        .set(pilotUserHeaders)
         .send({
           query: print(UPDATE_SHAREABLE_LIST_ITEMS),
           variables: { data },
@@ -915,7 +872,7 @@ describe('public mutations: ShareableListItem', () => {
 
       const result = await request(app)
         .post(graphQLUrl)
-        .set(headers)
+        .set(pilotUserHeaders)
         .send({
           query: print(UPDATE_SHAREABLE_LIST_ITEMS),
           variables: { data },
@@ -941,7 +898,7 @@ describe('public mutations: ShareableListItem', () => {
 
       const result = await request(app)
         .post(graphQLUrl)
-        .set(headers)
+        .set(pilotUserHeaders)
         .send({
           query: print(UPDATE_SHAREABLE_LIST_ITEMS),
           variables: { data },
@@ -952,34 +909,6 @@ describe('public mutations: ShareableListItem', () => {
         'Error - Not Found: A list item by that ID could not be found'
       );
     });
-
-    it('should not update shareable list items for a non-pilot user', async () => {
-      const data: UpdateShareableListItemsInput[] = [
-        {
-          externalId: listItem1.externalId,
-          sortOrder: 1,
-        },
-        {
-          externalId: listItem2.externalId,
-          sortOrder: 2,
-        },
-      ];
-
-      const result = await request(app)
-        .post(graphQLUrl)
-        .set({
-          userId: '848135',
-        })
-        .send({
-          query: print(UPDATE_SHAREABLE_LIST_ITEMS),
-          variables: { data },
-        });
-
-      expect(result.body.data).to.be.null;
-
-      expect(result.body.errors[0].extensions.code).to.equal('FORBIDDEN');
-      expect(result.body.errors[0].message).to.equal(ACCESS_DENIED_ERROR);
-    });
   });
 
   describe('deleteShareableListItem', () => {
@@ -989,55 +918,22 @@ describe('public mutations: ShareableListItem', () => {
     beforeEach(async () => {
       await clearDb(db);
 
-      // create pilot users
-      pilotUser1 = await createPilotUserHelper(db, {
-        userId: parseInt(headers.userId),
-      });
-
-      pilotUser2 = await createPilotUserHelper(db, {
-        userId: 7732025862,
-      });
-
       // Create a VISIBLE List
       shareableList = await createShareableListHelper(db, {
-        userId: parseInt(headers.userId),
+        userId: parseInt(publicUserHeaders.userId),
         title: 'Simon Le Bon List',
       });
+
       // Create a ListItem
       listItem1 = await createShareableListItemHelper(db, {
         list: shareableList,
       });
     });
 
-    it('should not delete a list item for a user not in the pilot', async () => {
-      const list = await createShareableListHelper(db, {
-        userId: pilotUser1.userId,
-        title: 'Bob Sinclair List',
-      });
-
-      const listItem = await createShareableListItemHelper(db, {
-        list,
-      });
-
-      const result = await request(app)
-        .post(graphQLUrl)
-        .set({
-          userId: '848135',
-        })
-        .send({
-          query: print(DELETE_SHAREABLE_LIST_ITEM),
-          variables: { externalId: listItem.externalId },
-        });
-      expect(result.body.data).not.to.exist;
-      expect(result.body.errors.length).to.equal(1);
-      expect(result.body.errors[0].extensions.code).to.equal('FORBIDDEN');
-      expect(result.body.errors[0].message).to.equal(ACCESS_DENIED_ERROR);
-    });
-
     it('should not delete a list item for another userId', async () => {
       // Create a List and ListItem for another userId
       const list = await createShareableListHelper(db, {
-        userId: pilotUser2.userId,
+        userId: 5555555555,
         title: 'Bob Sinclair List',
       });
 
@@ -1048,7 +944,7 @@ describe('public mutations: ShareableListItem', () => {
       // Run the mutation as userId: 12345 but trying to delete a list item for userId: 65129
       const result = await request(app)
         .post(graphQLUrl)
-        .set(headers)
+        .set(publicUserHeaders)
         .send({
           query: print(DELETE_SHAREABLE_LIST_ITEM),
           variables: { externalId: listItem.externalId },
@@ -1079,7 +975,7 @@ describe('public mutations: ShareableListItem', () => {
       // Run the mutation with a non-existing externalId
       const result = await request(app)
         .post(graphQLUrl)
-        .set(headers)
+        .set(publicUserHeaders)
         .send({
           query: print(DELETE_SHAREABLE_LIST_ITEM),
           variables: { externalId: 'non-existing-uuid' },
@@ -1093,9 +989,11 @@ describe('public mutations: ShareableListItem', () => {
     });
 
     it('should not delete a list item if parent list is hidden', async () => {
+      // this function should operate on pilot users as right now, only a
+      // pilot user can publish a list (which can be hidden)
       // Create a HIDDEN List
       const hiddenShareableList = await createShareableListHelper(db, {
-        userId: parseInt(headers.userId),
+        userId: parseInt(pilotUserHeaders.userId),
         title: 'Simon Le Bon List',
         moderationStatus: ModerationStatus.HIDDEN,
       });
@@ -1106,7 +1004,7 @@ describe('public mutations: ShareableListItem', () => {
       // Run the mutation
       const result = await request(app)
         .post(graphQLUrl)
-        .set(headers)
+        .set(pilotUserHeaders)
         .send({
           query: print(DELETE_SHAREABLE_LIST_ITEM),
           variables: { externalId: listItem3.externalId },
@@ -1123,7 +1021,7 @@ describe('public mutations: ShareableListItem', () => {
       // Run the mutation
       const result = await request(app)
         .post(graphQLUrl)
-        .set(headers)
+        .set(publicUserHeaders)
         .send({
           query: print(DELETE_SHAREABLE_LIST_ITEM),
           variables: { externalId: listItem1.externalId },
@@ -1138,7 +1036,7 @@ describe('public mutations: ShareableListItem', () => {
       // by trying to delete the same item
       const result2 = await request(app)
         .post(graphQLUrl)
-        .set(headers)
+        .set(publicUserHeaders)
         .send({
           query: print(DELETE_SHAREABLE_LIST_ITEM),
           variables: { externalId: listItem1.externalId },

@@ -89,12 +89,6 @@ export async function validateUserId(
     throw new ForbiddenError(ACCESS_DENIED_ERROR);
   }
 
-  const isInPilot = await isPilotUser(db, userId);
-
-  if (isInPilot <= 0) {
-    throw new ForbiddenError(ACCESS_DENIED_ERROR);
-  }
-
   return userId;
 }
 
