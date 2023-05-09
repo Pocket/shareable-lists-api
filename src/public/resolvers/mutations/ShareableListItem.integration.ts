@@ -693,10 +693,6 @@ describe('public mutations: ShareableListItem', () => {
       await clearDb(db);
 
       // create pilot users
-      pilotUser1 = await createPilotUserHelper(db, {
-        userId: parseInt(pilotUserHeaders.userId),
-      });
-
       pilotUser2 = await createPilotUserHelper(db, {
         userId: 7732025862,
       });

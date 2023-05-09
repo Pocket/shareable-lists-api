@@ -7,7 +7,6 @@ import {
   GT_ENCODED,
   LT_ENCODED,
 } from '../../shared/constants';
-import { isPilotUser } from '../../database/queries';
 
 /**
  * Executes a mutation, catches exceptions and records to sentry and console
