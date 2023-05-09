@@ -44,7 +44,6 @@ describe('public mutations: ShareableListItem', () => {
   let graphQLUrl: string;
   let db: PrismaClient;
   let eventBridgeClientStub: sinon.SinonStub;
-  let pilotUser1: PilotUser;
   let pilotUser2: PilotUser;
 
   const pilotUserHeaders = {
@@ -83,11 +82,7 @@ describe('public mutations: ShareableListItem', () => {
     beforeEach(async () => {
       await clearDb(db);
 
-      // create pilot users
-      pilotUser1 = await createPilotUserHelper(db, {
-        userId: parseInt(pilotUserHeaders.userId),
-      });
-
+      // create pilot user
       pilotUser2 = await createPilotUserHelper(db, {
         userId: 7732025862,
       });
