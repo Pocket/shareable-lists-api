@@ -8,6 +8,9 @@ export const ShareableListItemPublicProps = gql`
   fragment ShareableListItemPublicProps on ShareableListItem {
     externalId
     itemId
+    item {
+      itemId
+    }
     url
     title
     excerpt

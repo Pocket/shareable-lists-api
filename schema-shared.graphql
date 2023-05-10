@@ -59,6 +59,13 @@ type User @key(fields: "id", resolvable: false) {
 }
 
 """
+Resolve by reference the Item entity to connect ShareableListItems to Items.
+"""
+type Item @key(fields: "itemId", resolvable: false) {
+  itemId: String!
+}
+
+"""
 A Pocket Save (story) that has been added to a Shareable List.
 """
 type ShareableListItem {
@@ -70,6 +77,10 @@ type ShareableListItem {
   The Parser Item ID.
   """
   itemId: ID!
+  """
+  The Parser Item
+  """
+  item: Item! @cacheControl(maxAge: 60, scope: PUBLIC)
   """
   The URL of the story saved to a list.
   """
