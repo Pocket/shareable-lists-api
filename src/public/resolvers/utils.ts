@@ -7,7 +7,6 @@ import {
   GT_ENCODED,
   LT_ENCODED,
 } from '../../shared/constants';
-import { isPilotUser } from '../../database/queries';
 
 /**
  * Executes a mutation, catches exceptions and records to sentry and console
@@ -86,12 +85,6 @@ export async function validateUserId(
 ): Promise<number | bigint> {
   // We need this check for nearly every query and mutation on the public graph
   if (!userId) {
-    throw new ForbiddenError(ACCESS_DENIED_ERROR);
-  }
-
-  const isInPilot = await isPilotUser(db, userId);
-
-  if (isInPilot <= 0) {
     throw new ForbiddenError(ACCESS_DENIED_ERROR);
   }
 

@@ -1,4 +1,8 @@
-import { NotFoundError, UserInputError } from '@pocket-tools/apollo-utils';
+import {
+  ForbiddenError,
+  NotFoundError,
+  UserInputError,
+} from '@pocket-tools/apollo-utils';
 import { Visibility, ModerationStatus, PrismaClient } from '@prisma/client';
 import slugify from 'slugify';
 import {
@@ -13,8 +17,11 @@ import {
   createShareableListItem,
   deleteAllListItemsForList,
 } from './ShareableListItem';
-import { PRISMA_RECORD_NOT_FOUND } from '../../shared/constants';
-import { getShareableList } from '../queries';
+import {
+  ACCESS_DENIED_ERROR,
+  PRISMA_RECORD_NOT_FOUND,
+} from '../../shared/constants';
+import { getShareableList, isPilotUser } from '../queries';
 import config from '../../config';
 import { validateItemId } from '../../public/resolvers/utils';
 import { sendEventHelper } from '../../snowplow/events';
@@ -106,6 +113,18 @@ export async function updateShareableList(
 
   if (!list) {
     throw new NotFoundError(`A list by that ID could not be found`);
+  }
+
+  // until moderation is in place, we need to restrict non-pilot users from
+  // creating public lists. this is also enforced on the client, but an extra
+  // check here in case someone is clever.
+  // if you're trying to go from private to public, you have to be in the pilot
+  if (list.status === Visibility.PRIVATE && data.status === Visibility.PUBLIC) {
+    const isInPilot = await isPilotUser(db, userId);
+
+    if (isInPilot <= 0) {
+      throw new ForbiddenError(ACCESS_DENIED_ERROR);
+    }
   }
 
   // If the title is getting updated, check if the user already has a list
