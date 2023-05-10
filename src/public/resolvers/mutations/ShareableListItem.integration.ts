@@ -263,6 +263,7 @@ describe('public mutations: ShareableListItem', () => {
       const listItem = result.body.data.createShareableListItem;
       expect(listItem.externalId).not.to.be.empty;
       expect(listItem.itemId).to.equal(data.itemId);
+      expect(listItem.item.itemId).to.equal(data.itemId);
       expect(listItem.url).to.equal(data.url);
       expect(listItem.title).to.equal(data.title);
       expect(listItem.excerpt).to.equal(
@@ -313,6 +314,7 @@ describe('public mutations: ShareableListItem', () => {
 
       expect(listItem.externalId).not.to.be.empty;
       expect(listItem.itemId).to.equal(data.itemId);
+      expect(listItem.item.itemId).to.equal(data.itemId);
       expect(listItem.url).to.equal(data.url);
       expect(listItem.title).to.equal(data.title);
       expect(listItem.excerpt).to.equal(
@@ -405,6 +407,7 @@ describe('public mutations: ShareableListItem', () => {
       const listItem = result.body.data.createShareableListItem;
       expect(listItem.externalId).not.to.be.empty;
       expect(listItem.itemId).to.equal(data.itemId);
+      expect(listItem.item.itemId).to.equal(data.itemId);
       expect(listItem.url).to.equal(data.url);
       expect(listItem.title).to.equal(data.title);
       expect(listItem.excerpt).to.equal(data.excerpt);

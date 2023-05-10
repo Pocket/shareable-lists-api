@@ -224,6 +224,8 @@ describe('public queries: ShareableList', () => {
       // Let's run through the visible props of each item
       // to make sure they're all there
       listItems.forEach((listItem) => {
+        expect(listItem.itemId).not.to.be.empty;
+        expect(listItem.item.itemId).not.to.be.empty;
         expect(listItem.url).not.to.be.empty;
         expect(listItem.title).not.to.be.empty;
         expect(listItem.excerpt).not.to.be.empty;
@@ -460,6 +462,7 @@ describe('public queries: ShareableList', () => {
       // to make sure they're all there
       listItems.forEach((listItem) => {
         expect(listItem.itemId).not.to.be.empty;
+        expect(listItem.item.itemId).not.to.be.empty;
         expect(listItem.url).not.to.be.empty;
         expect(listItem.title).not.to.be.empty;
         expect(listItem.excerpt).not.to.be.empty;
@@ -528,6 +531,7 @@ describe('public queries: ShareableList', () => {
       // to make sure they're all there
       result.body.data.shareableListPublic.listItems.forEach((listItem) => {
         expect(listItem.itemId).not.to.be.empty;
+        expect(listItem.item.itemId).not.to.be.empty;
         expect(listItem.url).not.to.be.empty;
         expect(listItem.title).not.to.be.empty;
         expect(listItem.excerpt).not.to.be.empty;
@@ -680,6 +684,8 @@ describe('public queries: ShareableList', () => {
       // Let's run through the visible props of each item
       // to make sure they're all there for the first List
       listItems.forEach((listItem) => {
+        expect(listItem.itemId).not.to.be.empty;
+        expect(listItem.item.itemId).not.to.be.empty;
         expect(listItem.url).not.to.be.empty;
         expect(listItem.title).not.to.be.empty;
         expect(listItem.excerpt).not.to.be.empty;
@@ -700,6 +706,8 @@ describe('public queries: ShareableList', () => {
       // Let's run through the visible props of each item
       // to make sure they're all there for the second List
       listItems.forEach((listItem) => {
+        expect(listItem.itemId).not.to.be.empty;
+        expect(listItem.item.itemId).not.to.be.empty;
         expect(listItem.url).not.to.be.empty;
         expect(listItem.title).not.to.be.empty;
         expect(listItem.excerpt).not.to.be.empty;
