@@ -530,7 +530,7 @@ describe('public queries: ShareableList', () => {
         2
       );
 
-      // default PRIVATE listItemNoteVisibility
+      // listItemNoteVisibility is PUBLIC in this scenario
       expect(
         result.body.data.shareableListPublic.listItemNoteVisibility
       ).to.equal(Visibility.PUBLIC);
