@@ -98,6 +98,10 @@ type ShareableListPublic implements ShareableListInterface
   Pocket Saves that have been added to this list by the Pocket user.
   """
   listItems: [ShareableListItem!]! @cacheControl(maxAge: 60, scope: PUBLIC)
+  """
+  The visibility of notes added to list items for this list.
+  """
+  listItemNoteVisibility: ShareableListVisibility!
 }
 
 """
