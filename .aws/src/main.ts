@@ -27,26 +27,27 @@ import {
 } from 'cdktf';
 import * as fs from 'fs';
 import { SQSLambda } from './SQSLambda';
+import { APIMonitoring } from './synthetics';
 
 class ShareableListsAPI extends TerraformStack {
   constructor(scope: Construct, name: string) {
     super(scope, name);
 
+    new ArchiveProvider(this, 'archive-provider');
     new AwsProvider(this, 'aws', { region: 'us-east-1' });
     new LocalProvider(this, 'local_provider');
-    new ArchiveProvider(this, 'archive-provider');
     new NullProvider(this, 'null_provider');
     new PagerdutyProvider(this, 'pagerduty_provider', { token: undefined });
-
     new RemoteBackend(this, {
       hostname: 'app.terraform.io',
       organization: 'Pocket',
       workspaces: [{ prefix: `${config.name}-` }],
     });
 
+    const caller = new DataAwsCallerIdentity(this, 'caller');
     const pocketVpc = new PocketVPC(this, 'pocket-vpc');
     const region = new DataAwsRegion(this, 'region');
-    const caller = new DataAwsCallerIdentity(this, 'caller');
+
     const cache = ShareableListsAPI.createElasticache(this, pocketVpc);
     const sqsLambda = new SQSLambda(
       this,
@@ -69,9 +70,11 @@ class ShareableListsAPI extends TerraformStack {
       }
     );
 
+    const shareableListPagerduty = this.createPagerDuty();
+
     const pocketApp = this.createPocketAlbApplication({
       rds: this.createRds(pocketVpc),
-      pagerDuty: this.createPagerDuty(),
+      pagerDuty: shareableListPagerduty,
       secretsManagerKmsAlias: this.getSecretsManagerKmsAlias(),
       snsTopic: this.getCodeDeploySnsTopic(),
       region,
@@ -80,6 +83,32 @@ class ShareableListsAPI extends TerraformStack {
     });
 
     this.createApplicationCodePipeline(pocketApp);
+
+    const monitoring = new APIMonitoring(this, 'monitoring');
+    monitoring.createSyntheticChecks(
+      {
+        query: [
+          {
+            endpoint: config.domain,
+            data: '{"query": "query { shareableListPublic(externalId: \\"1\\", slug: \\"1\\") {externalId} }"}',
+            jmespath: 'errors[0].message',
+            response:
+              'Error - Not Found: A list by that URL could not be found',
+          },
+        ],
+        securityGroupIds: pocketVpc.defaultSecurityGroups.ids,
+        subnetIds: pocketVpc.privateSubnetIds,
+        uptime: [
+          {
+            response: 'ok',
+            url: `${config.domain}/.well-known/apollo/server-health`,
+          },
+        ],
+      },
+      config.environment === 'Prod'
+        ? shareableListPagerduty.snsCriticalAlarmTopic.arn
+        : ''
+    );
   }
 
   /**
@@ -225,18 +254,10 @@ class ShareableListsAPI extends TerraformStack {
     snsTopic: DataAwsSnsTopic;
     cache: { primaryEndpoint: string; readerEndpoint: string };
   }): PocketALBApplication {
-    const {
-      //  pagerDuty, // enable if necessary
-      rds,
-      region,
-      caller,
-      secretsManagerKmsAlias,
-      snsTopic,
-      cache,
-    } = dependencies;
+    const { rds, region, caller, secretsManagerKmsAlias, snsTopic, cache } =
+      dependencies;
 
     return new PocketALBApplication(this, 'application', {
-      // TODO: "internal: true" deploys service behind VPN, set false or remove this comment
       internal: true,
       prefix: config.prefix,
       alb6CharacterPrefix: config.shortName,
@@ -277,7 +298,7 @@ class ShareableListsAPI extends TerraformStack {
             },
             {
               name: 'ENVIRONMENT',
-              value: process.env.NODE_ENV, // this gives us a nice lowercase production and development
+              value: process.env.NODE_ENV,
             },
             {
               name: 'EVENT_BUS_NAME',
@@ -349,7 +370,6 @@ class ShareableListsAPI extends TerraformStack {
             ],
             effect: 'Allow',
           },
-          //This policy could probably go in the shared module in the future.
           {
             actions: ['ssm:GetParameter*'],
             resources: [
@@ -386,15 +406,7 @@ class ShareableListsAPI extends TerraformStack {
         targetMinCapacity: 2,
         targetMaxCapacity: 10,
       },
-      alarms: {
-        //TODO: When you start using the service add the pagerduty arns as an action `pagerDuty.snsNonCriticalAlarmTopic.arn`
-        http5xxErrorPercentage: {
-          threshold: 25,
-          evaluationPeriods: 4,
-          period: 300,
-          actions: config.isDev ? [] : [],
-        },
-      },
+      alarms: {},
     });
   }
 }
