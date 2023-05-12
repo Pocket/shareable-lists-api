@@ -1,6 +1,7 @@
 import { ApolloServer } from '@apollo/server';
 import {
   List,
+  ListItem,
   Visibility,
   ModerationStatus,
   PrismaClient,
@@ -13,6 +14,7 @@ import { client } from '../../../database/client';
 import {
   clearDb,
   createShareableListHelper,
+  createShareableListItemHelper,
   updateShareableListHelper,
   mockRedisServer,
 } from '../../../test/helpers';
@@ -28,6 +30,7 @@ describe('admin queries: ShareableList', () => {
   let graphQLUrl: string;
   let db: PrismaClient;
   let shareableList: List;
+  let shareableListItem: ListItem;
 
   const headers = {
     name: 'Test User',
@@ -55,6 +58,14 @@ describe('admin queries: ShareableList', () => {
     shareableList = await createShareableListHelper(db, {
       userId: 12345,
       title: 'Burning Rose',
+    });
+
+    // create shareable list item
+    shareableListItem = await createShareableListItemHelper(db, {
+      list: shareableList,
+      url: 'https://www.test.com/duplicate-url',
+      sortOrder: 1,
+      itemId: 3834701731,
     });
   });
 
@@ -124,6 +135,23 @@ describe('admin queries: ShareableList', () => {
 
       // Make sure slug is not empty
       expect(list.slug).not.to.be.empty;
+
+      // Assert that all props are returned
+      const listItem = list.listItems[0];
+
+      expect(listItem.externalId).not.to.be.empty;
+      expect(listItem.itemId).to.equal('3834701731');
+      expect(listItem.item.itemId).to.equal('3834701731');
+      expect(listItem.url).to.equal(shareableListItem.url);
+      expect(listItem.title).to.equal(shareableListItem.title);
+      expect(listItem.excerpt).to.equal(shareableListItem.excerpt);
+      expect(listItem.note).to.equal(shareableListItem.note);
+      expect(listItem.imageUrl).to.equal(shareableListItem.imageUrl);
+      expect(listItem.publisher).to.equal(shareableListItem.publisher);
+      expect(listItem.authors).to.equal(shareableListItem.authors);
+      expect(listItem.sortOrder).to.equal(1);
+      expect(listItem.createdAt).not.to.be.empty;
+      expect(listItem.updatedAt).not.to.be.empty;
     });
   });
 });
