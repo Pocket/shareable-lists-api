@@ -76,17 +76,6 @@ function transformAPIShareableListItemToSnowplowShareableListItem(
     shareable_list_item_external_id: externalId,
     shareable_list_external_id: listExternalId,
     given_url: shareableListItem.url,
-    title: shareableListItem.title ? shareableListItem.title : undefined,
-    excerpt: shareableListItem.excerpt ? shareableListItem.excerpt : undefined,
-    image_url: shareableListItem.imageUrl
-      ? shareableListItem.imageUrl
-      : undefined,
-    authors: shareableListItem.authors
-      ? shareableListItem.authors.split(',')
-      : undefined,
-    publisher: shareableListItem.publisher
-      ? shareableListItem.publisher
-      : undefined,
     note: shareableListItem.note ? shareableListItem.note : undefined,
     sort_order: shareableListItem.sortOrder,
     created_at: Math.floor(shareableListItem.createdAt.getTime() / 1000),

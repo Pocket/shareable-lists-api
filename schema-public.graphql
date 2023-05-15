@@ -130,12 +130,7 @@ input CreateShareableListItemInput {
   listExternalId: ID!
   itemId: ID!
   url: Url!
-  title: String
-  excerpt: String
   note: String @constraint(maxLength: 300)
-  imageUrl: Url
-  publisher: String
-  authors: String
   sortOrder: Int!
 }
 
@@ -145,12 +140,7 @@ Input data for creating a Shareable List Item during Shareable List creation.
 input CreateShareableListItemWithList {
   itemId: ID!
   url: Url!
-  title: String
-  excerpt: String
   note: String @constraint(maxLength: 300)
-  imageUrl: Url
-  publisher: String
-  authors: String
   sortOrder: Int!
 }
 

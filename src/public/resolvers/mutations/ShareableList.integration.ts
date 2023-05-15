@@ -206,11 +206,6 @@ describe('public mutations: ShareableList', () => {
       const listItemData = {
         itemId: '378asdf9538749', // invalid!
         url: 'https://www.test.com/this-is-a-story',
-        title: 'A story is a story',
-        excerpt: '<blink>The best story ever told</blink>',
-        imageUrl: 'https://www.test.com/thumbnail.jpg',
-        publisher: 'The London Times',
-        authors: 'Charles Dickens, Mark Twain',
         sortOrder: 10,
       };
 
@@ -240,11 +235,6 @@ describe('public mutations: ShareableList', () => {
       const listItemData = {
         itemId: '3789538749',
         url: 'https://www.test.com/this-is-a-story',
-        title: 'A story is a story',
-        excerpt: '<blink>The best story ever told</blink>',
-        imageUrl: 'https://www.test.com/thumbnail.jpg',
-        publisher: 'The London Times',
-        authors: 'Charles Dickens, Mark Twain',
         sortOrder: 10,
       };
 
@@ -269,14 +259,9 @@ describe('public mutations: ShareableList', () => {
 
       const listItem = list.listItems[0];
 
-      expect(listItem.title).to.equal(listItemData.title);
       expect(listItem.url).to.equal(listItemData.url);
       expect(listItem.itemId).to.equal(listItemData.itemId);
       expect(listItem.item.itemId).to.equal(listItemData.itemId);
-      expect(listItem.excerpt).to.equal(listItemData.excerpt);
-      expect(listItem.imageUrl).to.equal(listItemData.imageUrl);
-      expect(listItem.publisher).to.equal(listItemData.publisher);
-      expect(listItem.authors).to.equal(listItemData.authors);
       expect(listItem.sortOrder).to.equal(listItemData.sortOrder);
     });
 

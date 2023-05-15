@@ -65,12 +65,7 @@ export async function createShareableListItem(
     // coerce itemId to a number to conform to db schema
     itemId: parseInt(data.itemId),
     url: data.url,
-    title: data.title ?? undefined,
-    excerpt: data.excerpt ?? undefined,
     note: data.note ?? undefined,
-    imageUrl: data.imageUrl ?? undefined,
-    publisher: data.publisher ?? undefined,
-    authors: data.authors ?? undefined,
     sortOrder: data.sortOrder,
     listId: list.id,
   };

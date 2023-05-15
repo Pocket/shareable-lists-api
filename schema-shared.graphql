@@ -86,32 +86,9 @@ type ShareableListItem {
   """
   url: Url!
   """
-  The title of the story. Supplied by the Parser.
-  May not be available for URLs that cannot be resolved.
-  Not editable by the Pocket user, as are all the other
-  Parser-supplied story properties below.
-  """
-  title: String
-  """
-  The excerpt of the story. Supplied by the Parser.
-  """
-  excerpt: String
-  """
   User generated note to accompany this list item.
   """
   note: String
-  """
-  The URL of the thumbnail image illustrating the story. Supplied by the Parser.
-  """
-  imageUrl: Url
-  """
-  The name of the publisher for this story. Supplied by the Parser.
-  """
-  publisher: String
-  """
-  A comma-separated list of story authors. Supplied by the Parser.
-  """
-  authors: String
   """
   The custom sort order of stories within a list. Defaults to 1.
   """

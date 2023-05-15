@@ -12,12 +12,7 @@ export const ShareableListItemPublicProps = gql`
       itemId
     }
     url
-    title
-    excerpt
     note
-    imageUrl
-    publisher
-    authors
     sortOrder
     createdAt
     updatedAt

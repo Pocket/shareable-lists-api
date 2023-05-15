@@ -227,12 +227,7 @@ describe('public queries: ShareableList', () => {
         expect(listItem.itemId).not.to.be.empty;
         expect(listItem.item.itemId).not.to.be.empty;
         expect(listItem.url).not.to.be.empty;
-        expect(listItem.title).not.to.be.empty;
-        expect(listItem.excerpt).not.to.be.empty;
         expect(listItem.note).not.to.be.empty;
-        expect(listItem.imageUrl).not.to.be.empty;
-        expect(listItem.publisher).not.to.be.empty;
-        expect(listItem.authors).not.to.be.empty;
         expect(listItem.sortOrder).to.be.a('number');
         expect(listItem.createdAt).not.to.be.empty;
         expect(listItem.updatedAt).not.to.be.empty;
@@ -467,13 +462,8 @@ describe('public queries: ShareableList', () => {
         expect(listItem.itemId).not.to.be.empty;
         expect(listItem.item.itemId).not.to.be.empty;
         expect(listItem.url).not.to.be.empty;
-        expect(listItem.title).not.to.be.empty;
-        expect(listItem.excerpt).not.to.be.empty;
         // note should be empty because the visibility on the list is PRIVATE
         expect(listItem.note).to.be.null;
-        expect(listItem.imageUrl).not.to.be.empty;
-        expect(listItem.publisher).not.to.be.empty;
-        expect(listItem.authors).not.to.be.empty;
         expect(listItem.sortOrder).to.be.a('number');
         expect(listItem.createdAt).not.to.be.empty;
         expect(listItem.updatedAt).not.to.be.empty;
@@ -541,13 +531,8 @@ describe('public queries: ShareableList', () => {
         expect(listItem.itemId).not.to.be.empty;
         expect(listItem.item.itemId).not.to.be.empty;
         expect(listItem.url).not.to.be.empty;
-        expect(listItem.title).not.to.be.empty;
-        expect(listItem.excerpt).not.to.be.empty;
         // note should not be empty because the visibility on the list is PUBLIC
         expect(listItem.note).not.to.be.empty;
-        expect(listItem.imageUrl).not.to.be.empty;
-        expect(listItem.publisher).not.to.be.empty;
-        expect(listItem.authors).not.to.be.empty;
         expect(listItem.sortOrder).to.be.a('number');
         expect(listItem.createdAt).not.to.be.empty;
         expect(listItem.updatedAt).not.to.be.empty;
@@ -695,11 +680,6 @@ describe('public queries: ShareableList', () => {
         expect(listItem.itemId).not.to.be.empty;
         expect(listItem.item.itemId).not.to.be.empty;
         expect(listItem.url).not.to.be.empty;
-        expect(listItem.title).not.to.be.empty;
-        expect(listItem.excerpt).not.to.be.empty;
-        expect(listItem.imageUrl).not.to.be.empty;
-        expect(listItem.publisher).not.to.be.empty;
-        expect(listItem.authors).not.to.be.empty;
         expect(listItem.sortOrder).to.be.a('number');
         expect(listItem.createdAt).not.to.be.empty;
         expect(listItem.updatedAt).not.to.be.empty;
@@ -717,12 +697,7 @@ describe('public queries: ShareableList', () => {
         expect(listItem.itemId).not.to.be.empty;
         expect(listItem.item.itemId).not.to.be.empty;
         expect(listItem.url).not.to.be.empty;
-        expect(listItem.title).not.to.be.empty;
-        expect(listItem.excerpt).not.to.be.empty;
         expect(listItem.note).not.to.be.empty;
-        expect(listItem.imageUrl).not.to.be.empty;
-        expect(listItem.publisher).not.to.be.empty;
-        expect(listItem.authors).not.to.be.empty;
         expect(listItem.sortOrder).to.be.a('number');
         expect(listItem.createdAt).not.to.be.empty;
         expect(listItem.updatedAt).not.to.be.empty;

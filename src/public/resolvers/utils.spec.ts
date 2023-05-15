@@ -68,19 +68,14 @@ describe('utility functions', () => {
       const input: CreateShareableListItemInput = {
         listExternalId: '123-abc',
         itemId: '456789',
-        url: 'https://www.test.com/story',
-        title: 'This is a test title',
-        excerpt: 'An excerpt sounds like a good thing to have',
-        imageUrl: 'https://www.test.com/<script>alert("hello world");</script>',
-        publisher: 'House of Random Penguins',
-        authors: 'Charles Dickens',
+        url: 'https://www.test.com/<script>alert("hello world");</script>',
         sortOrder: 10,
       };
 
       const safeInput = sanitizeMutationInput(input);
 
       // dodgy strings are still escaped
-      expect(safeInput.imageUrl).to.equal(
+      expect(safeInput.url).to.equal(
         'https://www.test.com/&lt;script&gt;alert("hello world");&lt;/script&gt;'
       );
 

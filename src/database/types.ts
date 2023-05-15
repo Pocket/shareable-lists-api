@@ -38,12 +38,7 @@ export const shareableListItemSelectFields =
     externalId: true,
     itemId: true,
     url: true,
-    title: true,
-    excerpt: true,
     note: true,
-    imageUrl: true,
-    publisher: true,
-    authors: true,
     sortOrder: true,
     createdAt: true,
     updatedAt: true,
@@ -132,12 +127,7 @@ export type CreateShareableListItemInput = {
   listExternalId: string;
   itemId: string;
   url: string;
-  title?: string;
-  excerpt?: string;
   note?: string;
-  imageUrl?: string;
-  publisher?: string;
-  authors?: string;
   sortOrder: number;
 };
 

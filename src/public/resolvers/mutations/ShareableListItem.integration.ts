@@ -156,7 +156,6 @@ describe('public mutations: ShareableListItem', () => {
         listExternalId: pilotList.externalId,
         itemId: '1',
         url: 'https://www.test.com/this-is-a-story',
-        title: 'This Story Is Trying to Sneak In',
         sortOrder: 20,
       };
 
@@ -181,11 +180,6 @@ describe('public mutations: ShareableListItem', () => {
         listExternalId: list.externalId,
         itemId: '383asdf4701731',
         url: 'https://www.test.com/this-is-a-story',
-        title: 'A story is a story',
-        excerpt: '<blink>The best story ever told</blink>',
-        imageUrl: 'https://www.test.com/thumbnail.jpg',
-        publisher: 'The London Times',
-        authors: 'Charles Dickens, Mark Twain',
         sortOrder: 10,
       };
 
@@ -209,12 +203,7 @@ describe('public mutations: ShareableListItem', () => {
         listExternalId: list.externalId,
         itemId: '3834701731',
         url: 'https://www.test.com/this-is-a-story',
-        title: 'A story is a story',
-        excerpt: '<blink>The best story ever told</blink>',
         note: faker.random.alpha(LIST_ITEM_NOTE_MAX_CHARS + 1),
-        imageUrl: 'https://www.test.com/thumbnail.jpg',
-        publisher: 'The London Times',
-        authors: 'Charles Dickens, Mark Twain',
         sortOrder: 10,
       };
 
@@ -237,11 +226,6 @@ describe('public mutations: ShareableListItem', () => {
         listExternalId: list.externalId,
         itemId: '3834701731',
         url: 'https://www.test.com/this-is-a-story',
-        title: 'A story is a story',
-        excerpt: '<blink>The best story ever told</blink>',
-        imageUrl: 'https://www.test.com/thumbnail.jpg',
-        publisher: 'The London Times',
-        authors: 'Charles Dickens, Mark Twain',
         sortOrder: 10,
       };
 
@@ -265,14 +249,7 @@ describe('public mutations: ShareableListItem', () => {
       expect(listItem.itemId).to.equal(data.itemId);
       expect(listItem.item.itemId).to.equal(data.itemId);
       expect(listItem.url).to.equal(data.url);
-      expect(listItem.title).to.equal(data.title);
-      expect(listItem.excerpt).to.equal(
-        '&lt;blink&gt;The best story ever told&lt;/blink&gt;'
-      );
       expect(listItem.note).to.be.null;
-      expect(listItem.imageUrl).to.equal(data.imageUrl);
-      expect(listItem.publisher).to.equal(data.publisher);
-      expect(listItem.authors).to.equal(data.authors);
       expect(listItem.sortOrder).to.equal(data.sortOrder);
       expect(listItem.createdAt).not.to.be.empty;
       expect(listItem.updatedAt).not.to.be.empty;
@@ -283,12 +260,7 @@ describe('public mutations: ShareableListItem', () => {
         listExternalId: list.externalId,
         itemId: '3834701731',
         url: 'https://www.test.com/this-is-a-story',
-        title: 'A story is a story',
-        excerpt: '<blink>The best story ever told</blink>',
         note: '<div>here is what <strong>i</strong> think about this article...</div>',
-        imageUrl: 'https://www.test.com/thumbnail.jpg',
-        publisher: 'The London Times',
-        authors: 'Charles Dickens, Mark Twain',
         sortOrder: 10,
       };
 
@@ -316,16 +288,9 @@ describe('public mutations: ShareableListItem', () => {
       expect(listItem.itemId).to.equal(data.itemId);
       expect(listItem.item.itemId).to.equal(data.itemId);
       expect(listItem.url).to.equal(data.url);
-      expect(listItem.title).to.equal(data.title);
-      expect(listItem.excerpt).to.equal(
-        '&lt;blink&gt;The best story ever told&lt;/blink&gt;'
-      );
       expect(listItem.note).to.equal(
         '&lt;div&gt;here is what &lt;strong&gt;i&lt;/strong&gt; think about this article...&lt;/div&gt;'
       );
-      expect(listItem.imageUrl).to.equal(data.imageUrl);
-      expect(listItem.publisher).to.equal(data.publisher);
-      expect(listItem.authors).to.equal(data.authors);
       expect(listItem.sortOrder).to.equal(data.sortOrder);
       expect(listItem.createdAt).not.to.be.empty;
       expect(listItem.updatedAt).not.to.be.empty;
@@ -379,12 +344,7 @@ describe('public mutations: ShareableListItem', () => {
         listExternalId: list.externalId,
         itemId: '3789538749',
         url: 'https://www.test.com/another-duplicate-url',
-        title: 'A story is a story',
-        excerpt: 'The best story ever told',
         note: 'here is what i think about this article...',
-        imageUrl: 'https://www.test.com/thumbnail.jpg',
-        publisher: 'The Hogwarts Express',
-        authors: 'Charles Dickens, Mark Twain',
         sortOrder: 5,
       };
 
@@ -409,12 +369,7 @@ describe('public mutations: ShareableListItem', () => {
       expect(listItem.itemId).to.equal(data.itemId);
       expect(listItem.item.itemId).to.equal(data.itemId);
       expect(listItem.url).to.equal(data.url);
-      expect(listItem.title).to.equal(data.title);
-      expect(listItem.excerpt).to.equal(data.excerpt);
       expect(listItem.note).to.equal(data.note);
-      expect(listItem.imageUrl).to.equal(data.imageUrl);
-      expect(listItem.publisher).to.equal(data.publisher);
-      expect(listItem.authors).to.equal(data.authors);
       expect(listItem.sortOrder).to.equal(data.sortOrder);
       expect(listItem.createdAt).not.to.be.empty;
       expect(listItem.updatedAt).not.to.be.empty;
@@ -1023,8 +978,8 @@ describe('public mutations: ShareableListItem', () => {
       // This mutation should not be cached, expect headers.cache-control = no-store
       expect(result.headers['cache-control']).to.equal('no-store');
       expect(result.body.data.deleteShareableListItem).to.exist;
-      expect(result.body.data.deleteShareableListItem.title).to.equal(
-        listItem1.title
+      expect(result.body.data.deleteShareableListItem.url).to.equal(
+        listItem1.url
       );
       // Assert that the item is not present in the db anymore
       // by trying to delete the same item
