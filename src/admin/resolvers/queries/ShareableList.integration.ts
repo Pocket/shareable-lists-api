@@ -141,7 +141,6 @@ describe('admin queries: ShareableList', () => {
 
       expect(listItem.externalId).not.to.be.empty;
       expect(listItem.itemId).to.equal('3834701731');
-      expect(listItem.item.itemId).to.equal('3834701731');
       expect(listItem.url).to.equal(shareableListItem.url);
       expect(listItem.title).to.equal(shareableListItem.title);
       expect(listItem.excerpt).to.equal(shareableListItem.excerpt);

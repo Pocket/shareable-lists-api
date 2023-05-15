@@ -26,6 +26,27 @@ export const ShareableListItemPublicProps = gql`
 
 /**
  * This GraphQL fragment contains all the properties that must be available
+ * in the Admin Pocket Graph for a Shareable List Item (does not expose item: Item).
+ */
+export const ShareableListItemAdminProps = gql`
+  fragment ShareableListItemAdminProps on ShareableListItemAdmin {
+    externalId
+    itemId
+    url
+    title
+    excerpt
+    note
+    imageUrl
+    publisher
+    authors
+    sortOrder
+    createdAt
+    updatedAt
+  }
+`;
+
+/**
+ * This GraphQL fragment contains all the properties that must be available
  * in the Public Pocket Graph for a Shareable List.
  */
 export const ShareableListPublicProps = gql`
