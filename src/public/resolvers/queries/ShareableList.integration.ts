@@ -413,6 +413,9 @@ describe('public queries: ShareableList', () => {
 
       // Empty list items array
       expect(list.listItems).to.have.lengthOf(0);
+
+      // default PRIVATE listItemNoteVisibility
+      expect(list.listItemNoteVisibility).to.equal(Visibility.PRIVATE);
     });
 
     it('should return a list with sorted list items', async () => {
@@ -526,6 +529,11 @@ describe('public queries: ShareableList', () => {
       expect(result.body.data.shareableListPublic.listItems).to.have.lengthOf(
         2
       );
+
+      // listItemNoteVisibility is PUBLIC in this scenario
+      expect(
+        result.body.data.shareableListPublic.listItemNoteVisibility
+      ).to.equal(Visibility.PUBLIC);
 
       // Let's run through the visible props of each item
       // to make sure they're all there
