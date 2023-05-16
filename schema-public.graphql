@@ -1,7 +1,7 @@
 """
 A user-created list of Pocket saves that can be shared publicly.
 """
-type ShareableList implements ShareableListInterface {
+type ShareableList {
   """
   A unique string identifier in UUID format.
   """
@@ -54,8 +54,7 @@ type ShareableList implements ShareableListInterface {
 A list that has been already shared publicly.
 This type is needed as it needs to be cached.
 """
-type ShareableListPublic implements ShareableListInterface
-  @cacheControl(maxAge: 60, scope: PUBLIC) {
+type ShareableListPublic @cacheControl(maxAge: 60, scope: PUBLIC) {
   """
   A unique string identifier in UUID format.
   """
