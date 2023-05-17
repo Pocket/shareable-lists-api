@@ -1,6 +1,5 @@
-import { ApolloServer } from '@apollo/server';
-import { Server } from 'http';
 import { errorHandler, sentryPlugin } from '@pocket-tools/apollo-utils';
+import { ApolloServer, ApolloServerPlugin } from '@apollo/server';
 import { ApolloServerPluginLandingPageGraphQLPlayground } from '@apollo/server-plugin-landing-page-graphql-playground';
 import {
   ApolloServerPluginLandingPageDisabled,
@@ -12,6 +11,7 @@ import { ApolloServerPluginDrainHttpServer } from '@apollo/server/plugin/drainHt
 import { ApolloServerPluginCacheControl } from '@apollo/server/plugin/cacheControl';
 import responseCachePlugin from '@apollo/server-plugin-response-cache';
 import { createApollo4QueryValidationPlugin } from 'graphql-constraint-directive/apollo4';
+import { Server } from 'http';
 
 import { IPublicContext } from './context';
 import config from '../config';
@@ -34,24 +34,33 @@ export function getPublicServer(
       // and we will specify the max age for specific queries on the schema and resolver level
       defaultMaxAge: config.app.defaultMaxAge,
     }),
+    ApolloServerPluginUsageReportingDisabled(),
     createApollo4QueryValidationPlugin({
       schema,
     }),
   ];
-  const prodPlugins = [
-    ApolloServerPluginLandingPageDisabled(),
-    ApolloServerPluginInlineTrace(),
-  ];
-  const nonProdPlugins = [
-    ApolloServerPluginLandingPageGraphQLPlayground(),
-    ApolloServerPluginInlineTraceDisabled(),
-    // Usage reporting is enabled by default if you have APOLLO_KEY in your environment
-    ApolloServerPluginUsageReportingDisabled(),
-  ];
-  const plugins =
-    process.env.NODE_ENV === 'production'
-      ? defaultPlugins.concat(prodPlugins)
-      : defaultPlugins.concat(nonProdPlugins);
+
+  // map of plugins for each node environment
+  const environmentPlugins: Record<
+    'test' | 'development' | 'production',
+    ApolloServerPlugin[]
+  > = {
+    test: [ApolloServerPluginInlineTraceDisabled()],
+    development: [
+      ApolloServerPluginLandingPageGraphQLPlayground(),
+      ApolloServerPluginInlineTrace({ includeErrors: { unmodified: true } }),
+    ],
+    production: [
+      ApolloServerPluginLandingPageDisabled(),
+      ApolloServerPluginInlineTrace({ includeErrors: { unmodified: true } }),
+    ],
+  };
+
+  // combine default plugins with environment specific plugins for this server
+  // instance
+  const plugins = defaultPlugins.concat(
+    environmentPlugins[process.env.NODE_ENV] ?? []
+  );
 
   return new ApolloServer<IPublicContext>({
     schema,

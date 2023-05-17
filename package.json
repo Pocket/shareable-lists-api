@@ -22,7 +22,7 @@
     "migrate:reset": "prisma migrate reset"
   },
   "dependencies": {
-    "@apollo/server": "^4.3.0",
+    "@apollo/server": "^4.7.1",
     "@apollo/server-plugin-landing-page-graphql-playground": "4.0.0",
     "@apollo/server-plugin-response-cache": "^4.1.0",
     "@apollo/subgraph": "^2.3.2",
