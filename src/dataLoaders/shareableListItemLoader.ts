@@ -24,14 +24,10 @@ export const sortShareableListItemsByGivenItemIds = (
 ): ShareableListItem[] => {
   // create a map of itemIds to shareable list items
   const itemIdsToShareableListItem = listItems.reduce((acc, listItem) => {
-    if (listItem) {
-      return {
-        ...acc,
-        [listItem.itemId.toString()]: listItem,
-      };
-    }
-
-    return acc;
+    return {
+      ...acc,
+      [listItem.itemId.toString()]: listItem,
+    };
   }, {});
 
   // sort the map in the order of the provided itemIds

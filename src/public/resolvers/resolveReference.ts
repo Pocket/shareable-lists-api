@@ -10,9 +10,5 @@ export async function resolveShareableListItemParserItemReference(
     itemId
   );
 
-  if (!shareableListItem) {
-    throw new NotFoundError(itemId);
-  }
-
   return shareableListItem;
 }
