@@ -28,15 +28,15 @@ export async function createShareableListItemHelper(
 ): Promise<ListItem> {
   const input = {
     listId: data.list.id,
-    itemId: data.itemId ?? faker.datatype.number(),
+    itemId: data.itemId ?? faker.number.int(),
     url: data.url ?? `${faker.internet.url()}/${faker.lorem.slug(5)}`,
-    title: data.title ?? faker.random.words(5),
+    title: data.title ?? faker.lorem.words(5),
     excerpt: data.excerpt ?? faker.lorem.sentences(2),
     // if `null` is passed in, do not add a note to the list item
     note: data.note === undefined ? faker.lorem.sentences(2) : data.note,
-    imageUrl: data.imageUrl ?? faker.image.cats(),
+    imageUrl: data.imageUrl ?? faker.image.urlLoremFlickr({ category: 'cats' }),
     publisher: data.publisher ?? faker.company.name(),
-    authors: data.authors ?? faker.name.fullName(),
+    authors: data.authors ?? faker.person.fullName(),
     // allow sortOrder to fall back to db default if no specific order given
     sortOrder: data.sortOrder ?? undefined,
   };

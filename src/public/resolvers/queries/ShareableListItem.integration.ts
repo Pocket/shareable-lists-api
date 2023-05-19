@@ -70,6 +70,7 @@ describe('ShareableListItem entities _representations query', () => {
       // Run the query we're testing
       const result = await request(app)
         .post(graphQLUrl)
+        .set(publicUserHeaders)
         .send({
           query: print(SHAREABLE_LIST_ITEM_ITEM_REFERENCE_RESOLVER),
           variables: {
@@ -96,6 +97,28 @@ describe('ShareableListItem entities _representations query', () => {
 
     it('should not resolve when an Item is not a shareable list item', async () => {
       const itemId = '9325';
+
+      // Run the query we're testing
+      const result = await request(app)
+        .post(graphQLUrl)
+        .set(publicUserHeaders)
+        .send({
+          query: print(SHAREABLE_LIST_ITEM_ITEM_REFERENCE_RESOLVER),
+          variables: {
+            itemId: itemId,
+          },
+        });
+
+      expect(result.body.errors).to.be.undefined;
+      expect(result.body.data._entities[0].shareableListItem).to.equal(null);
+    });
+
+    it('should not resolve when no userId', async () => {
+      // the itemIds in db is stored as a bigInt, but query is expecting
+      // a string itemId
+      const itemId = parseInt(
+        shareableListItem.itemId as unknown as string
+      ).toString();
 
       // Run the query we're testing
       const result = await request(app)

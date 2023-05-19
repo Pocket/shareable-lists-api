@@ -1,6 +1,8 @@
 import { PrismaClient } from '@prisma/client';
 import { client } from '../database/client';
-import { shareableListItemLoader } from '../dataLoaders/shareableListItemLoader';
+import { createShareableListItemDataLoaders } from '../dataLoaders/shareableListItemLoader';
+import DataLoader from 'dataloader';
+import { ShareableListItem } from '../database/types';
 
 /**
  * Context components specifically for the public graph.
@@ -11,18 +13,24 @@ export interface IPublicContext {
   // Pocket userId coming in from the http headers
   userId: number | bigint;
   dataLoaders: {
-    shareableListItemLoader: typeof shareableListItemLoader;
+    shareableListItemsByItemId: DataLoader<bigint, ShareableListItem>;
   };
 }
 
 export class PublicContextManager implements IPublicContext {
+  public readonly dataLoaders: IPublicContext['dataLoaders'];
   constructor(
     private config: {
       db: PrismaClient;
-      shareableListItemLoader: IPublicContext['dataLoaders']['shareableListItemLoader'];
       request: any;
     }
-  ) {}
+  ) {
+    // lets initialize the dataLoader and pass the userId
+    // for now we only need userId, so not passing the entire context object
+    this.dataLoaders = {
+      ...createShareableListItemDataLoaders(this.userId),
+    };
+  }
 
   get db(): IPublicContext['db'] {
     return this.config.db;
@@ -32,12 +40,6 @@ export class PublicContextManager implements IPublicContext {
     const userId = this.config.request.headers.userid;
 
     return userId instanceof Array ? parseInt(userId[0]) : parseInt(userId);
-  }
-
-  get dataLoaders(): IPublicContext['dataLoaders'] {
-    return {
-      shareableListItemLoader: this.config.shareableListItemLoader,
-    };
   }
 }
 
@@ -54,7 +56,6 @@ export async function getPublicContext({
 }): Promise<PublicContextManager> {
   return new PublicContextManager({
     db: client(),
-    shareableListItemLoader,
     request: req,
   });
 }

@@ -19,7 +19,6 @@ import {
   updateShareableListItem,
   updateShareableListItems,
 } from './mutations/ShareableListItem';
-
 import { shareableListItem } from './item';
 import { resolveShareableListItemParserItemReference } from './resolveReference';
 

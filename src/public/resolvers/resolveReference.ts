@@ -6,7 +6,7 @@ export async function resolveShareableListItemParserItemReference(
 ) {
   validateItemId(itemId);
   const shareableListItem = await dataLoaders.shareableListItemLoader.load(
-    itemId
+    parseInt(itemId)
   );
 
   return shareableListItem;
