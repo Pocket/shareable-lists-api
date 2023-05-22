@@ -58,18 +58,25 @@ type User @key(fields: "id", resolvable: false) {
   id: ID!
 }
 
-extend type Item @key(fields: "itemId") {
+extend type SavedItem @key(fields: "url") {
   """
-  key field to identify the Item entity in the Parser service
+  key field to identify the SavedItem entity in the List API service
   """
-  itemId: String! @external
+  url: String! @external
 
   #Note more properties exist here but are defined in another service.
 
   """
-  If the item is a shareable list item allow them to get the shareable list item information
+  If the save is a shareable list item allow them to get the shareable list item information
   """
   shareableListItem: ShareableListItem
+}
+
+"""
+Resolve by reference the Item entity to connect ShareableListItems to Items.
+"""
+type Item @key(fields: "itemId", resolvable: false) {
+  itemId: String!
 }
 
 """

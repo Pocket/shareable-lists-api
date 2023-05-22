@@ -7,12 +7,12 @@ import { client } from '../database/client';
 
 /**
  * @param db PrismaClient
- * @param itemIds
+ * @param urls
  * @param userId
  */
-export async function getShareableListItemsByItemIds(
+export async function getShareableListItemsByUrls(
   db: PrismaClient,
-  itemIds: bigint[],
+  urls: string[],
   userId: number | bigint
 ): Promise<ShareableListItem[]> {
   if (!userId) {
@@ -24,53 +24,53 @@ export async function getShareableListItemsByItemIds(
       list: {
         userId,
       },
-      itemId: { in: itemIds },
+      url: { in: urls },
     },
   });
 }
 
 /**
  * Returns a sorted list of shareable list items to ensure they are
- * returned in the same order of the requested itemIds
- * @param itemIds
+ * returned in the same order of the requested urls
+ * @param urls
  * @param userId
  */
-export const sortShareableListItemsByGivenItemIds = (
-  itemIds: bigint[],
+export const sortShareableListItemsByGivenUrls = (
+  urls: string[],
   listItems: ShareableListItem[]
 ): ShareableListItem[] => {
-  // create a map of itemIds to shareable list items
-  const itemIdsToShareableListItem = listItems.reduce((acc, listItem) => {
+  // create a map of urls to shareable list items
+  const urlsToShareableListItem = listItems.reduce((acc, listItem) => {
     return {
       ...acc,
-      [listItem.itemId.toString()]: listItem,
+      [listItem.url]: listItem,
     };
   }, {});
 
-  // sort the map in the order of the provided itemIds
-  const sortedItems = itemIds.map((itemId) => {
-    return itemIdsToShareableListItem[itemId.toString()];
+  // sort the map in the order of the provided urls
+  const sortedItems = urls.map((url) => {
+    return urlsToShareableListItem[url];
   });
   return sortedItems;
 };
 
 /**
  * Grabs all shareable list items from the database
- * @param itemIds
+ * @param urls
  * @param userId
  */
-export async function batchFetchByItemIds(
-  itemIds: bigint[],
+export async function batchFetchByUrls(
+  urls: string[],
   userId: number | bigint
 ): Promise<ShareableListItem[]> {
   const db: PrismaClient = client();
-  const shareableListItems = await getShareableListItemsByItemIds(
+  const shareableListItems = await getShareableListItemsByUrls(
     db,
-    itemIds,
+    urls,
     userId
   );
 
-  return sortShareableListItemsByGivenItemIds(itemIds, shareableListItems);
+  return sortShareableListItemsByGivenUrls(urls, shareableListItems);
 }
 
 /**
@@ -80,8 +80,8 @@ export async function batchFetchByItemIds(
 export function createShareableListItemDataLoaders(
   userId: number | bigint
 ): IPublicContext['dataLoaders'] {
-  const shareableListItemLoader = new DataLoader(async (itemIds: bigint[]) => {
-    return await batchFetchByItemIds(itemIds, userId);
+  const shareableListItemLoader = new DataLoader(async (urls: string[]) => {
+    return await batchFetchByUrls(urls, userId);
   });
-  return { shareableListItemsByItemId: shareableListItemLoader };
+  return { shareableListItemsByUrl: shareableListItemLoader };
 }

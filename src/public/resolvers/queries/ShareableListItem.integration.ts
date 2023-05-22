@@ -14,7 +14,7 @@ import {
   createShareableListItemHelper,
   mockRedisServer,
 } from '../../../test/helpers';
-import { SHAREABLE_LIST_ITEM_ITEM_REFERENCE_RESOLVER } from './sample-queries.gql';
+import { SHAREABLE_LIST_ITEM_SAVEDITEM_REFERENCE_RESOLVER } from './sample-queries.gql';
 
 describe('ShareableListItem entities _representations query', () => {
   let app: Express.Application;
@@ -59,28 +59,24 @@ describe('ShareableListItem entities _representations query', () => {
     });
   });
 
-  describe('Item reference resolver', () => {
-    it('should resolve on a shareable list item Item', async () => {
-      // the itemIds in db is stored as a bigInt, but query is expecting
-      // a string itemId
-      const itemId = parseInt(
-        shareableListItem.itemId as unknown as string
-      ).toString();
+  describe('SavedItem reference resolver', () => {
+    it('should resolve on a shareable list item SavedItem', async () => {
+      const url = shareableListItem.url;
 
       // Run the query we're testing
       const result = await request(app)
         .post(graphQLUrl)
         .set(publicUserHeaders)
         .send({
-          query: print(SHAREABLE_LIST_ITEM_ITEM_REFERENCE_RESOLVER),
+          query: print(SHAREABLE_LIST_ITEM_SAVEDITEM_REFERENCE_RESOLVER),
           variables: {
-            itemId: itemId,
+            url: url,
           },
         });
 
       expect(result.body.errors).to.be.undefined;
       expect(result.body.data._entities.length).to.equal(1);
-      expect(result.body.data._entities[0].itemId).to.equal(itemId);
+      expect(result.body.data._entities[0].url).to.equal(url);
       expect(result.body.data._entities[0].shareableListItem.url).to.equal(
         shareableListItem.url
       );
@@ -95,17 +91,17 @@ describe('ShareableListItem entities _representations query', () => {
       ).to.equal(shareableListItem.sortOrder);
     });
 
-    it('should not resolve when an Item is not a shareable list item', async () => {
-      const itemId = '9325';
+    it('should not resolve when a SavedItem is not a shareable list item', async () => {
+      const url = 'https://not-saved-item.com';
 
       // Run the query we're testing
       const result = await request(app)
         .post(graphQLUrl)
         .set(publicUserHeaders)
         .send({
-          query: print(SHAREABLE_LIST_ITEM_ITEM_REFERENCE_RESOLVER),
+          query: print(SHAREABLE_LIST_ITEM_SAVEDITEM_REFERENCE_RESOLVER),
           variables: {
-            itemId: itemId,
+            url: url,
           },
         });
 
@@ -114,19 +110,15 @@ describe('ShareableListItem entities _representations query', () => {
     });
 
     it('should not resolve when no userId', async () => {
-      // the itemIds in db is stored as a bigInt, but query is expecting
-      // a string itemId
-      const itemId = parseInt(
-        shareableListItem.itemId as unknown as string
-      ).toString();
+      const url = shareableListItem.url;
 
       // Run the query we're testing
       const result = await request(app)
         .post(graphQLUrl)
         .send({
-          query: print(SHAREABLE_LIST_ITEM_ITEM_REFERENCE_RESOLVER),
+          query: print(SHAREABLE_LIST_ITEM_SAVEDITEM_REFERENCE_RESOLVER),
           variables: {
-            itemId: itemId,
+            url: url,
           },
         });
 

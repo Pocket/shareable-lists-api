@@ -28,7 +28,7 @@ export async function createShareableListItemHelper(
 ): Promise<ListItem> {
   const input = {
     listId: data.list.id,
-    itemId: data.itemId ?? faker.number.int(),
+    itemId: data.itemId ?? faker.number.bigInt(),
     url: data.url ?? `${faker.internet.url()}/${faker.lorem.slug(5)}`,
     title: data.title ?? faker.lorem.words(5),
     excerpt: data.excerpt ?? faker.lorem.sentences(2),

@@ -37,11 +37,11 @@ export const SHAREABLE_LISTS_PILOT_USER = gql`
   }
 `;
 
-export const SHAREABLE_LIST_ITEM_ITEM_REFERENCE_RESOLVER = gql`
-  query ($itemId: String) {
-    _entities(representations: { itemId: $itemId, __typename: "Item" }) {
-      ... on Item {
-        itemId
+export const SHAREABLE_LIST_ITEM_SAVEDITEM_REFERENCE_RESOLVER = gql`
+  query ($url: String) {
+    _entities(representations: { url: $url, __typename: "SavedItem" }) {
+      ... on SavedItem {
+        url
         shareableListItem {
           externalId
           itemId

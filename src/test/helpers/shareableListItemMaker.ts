@@ -1,11 +1,11 @@
 import { ShareableListItem } from '../../database/types';
 import { faker } from '@faker-js/faker';
 
-export const shareableListItemMaker = (itemId: string): ShareableListItem => {
+export const shareableListItemMaker = (url: string): ShareableListItem => {
   return {
     externalId: faker.string.uuid(),
-    itemId: parseInt(itemId) as unknown as bigint,
-    url: `${faker.internet.url()}/${faker.lorem.slug(5)}`,
+    itemId: faker.number.bigInt(),
+    url: url,
     title: faker.lorem.words(5),
     excerpt: faker.lorem.sentences(2),
     note: faker.lorem.sentences(2),

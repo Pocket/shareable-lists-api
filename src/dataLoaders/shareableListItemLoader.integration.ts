@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import { PrismaClient } from '@prisma/client';
 import { client } from '../database/client';
-import { getShareableListItemsByItemIds } from './shareableListItemLoader';
+import { getShareableListItemsByUrls } from './shareableListItemLoader';
 import {
   clearDb,
   createShareableListHelper,
@@ -13,8 +13,8 @@ let list;
 let listItem;
 let list2;
 let listItem2;
-let itemIds = [];
-let itemIds2 = [];
+let urls1 = [];
+let urls2 = [];
 
 const publicUser1Headers = {
   userId: '987654321',
@@ -48,97 +48,87 @@ describe('shareableListItemLoader', () => {
     });
     // Create some list items for list 1 , user 1
     const makeItems = Math.floor(Math.random() * 4) + 1;
-    itemIds = [];
+    urls1 = [];
     for (let i = 0; i < makeItems; i++) {
       listItem = await createShareableListItemHelper(db, {
         list: list,
       });
-      itemIds.push(parseInt(listItem.itemId as unknown as string));
+      urls1.push(listItem.url);
     }
 
     // Create some list items for list 2 , user 2
-    itemIds2 = [];
+    urls2 = [];
     for (let i = 0; i < makeItems; i++) {
       listItem2 = await createShareableListItemHelper(db, {
         list: list2,
       });
-      itemIds2.push(parseInt(listItem2.itemId as unknown as string));
+      urls2.push(listItem2.url);
     }
   });
-  describe('getShareableListItemsByItemIds', () => {
-    it('should return array of shareable list items by itemIds', async () => {
-      const listItems = await getShareableListItemsByItemIds(
+  describe('getShareableListItemsByUrls', () => {
+    it('should return array of shareable list items by urls', async () => {
+      const listItems = await getShareableListItemsByUrls(
         db,
-        itemIds,
+        urls1,
         parseInt(publicUser1Headers.userId)
       );
-      for (let i = 0; i < itemIds.length; i++) {
-        expect(parseInt(listItems[i].itemId as unknown as string)).to.equal(
-          itemIds[i]
-        );
+      for (let i = 0; i < urls1.length; i++) {
+        expect(listItems[i].url).to.equal(urls1[i]);
       }
     });
 
-    it('should return empty array if itemIds do not exist', async () => {
-      const itemIds = [123, 543, 567];
-      const listItems = await getShareableListItemsByItemIds(
+    it('should return empty array if urls do not exist', async () => {
+      const urls1 = ['fake-url1.com', 'fake-url2.com', 'fake-url3.com'];
+      const listItems = await getShareableListItemsByUrls(
         db,
-        itemIds as unknown as bigint[],
+        urls1,
         parseInt(publicUser1Headers.userId)
       );
       expect(listItems.length).to.equal(0);
     });
 
     it('should return only list items that are found', async () => {
-      let listItems = await getShareableListItemsByItemIds(
+      let listItems = await getShareableListItemsByUrls(
         db,
-        itemIds,
+        urls1,
         parseInt(publicUser1Headers.userId)
       );
-      for (let i = 0; i < itemIds.length; i++) {
-        expect(parseInt(listItems[i].itemId as unknown as string)).to.equal(
-          itemIds[i]
-        );
+      for (let i = 0; i < urls1.length; i++) {
+        expect(listItems[i].url).to.equal(urls1[i]);
       }
-      // push another fake itemId
-      itemIds.push(5210346);
+      // push another fake url
+      urls1.push('fake-url.com');
       // request the array of list items again
-      listItems = await getShareableListItemsByItemIds(
+      listItems = await getShareableListItemsByUrls(
         db,
-        itemIds,
+        urls1,
         parseInt(publicUser1Headers.userId)
       );
       // lenghts should not match
-      expect(listItems.length).not.to.equal(itemIds.length);
-      // listItems length should be one less than itemIds length
-      expect(listItems.length).to.equal(itemIds.length - 1);
+      expect(listItems.length).not.to.equal(urls1.length);
+      // listItems length should be one less than urls1 length
+      expect(listItems.length).to.equal(urls1.length - 1);
     });
 
     it('should not return list item not belonging to current user', async () => {
-      // lets request list items for user 1, but itemIds array contains
+      // lets request list items for user 1, but urls array contains
       // list item belonging to user 2
-      const itemIdsArr = [itemIds[0], itemIds2[0]];
-      const listItems = await getShareableListItemsByItemIds(
+      const urlsArr = [urls1[0], urls2[0]];
+      const listItems = await getShareableListItemsByUrls(
         db,
-        itemIdsArr,
+        urlsArr,
         parseInt(publicUser1Headers.userId)
       );
 
       // we expect to get back only one list item belonging to user 1
       // lenghts should not match
-      expect(listItems.length).not.to.equal(itemIdsArr.length);
+      expect(listItems.length).not.to.equal(urlsArr.length);
       expect(listItems.length).to.equal(1);
-      expect(parseInt(listItems[0].itemId as unknown as string)).to.equal(
-        itemIds[0]
-      );
+      expect(listItems[0].url).to.equal(urls1[0]);
     });
 
     it('should return empty array if no userId', async () => {
-      const listItems = await getShareableListItemsByItemIds(
-        db,
-        itemIds as unknown as bigint[],
-        null
-      );
+      const listItems = await getShareableListItemsByUrls(db, urls1, null);
       expect(listItems.length).to.equal(0);
     });
   });

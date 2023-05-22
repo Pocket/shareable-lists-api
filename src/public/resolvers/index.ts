@@ -19,7 +19,7 @@ import {
   updateShareableListItem,
   updateShareableListItems,
 } from './mutations/ShareableListItem';
-import { shareableListItem } from './item';
+import { shareableListItem } from './saveditem';
 
 export const resolvers = {
   ...PocketDefaultScalars,
@@ -29,7 +29,7 @@ export const resolvers = {
   ShareableListPublic: {
     user: UserResolver,
   },
-  Item: {
+  SavedItem: {
     shareableListItem,
   },
   ShareableListItem: {

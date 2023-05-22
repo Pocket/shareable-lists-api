@@ -13,7 +13,7 @@ export interface IPublicContext {
   // Pocket userId coming in from the http headers
   userId: number | bigint;
   dataLoaders: {
-    shareableListItemsByItemId: DataLoader<bigint, ShareableListItem>;
+    shareableListItemsByUrl: DataLoader<string, ShareableListItem>;
   };
 }
 
