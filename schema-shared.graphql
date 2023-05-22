@@ -2,7 +2,7 @@ extend schema
   @link(url: "https://specs.apollo.dev/link/v1.0")
   @link(
     url: "https://specs.apollo.dev/federation/v2.3"
-    import: ["@key", "@composeDirective"]
+    import: ["@key", "@composeDirective", "@external"]
   )
   # The link directive is required to federate @constraint
   # It doesn't actually have to be a real spec, but it would be good
@@ -68,7 +68,7 @@ type Item @key(fields: "itemId", resolvable: false) {
 """
 A Pocket Save (story) that has been added to a Shareable List.
 """
-type ShareableListItem {
+type ShareableListItem @key(fields: "itemId") @key(fields: "url") {
   """
   A unique string identifier in UUID format.
   """

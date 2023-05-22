@@ -1,5 +1,8 @@
 import { PrismaClient } from '@prisma/client';
 import { client } from '../database/client';
+import { createShareableListItemDataLoaders } from '../dataLoaders/shareableListItemLoader';
+import DataLoader from 'dataloader';
+import { ShareableListItem } from '../database/types';
 
 /**
  * Context components specifically for the public graph.
@@ -9,15 +12,25 @@ export interface IPublicContext {
   db: PrismaClient;
   // Pocket userId coming in from the http headers
   userId: number | bigint;
+  dataLoaders: {
+    shareableListItemsByUrl: DataLoader<string, ShareableListItem>;
+  };
 }
 
 export class PublicContextManager implements IPublicContext {
+  public readonly dataLoaders: IPublicContext['dataLoaders'];
   constructor(
     private config: {
       db: PrismaClient;
       request: any;
     }
-  ) {}
+  ) {
+    // lets initialize the dataLoader and pass the userId
+    // for now we only need userId, so not passing the entire context object
+    this.dataLoaders = {
+      ...createShareableListItemDataLoaders(this.userId),
+    };
+  }
 
   get db(): IPublicContext['db'] {
     return this.config.db;
