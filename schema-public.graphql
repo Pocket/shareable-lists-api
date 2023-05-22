@@ -1,17 +1,3 @@
-extend type SavedItem @key(fields: "url") {
-  """
-  key field to identify the SavedItem entity in the List API service
-  """
-  url: String! @external
-
-  #Note more properties exist here but are defined in another service.
-
-  """
-  If the save is a shareable list item allow them to get the shareable list item information
-  """
-  shareableListItem: ShareableListItem
-}
-
 """
 A user-created list of Pocket saves that can be shared publicly.
 """

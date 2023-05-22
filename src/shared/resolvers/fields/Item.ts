@@ -9,7 +9,6 @@
 export const ItemResolver = (parent, args, context, info) => {
   // very basic data transformation!
   return {
-    __typename: 'Item',
     itemId: parent.itemId.toString(),
   };
 };

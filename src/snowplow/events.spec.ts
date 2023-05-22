@@ -24,7 +24,7 @@ describe('Snowplow event helpers', () => {
   let consoleSpy;
 
   const shareableList: ShareableListComplete = {
-    externalId: faker.string.uuid(),
+    externalId: faker.datatype.uuid(),
     userId: BigInt(12345),
     slug: null,
     title: 'Fake Random Title',
@@ -42,20 +42,20 @@ describe('Snowplow event helpers', () => {
   };
 
   const shareableListItem: ShareableListItem = {
-    externalId: faker.string.uuid(),
+    externalId: faker.datatype.uuid(),
     itemId: BigInt(98765),
     url: `${faker.internet.url()}/${faker.lorem.slug(5)}`,
-    title: faker.lorem.words(5),
+    title: faker.random.words(5),
     excerpt: faker.lorem.sentences(2),
     note: faker.lorem.sentences(1),
-    imageUrl: faker.image.urlLoremFlickr({ category: 'cats' }),
+    imageUrl: faker.image.cats(),
     publisher: faker.company.name(),
-    authors: `${faker.person.firstName()},${faker.person.firstName()}`,
-    sortOrder: faker.number.int(),
+    authors: `${faker.name.fullName()},${faker.name.fullName()}`,
+    sortOrder: faker.datatype.number(),
     createdAt: new Date('2023-01-01 10:10:10'),
     updatedAt: new Date('2023-01-01 10:10:10'),
   };
-  const shareableListItemExternalId = faker.string.uuid();
+  const shareableListItemExternalId = faker.datatype.uuid();
 
   beforeEach(() => {
     // we mock the send method on EventBridgeClient
