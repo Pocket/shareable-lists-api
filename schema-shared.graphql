@@ -58,20 +58,6 @@ type User @key(fields: "id", resolvable: false) {
   id: ID!
 }
 
-extend type SavedItem @key(fields: "url") {
-  """
-  key field to identify the SavedItem entity in the List API service
-  """
-  url: String! @external
-
-  #Note more properties exist here but are defined in another service.
-
-  """
-  If the save is a shareable list item allow them to get the shareable list item information
-  """
-  shareableListItem: ShareableListItem
-}
-
 """
 Resolve by reference the Item entity to connect ShareableListItems to Items.
 """
@@ -82,7 +68,7 @@ type Item @key(fields: "itemId", resolvable: false) {
 """
 A Pocket Save (story) that has been added to a Shareable List.
 """
-type ShareableListItem @key(fields: "itemId") {
+type ShareableListItem @key(fields: "itemId") @key(fields: "url") {
   """
   A unique string identifier in UUID format.
   """
