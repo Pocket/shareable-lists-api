@@ -20,7 +20,6 @@ import {
   updateShareableListItems,
 } from './mutations/ShareableListItem';
 import { shareableListItem } from './item';
-import { resolveShareableListItemParserItemReference } from './resolveReference';
 
 export const resolvers = {
   ...PocketDefaultScalars,
@@ -34,8 +33,6 @@ export const resolvers = {
     shareableListItem,
   },
   ShareableListItem: {
-    // resolve shareable list item by itemId Parser Item uses to reference it
-    __resolveReference: resolveShareableListItemParserItemReference,
     itemId: PrismaBigIntResolver,
     item: ItemResolver,
   },
