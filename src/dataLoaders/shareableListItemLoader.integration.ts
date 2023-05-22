@@ -6,7 +6,6 @@ import {
   clearDb,
   createShareableListHelper,
   createShareableListItemHelper,
-  createPilotUserHelper,
 } from '../test/helpers';
 
 let db: PrismaClient;
@@ -17,12 +16,10 @@ let listItem2;
 let itemIds = [];
 let itemIds2 = [];
 
-// this user will be put into the pilot
-const pilotUserHeaders = {
-  userId: '8009882300',
+const publicUser1Headers = {
+  userId: '987654321',
 };
-
-const pilotUser2Headers = {
+const publicUser2Headers = {
   userId: '120076231',
 };
 
@@ -38,27 +35,18 @@ describe('shareableListItemLoader', () => {
   beforeEach(async () => {
     await clearDb(db);
 
-    // create pilot users
-    await createPilotUserHelper(db, {
-      userId: parseInt(pilotUserHeaders.userId),
-    });
-
-    await createPilotUserHelper(db, {
-      userId: parseInt(pilotUser2Headers.userId),
-    });
-
-    // Create a List for pilot user 1
+    // Create a List for user 1
     list = await createShareableListHelper(db, {
-      userId: parseInt(pilotUserHeaders.userId),
+      userId: parseInt(publicUser1Headers.userId),
       title: 'Simon Le Bon List',
     });
 
-    // Create a List for pilot user 2
+    // Create a List for user 2
     list2 = await createShareableListHelper(db, {
-      userId: parseInt(pilotUser2Headers.userId),
+      userId: parseInt(publicUser2Headers.userId),
       title: 'Things to do in Paris',
     });
-    // Create some list items for list 1 , pilot user 1
+    // Create some list items for list 1 , user 1
     const makeItems = Math.floor(Math.random() * 4) + 1;
     itemIds = [];
     for (let i = 0; i < makeItems; i++) {
@@ -68,7 +56,7 @@ describe('shareableListItemLoader', () => {
       itemIds.push(parseInt(listItem.itemId as unknown as string));
     }
 
-    // Create some list items for list 2 , pilot user 2
+    // Create some list items for list 2 , user 2
     itemIds2 = [];
     for (let i = 0; i < makeItems; i++) {
       listItem2 = await createShareableListItemHelper(db, {
@@ -82,7 +70,7 @@ describe('shareableListItemLoader', () => {
       const listItems = await getShareableListItemsByItemIds(
         db,
         itemIds,
-        parseInt(pilotUserHeaders.userId)
+        parseInt(publicUser1Headers.userId)
       );
       for (let i = 0; i < itemIds.length; i++) {
         expect(parseInt(listItems[i].itemId as unknown as string)).to.equal(
@@ -96,7 +84,7 @@ describe('shareableListItemLoader', () => {
       const listItems = await getShareableListItemsByItemIds(
         db,
         itemIds as unknown as bigint[],
-        parseInt(pilotUserHeaders.userId)
+        parseInt(publicUser1Headers.userId)
       );
       expect(listItems.length).to.equal(0);
     });
@@ -105,7 +93,7 @@ describe('shareableListItemLoader', () => {
       let listItems = await getShareableListItemsByItemIds(
         db,
         itemIds,
-        parseInt(pilotUserHeaders.userId)
+        parseInt(publicUser1Headers.userId)
       );
       for (let i = 0; i < itemIds.length; i++) {
         expect(parseInt(listItems[i].itemId as unknown as string)).to.equal(
@@ -118,7 +106,7 @@ describe('shareableListItemLoader', () => {
       listItems = await getShareableListItemsByItemIds(
         db,
         itemIds,
-        parseInt(pilotUserHeaders.userId)
+        parseInt(publicUser1Headers.userId)
       );
       // lenghts should not match
       expect(listItems.length).not.to.equal(itemIds.length);
@@ -127,22 +115,31 @@ describe('shareableListItemLoader', () => {
     });
 
     it('should not return list item not belonging to current user', async () => {
-      // lets request list items for pilot user 1, but itemIds array contains
-      // list item belonging to pilot user 2
+      // lets request list items for user 1, but itemIds array contains
+      // list item belonging to user 2
       const itemIdsArr = [itemIds[0], itemIds2[0]];
       const listItems = await getShareableListItemsByItemIds(
         db,
         itemIdsArr,
-        parseInt(pilotUserHeaders.userId)
+        parseInt(publicUser1Headers.userId)
       );
 
-      // we expect to get back only one list item belonging to pilot user 1
+      // we expect to get back only one list item belonging to user 1
       // lenghts should not match
       expect(listItems.length).not.to.equal(itemIdsArr.length);
       expect(listItems.length).to.equal(1);
       expect(parseInt(listItems[0].itemId as unknown as string)).to.equal(
         itemIds[0]
       );
+    });
+
+    it('should return empty array if no userId', async () => {
+      const listItems = await getShareableListItemsByItemIds(
+        db,
+        itemIds as unknown as bigint[],
+        null
+      );
+      expect(listItems.length).to.equal(0);
     });
   });
 });
