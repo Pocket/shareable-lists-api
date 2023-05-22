@@ -26,10 +26,10 @@ export async function createShareableListHelper(
   prisma: PrismaClient,
   data: ListHelperInput
 ): Promise<List> {
-  const listTitle = data.title ?? faker.lorem.words(2);
+  const listTitle = data.title ?? faker.random.words(2);
 
   const input: ListHelperInput = {
-    userId: data.userId ?? faker.number.int(),
+    userId: data.userId ?? faker.datatype.number(),
     title: listTitle,
     description: data.description ?? faker.lorem.sentences(2),
     slug: data.slug ?? undefined,

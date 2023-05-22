@@ -19,7 +19,6 @@ import {
   updateShareableListItem,
   updateShareableListItems,
 } from './mutations/ShareableListItem';
-import { shareableListItem } from './saveditem';
 
 export const resolvers = {
   ...PocketDefaultScalars,
@@ -28,9 +27,6 @@ export const resolvers = {
   },
   ShareableListPublic: {
     user: UserResolver,
-  },
-  SavedItem: {
-    shareableListItem,
   },
   ShareableListItem: {
     itemId: PrismaBigIntResolver,

@@ -101,7 +101,7 @@ describe('public mutations: ShareableList', () => {
     });
 
     it('should not create a new List without userId in header', async () => {
-      const title = faker.lorem.words(2);
+      const title = faker.random.words(2);
       const data: CreateShareableListInput = {
         title: title,
         description: faker.lorem.sentences(2),
@@ -308,7 +308,7 @@ describe('public mutations: ShareableList', () => {
 
     it('should not create List with a title of more than 100 chars', async () => {
       const data: CreateShareableListInput = {
-        title: faker.string.alpha(LIST_TITLE_MAX_CHARS + 1),
+        title: faker.random.alpha(LIST_TITLE_MAX_CHARS + 1),
         description: faker.lorem.sentences(2),
       };
       const result = await request(app)
@@ -330,7 +330,7 @@ describe('public mutations: ShareableList', () => {
     it('should not create List with a description of more than 200 chars', async () => {
       const data: CreateShareableListInput = {
         title: `Katerina's List`,
-        description: faker.string.alpha(LIST_DESCRIPTION_MAX_CHARS + 1),
+        description: faker.random.alpha(LIST_DESCRIPTION_MAX_CHARS + 1),
       };
       const result = await request(app)
         .post(graphQLUrl)
@@ -1157,7 +1157,7 @@ describe('public mutations: ShareableList', () => {
     it('should not update List with a title of more than 100 chars', async () => {
       const data: UpdateShareableListInput = {
         externalId: nonPilotUserList.externalId,
-        title: faker.string.alpha(LIST_TITLE_MAX_CHARS + 1),
+        title: faker.random.alpha(LIST_TITLE_MAX_CHARS + 1),
       };
 
       const result = await request(app)
@@ -1182,7 +1182,7 @@ describe('public mutations: ShareableList', () => {
     it('should not update List with a description of more than 200 chars', async () => {
       const data: UpdateShareableListInput = {
         externalId: nonPilotUserList.externalId,
-        description: faker.string.alpha(LIST_DESCRIPTION_MAX_CHARS + 1),
+        description: faker.random.alpha(LIST_DESCRIPTION_MAX_CHARS + 1),
       };
 
       const result = await request(app)
