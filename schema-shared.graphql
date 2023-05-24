@@ -61,8 +61,8 @@ type User @key(fields: "id", resolvable: false) {
 """
 Resolve by reference the Item entity to connect ShareableListItems to Items.
 """
-type Item @key(fields: "itemId", resolvable: false) {
-  itemId: String!
+type Item @key(fields: "givenUrl", resolvable: false) {
+  givenUrl: Url!
 }
 
 """

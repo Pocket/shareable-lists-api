@@ -9,7 +9,7 @@ export const ShareableListItemPublicProps = gql`
     externalId
     itemId
     item {
-      itemId
+      givenUrl
     }
     url
     title
