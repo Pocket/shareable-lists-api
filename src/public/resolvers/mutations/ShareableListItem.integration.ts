@@ -211,7 +211,7 @@ describe('public mutations: ShareableListItem', () => {
         url: 'https://www.test.com/this-is-a-story',
         title: 'A story is a story',
         excerpt: '<blink>The best story ever told</blink>',
-        note: faker.random.alpha(LIST_ITEM_NOTE_MAX_CHARS + 1),
+        note: faker.string.alpha(LIST_ITEM_NOTE_MAX_CHARS + 1),
         imageUrl: 'https://www.test.com/thumbnail.jpg',
         publisher: 'The London Times',
         authors: 'Charles Dickens, Mark Twain',
@@ -526,7 +526,7 @@ describe('public mutations: ShareableListItem', () => {
     it('should not update a shareable list item with a note greater than 300 characters', async () => {
       const data: UpdateShareableListItemInput = {
         externalId: listItem1.externalId,
-        note: faker.random.alpha(LIST_ITEM_NOTE_MAX_CHARS + 1),
+        note: faker.string.alpha(LIST_ITEM_NOTE_MAX_CHARS + 1),
         sortOrder: 3,
       };
 
