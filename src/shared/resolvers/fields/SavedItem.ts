@@ -11,13 +11,14 @@ export async function getShareableListTotalCount(
   db: PrismaClient,
   userId: number | bigint,
   url: string
-): Promise<number> {
+): Promise<number | null> {
   if (!userId) {
     return null;
   }
-  // find shareable list items where url matches given
-  // and where parent list belongs to current user
-  const listItems = await db.listItem.findMany({
+
+  // get the total count of listItems where url is matching
+  // AND parent list belongs to current userId
+  const totalCount = await db.listItem.count({
     where: {
       url,
       list: {
@@ -25,11 +26,14 @@ export async function getShareableListTotalCount(
       },
     },
   });
-  const totalCount = listItems.length;
 
   return totalCount;
 }
 
-export async function SavedItemResolver(parent, _, { userId, db }) {
+export async function SavedItemResolver(
+  parent,
+  _,
+  { userId, db }
+): Promise<number | null> {
   return await getShareableListTotalCount(db, userId, parent.url);
 }
