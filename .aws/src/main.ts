@@ -58,12 +58,28 @@ class ShareableListsAPI extends TerraformStack {
     );
     const lambda = sqsLambda.lambda;
 
+    // account delete handler - we delete all user list data when the
+    // underlying account is deleted
     new ApplicationSqsSnsTopicSubscription(
       this,
       'user-events-sns-subscription',
       {
         name: config.prefix,
         snsTopicArn: `arn:aws:sns:${pocketVpc.region}:${pocketVpc.accountId}:${config.lambda.snsTopicName.userEvents}`,
+        sqsQueue: lambda.sqsQueueResource,
+        tags: config.tags,
+        dependsOn: [lambda.sqsQueueResource as SqsQueue],
+      }
+    );
+
+    // save delete handler - we delete list items when the underlying save is
+    // deleted
+    new ApplicationSqsSnsTopicSubscription(
+      this,
+      'list-events-sns-subscription',
+      {
+        name: config.prefix,
+        snsTopicArn: `arn:aws:sns:${pocketVpc.region}:${pocketVpc.accountId}:${config.lambda.snsTopicName.listEvents}`,
         sqsQueue: lambda.sqsQueueResource,
         tags: config.tags,
         dependsOn: [lambda.sqsQueueResource as SqsQueue],

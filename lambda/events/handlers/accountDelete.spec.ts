@@ -24,7 +24,7 @@ describe('accountDelete handler', () => {
     try {
       await accountDeleteHandler(record as SQSRecord);
     } catch (e) {
-      expect(e.message).toContain('deleteUserData - 400');
+      expect(e.message).toContain('accountDeleteHandler: 400');
       expect(e.message).toContain('this is an error');
     }
   });
