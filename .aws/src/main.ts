@@ -14,6 +14,7 @@ import {
   ApplicationRDSCluster,
   ApplicationSqsSnsTopicSubscription,
   PocketALBApplication,
+  PocketAwsSyntheticChecks,
   PocketECSCodePipeline,
   PocketPagerDuty,
   PocketVPC,
@@ -27,7 +28,6 @@ import {
 } from 'cdktf';
 import * as fs from 'fs';
 import { SQSLambda } from './SQSLambda';
-import { APIMonitoring } from './synthetics';
 
 class ShareableListsAPI extends TerraformStack {
   constructor(scope: Construct, name: string) {
@@ -100,31 +100,32 @@ class ShareableListsAPI extends TerraformStack {
 
     this.createApplicationCodePipeline(pocketApp);
 
-    const monitoring = new APIMonitoring(this, 'monitoring');
-    monitoring.createSyntheticChecks(
-      {
-        query: [
-          {
-            endpoint: config.domain,
-            data: '{"query": "query { shareableListPublic(externalId: \\"1\\", slug: \\"1\\") {externalId} }"}',
-            jmespath: 'errors[0].message',
-            response:
-              'Error - Not Found: A list by that URL could not be found',
-          },
-        ],
-        securityGroupIds: pocketVpc.defaultSecurityGroups.ids,
-        subnetIds: pocketVpc.privateSubnetIds,
-        uptime: [
-          {
-            response: 'ok',
-            url: `${config.domain}/.well-known/apollo/server-health`,
-          },
-        ],
-      },
-      config.environment === 'Prod'
-        ? shareableListPagerduty.snsCriticalAlarmTopic.arn
-        : ''
-    );
+    new PocketAwsSyntheticChecks(this, 'synthetics', {
+      alarmTopicArn:
+        config.environment === 'Prod'
+          ? shareableListPagerduty.snsCriticalAlarmTopic.arn
+          : '', // this should be improved, empty string recreates updates constantly as is in cdktf
+      environment: process.env.NODE_ENV === 'development' ? 'Dev' : 'Prod', // yes we should use config.environment, but needs more refinment in module
+      prefix: config.prefix,
+      query: [
+        {
+          endpoint: config.domain,
+          data: '{"query": "query { shareableListPublic(externalId: \\"1\\", slug: \\"1\\") {externalId} }"}',
+          jmespath: 'errors[0].message',
+          response: 'Error - Not Found: A list by that URL could not be found',
+        },
+      ],
+      securityGroupIds: pocketVpc.defaultSecurityGroups.ids,
+      shortName: config.shortName,
+      subnetIds: pocketVpc.privateSubnetIds,
+      tags: config.tags,
+      uptime: [
+        {
+          response: 'ok',
+          url: `${config.domain}/.well-known/apollo/server-health`,
+        },
+      ],
+    });
   }
 
   /**
