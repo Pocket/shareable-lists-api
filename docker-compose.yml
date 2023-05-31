@@ -23,7 +23,7 @@ services:
       - '6379:6379'
 
   localstack:
-    image: localstack/localstack@sha256:80013665aa834e620f02981f2f478fc5f189da632988227b00836da9c6c4f491
+    image: localstack/localstack@sha256:16ffdd3c4ae5669ddb10f113f0527024723333b5a8e41ff43a2130e22d95e8d6
     env_file:
       - .docker/local.env
     environment:
