@@ -12,10 +12,6 @@ import { SQSRecord } from 'aws-lambda';
  * @throws Error if response is not ok
  */
 export async function saveDeleteHandler(record: SQSRecord) {
-  const message = JSON.parse(JSON.parse(record.body).Message)['detail'];
-  // logging for now to get concrete example of message body
-  console.log('DELETE ITEM HANDLER');
-  console.log(message);
-
+  // const message = JSON.parse(JSON.parse(record.body).Message)['detail'];
   // TODO: send delete data to application endpoint
 }
