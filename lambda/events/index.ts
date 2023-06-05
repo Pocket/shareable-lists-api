@@ -11,21 +11,22 @@ import { handlers } from './handlers';
  */
 export async function processor(event: SQSEvent): Promise<SQSBatchResponse> {
   const batchFailures: SQSBatchItemFailure[] = [];
+
   for await (const record of event.Records) {
     try {
       const message = JSON.parse(JSON.parse(record.body).Message);
-      if (handlers[message['detail-type']] == null) {
-        throw new Error(
-          `Unable to retrieve handler for detail-type='${message['detail-type']}'`
-        );
+      const handler = handlers[message['detail-type']];
+
+      if (handler !== undefined) {
+        await handler(record);
       }
-      await handlers[message['detail-type']](record);
     } catch (error) {
       console.log(error);
       Sentry.captureException(error);
       batchFailures.push({ itemIdentifier: record.messageId });
     }
   }
+
   return { batchItemFailures: batchFailures };
 }
 
