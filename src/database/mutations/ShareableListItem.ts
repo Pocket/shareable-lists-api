@@ -75,9 +75,25 @@ export async function createShareableListItem(
     listId: list.id,
   };
 
-  const listItem = await db.listItem.create({
-    data: input,
-    select: shareableListItemSelectFields,
+  let listItem;
+
+  // execute the create and parent list updatedAt update in a single
+  // transaction
+  await db.$transaction(async (db) => {
+    listItem = await db.listItem.create({
+      data: input,
+      select: shareableListItemSelectFields,
+    });
+
+    // update the `updatedAt` field on the parent list
+    await db.list.update({
+      data: {
+        updatedAt: new Date().toISOString(),
+      },
+      where: {
+        externalId: list.externalId,
+      },
+    });
   });
 
   //send event bridge event for shareable-list-item-created event type
@@ -125,11 +141,19 @@ export async function updateShareableListItem(
     delete data.sortOrder;
   }
 
+  // update the list item as well as the updatedAt value on the parent list
   const updatedListItem = await db.listItem.update({
     data: {
       note: data.note,
       sortOrder: data.sortOrder,
       updatedAt: new Date().toISOString(),
+      // this sub-update can only be done when updating a list item, not when
+      // creating. a limitation of prisma...
+      list: {
+        update: {
+          updatedAt: new Date().toISOString(),
+        },
+      },
     },
     where: {
       externalId: data.externalId,
@@ -162,6 +186,11 @@ export async function updateShareableListItems(
   // store the updated shareable list items result here
   const updatedShareableListItems = [];
 
+  // store the parent lists so we can update the updatedAt value
+  // this *should* be an array of 1, but there's no code enforcement that all
+  // listItems being operated on belong to the same list.
+  let updatedShareableListExternalIds = [];
+
   // lets create an interactive transaction of sequential db calls,
   // where we can traverse through the array input and update each
   // shareable list item.
@@ -171,21 +200,21 @@ export async function updateShareableListItems(
       const listItem = await db.listItem.findFirst({
         where: {
           externalId: value.externalId,
-        },
-        // we need to include the list to check the user id
-        include: {
-          list: true,
+          list: {
+            userId: userId,
+          },
         },
       });
+
       if (!listItem) {
         throw new NotFoundError(`A list item by that ID could not be found`);
       }
-      if (parseInt(listItem.list.userId as any) !== userId) {
-        throw new NotFoundError(`A list item by that ID could not be found`);
-      }
+
       const updatedListItem = await db.listItem.update({
         data: {
           sortOrder: value.sortOrder,
+          // even though prisma will update this value automatically, we want
+          // to specify it here so we can test the specific value being set
           updatedAt: new Date().toISOString(),
         },
         where: {
@@ -197,7 +226,25 @@ export async function updateShareableListItems(
         },
       });
 
+      updatedShareableListExternalIds.push(updatedListItem.list.externalId);
       updatedShareableListItems.push(updatedListItem);
+    }
+
+    // remove duplicates from the array of parent list ids
+    updatedShareableListExternalIds = [
+      ...new Set(updatedShareableListExternalIds),
+    ];
+
+    // finally, update the updatedAt value of the parent lists
+    for (const externalId of updatedShareableListExternalIds) {
+      await db.list.update({
+        data: {
+          updatedAt: new Date().toISOString(),
+        },
+        where: {
+          externalId,
+        },
+      });
     }
   });
 
@@ -253,21 +300,34 @@ export async function deleteShareableListItem(
     throw new NotFoundError('A list item by that ID could not be found');
   }
 
-  // delete ListItem
-  await db.listItem
-    .delete({
-      where: { externalId: listItem.externalId },
-    })
-    .catch((error) => {
-      if (error.code === PRISMA_RECORD_NOT_FOUND) {
-        throw new NotFoundError(`List Item ${externalId} cannot be found.`);
-      } else {
-        // some unexpected DB error
-        throw error;
-      }
-    });
+  // the delete and parent list update should happen in a single transaction
+  await db.$transaction(async (db) => {
+    // delete ListItem
+    await db.listItem
+      .delete({
+        where: { externalId: listItem.externalId },
+      })
+      .catch((error) => {
+        if (error.code === PRISMA_RECORD_NOT_FOUND) {
+          throw new NotFoundError(`List Item ${externalId} cannot be found.`);
+        } else {
+          // some unexpected DB error
+          throw error;
+        }
+      });
 
-  //send event bridge event for shareable-list-item-deleted event type
+    // update the parent list's updatedAt value
+    await db.list.update({
+      data: {
+        updatedAt: new Date().toISOString(),
+      },
+      where: {
+        externalId: listItem.list.externalId,
+      },
+    });
+  });
+
+  // send event bridge event for shareable-list-item-deleted event type
   sendEvent(EventBridgeEventType.SHAREABLE_LIST_ITEM_DELETED, {
     shareableListItem: listItem,
     shareableListItemExternalId: listItem.externalId,

@@ -139,6 +139,9 @@ export type UpdateShareableListInput = {
   // Not in the public schema but here in the DB input type
   // because it's generated in the DB resolver if required.
   slug?: string;
+  // Also not in the public schema, but here because the value needs to be set
+  // in the resolver.
+  updatedAt?: string;
 };
 
 export type ModerateShareableListInput = {
