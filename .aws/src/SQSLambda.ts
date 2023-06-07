@@ -44,8 +44,8 @@ export class SQSLambda extends Resource {
             config.environment === 'Prod' ? 'production' : 'development',
           SHAREABLE_LISTS_API_URI:
             config.environment === 'Prod'
-              ? 'https://shareablelistsapi.readitlater.com/'
-              : 'https://shareablelistsapi.getpocket.dev/',
+              ? 'https://shareablelistsapi.readitlater.com'
+              : 'https://shareablelistsapi.getpocket.dev',
         },
         vpcConfig: {
           securityGroupIds: vpc.defaultSecurityGroups.ids,

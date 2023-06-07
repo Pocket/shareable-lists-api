@@ -27,7 +27,6 @@ export async function accountDeleteHandler(record: SQSRecord) {
     },
     body: JSON.stringify(postBody),
   });
-  console.log(res);
   if (!res.ok) {
     const data = (await res.json()) as any;
     throw new Error(
