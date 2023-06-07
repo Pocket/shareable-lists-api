@@ -1,5 +1,8 @@
 import { Visibility, ModerationStatus } from '@prisma/client';
-import { ShareableListComplete, ShareableListItem } from '../database/types';
+import {
+  ShareableListComplete,
+  ShareableListItemTemp,
+} from '../database/types';
 
 export type ShareableListEventBusPayload = {
   eventType: EventBridgeEventType;
@@ -26,7 +29,7 @@ export enum EventBridgeEventType {
 
 export interface EventBridgeEventOptions {
   shareableList?: ShareableListComplete;
-  shareableListItem?: ShareableListItem;
+  shareableListItem?: ShareableListItemTemp;
   shareableListItemExternalId?: string;
   listExternalId?: string;
   isShareableListEventType?: boolean;
@@ -60,11 +63,6 @@ export type SnowplowShareableListItem = {
   shareable_list_item_external_id: string;
   shareable_list_external_id: string;
   given_url: string;
-  title?: string;
-  excerpt?: string;
-  image_url?: string;
-  authors?: string[];
-  publisher?: string;
   note?: string;
   sort_order: number;
   created_at: number; // snowplow schema requires this field in seconds
