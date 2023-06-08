@@ -32,6 +32,8 @@ export enum ShareableListModerationReason {
  * New and improved way of setting up custom types that contain a subset of Prisma
  * model properties while taking advantage of Prisma validation and type safety.
  * (see more at https://www.prisma.io/docs/concepts/components/prisma-client/advanced-type-safety/operating-against-partial-structures-of-model-types)
+ *
+ * TODO: remove all Parser related metadata - https://getpocket.atlassian.net/browse/OSL-496 + remove ShareableListItemTemp type.
  */
 export const shareableListItemSelectFields =
   Prisma.validator<Prisma.ListItemSelect>()({
@@ -54,6 +56,28 @@ const shareableListItem = Prisma.validator<Prisma.ListItemArgs>()({
 });
 export type ShareableListItem = Prisma.ListItemGetPayload<
   typeof shareableListItem
+>;
+
+/**
+ * Setting up the temp shareable list item type without Parser metadata.
+ * Once Parser metata is removed from the db and code, switch back to the original
+ * type definition and delete this type definition.
+ */
+export const shareableListItemSelectFieldsTemp =
+  Prisma.validator<Prisma.ListItemSelect>()({
+    externalId: true,
+    itemId: true,
+    url: true,
+    note: true,
+    sortOrder: true,
+    createdAt: true,
+    updatedAt: true,
+  });
+const shareableListItemTemp = Prisma.validator<Prisma.ListItemArgs>()({
+  select: shareableListItemSelectFieldsTemp,
+});
+export type ShareableListItemTemp = Prisma.ListItemGetPayload<
+  typeof shareableListItemTemp
 >;
 
 /**

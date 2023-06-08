@@ -5,7 +5,10 @@ import {
 import * as Sentry from '@sentry/node';
 import config from '../config/';
 import { eventBridgeClient } from '../aws/eventBridgeClient';
-import { ShareableListComplete, ShareableListItem } from '../database/types';
+import {
+  ShareableListComplete,
+  ShareableListItemTemp,
+} from '../database/types';
 import {
   EventBridgeEventType,
   EventBridgeEventOptions,
@@ -68,7 +71,7 @@ function transformAPIShareableListToSnowplowShareableList(
  * @param listExternalId
  */
 function transformAPIShareableListItemToSnowplowShareableListItem(
-  shareableListItem: ShareableListItem,
+  shareableListItem: ShareableListItemTemp,
   externalId: string,
   listExternalId: string
 ): SnowplowShareableListItem {
@@ -76,17 +79,6 @@ function transformAPIShareableListItemToSnowplowShareableListItem(
     shareable_list_item_external_id: externalId,
     shareable_list_external_id: listExternalId,
     given_url: shareableListItem.url,
-    title: shareableListItem.title ? shareableListItem.title : undefined,
-    excerpt: shareableListItem.excerpt ? shareableListItem.excerpt : undefined,
-    image_url: shareableListItem.imageUrl
-      ? shareableListItem.imageUrl
-      : undefined,
-    authors: shareableListItem.authors
-      ? shareableListItem.authors.split(',')
-      : undefined,
-    publisher: shareableListItem.publisher
-      ? shareableListItem.publisher
-      : undefined,
     note: shareableListItem.note ? shareableListItem.note : undefined,
     sort_order: shareableListItem.sortOrder,
     created_at: Math.floor(shareableListItem.createdAt.getTime() / 1000),
@@ -123,7 +115,7 @@ export function generateShareableListEventBridgePayload(
  */
 export function generateShareableListItemEventBridgePayload(
   eventType: EventBridgeEventType,
-  shareableListItem: ShareableListItem,
+  shareableListItem: ShareableListItemTemp,
   externalId: string,
   listExternalId: string
 ): ShareableListItemEventBusPayload {
