@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { validationResult } from 'express-validator';
 import { PrismaClient } from '@prisma/client';
+
 /**
  * This method validates the request made to the endpoint
  * @param req
@@ -18,6 +19,12 @@ export function validate(req: Request, res: Response, next: NextFunction) {
   next();
 }
 
+/**
+ * This method returns an array of urls (list item urls) if found for a user
+ * @param userId
+ * @param url
+ * @param db
+ */
 export async function getShareableListItemUrlsForUser(
   userId: number | bigint,
   url: string,

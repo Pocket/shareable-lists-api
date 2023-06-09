@@ -26,6 +26,7 @@ const deleteShareableListItemDataSchema: Schema = {
 /**
  * This method batch deletes shareable list items by url for a user
  * @param userId
+ * @param url
  */
 export async function batchDeleteAllListItemsForUser(
   userId: number | bigint,
@@ -41,6 +42,7 @@ export async function batchDeleteAllListItemsForUser(
 /**
  * This method deletes all shareable list item data for a user by url
  * @param userId
+ * @param url
  */
 async function deleteShareableListItemUserData(
   userId: number | bigint,
