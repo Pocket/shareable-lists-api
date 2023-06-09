@@ -9,7 +9,6 @@ import { IPublicContext } from '../context';
 import { client } from '../../database/client';
 import {
   clearDb,
-  createPilotUserHelper,
   createShareableListHelper,
   createShareableListItemHelper,
   mockRedisServer,
@@ -29,9 +28,12 @@ describe('/deleteUserData express endpoint', () => {
   let list2;
   let list3;
 
-  let pilotUser2;
   const headers = {
     userId: '8009882300',
+  };
+
+  const headers2 = {
+    userId: '76543',
   };
 
   beforeAll(async () => {
@@ -58,15 +60,6 @@ describe('/deleteUserData express endpoint', () => {
     sentryStub = sinon.stub(Sentry, 'captureException').resolves();
     await clearDb(db);
 
-    // create pilot users
-    await createPilotUserHelper(db, {
-      userId: parseInt(headers.userId),
-    });
-
-    pilotUser2 = await createPilotUserHelper(db, {
-      userId: 76543,
-    });
-
     // Create a few Lists
     list1 = await createShareableListHelper(db, {
       userId: parseInt(headers.userId),
@@ -80,7 +73,7 @@ describe('/deleteUserData express endpoint', () => {
 
     // Create a List for user 2
     list3 = await createShareableListHelper(db, {
-      userId: pilotUser2.userId,
+      userId: parseInt(headers2.userId),
       title: 'Rolling Stones List',
     });
 
@@ -144,7 +137,7 @@ describe('/deleteUserData express endpoint', () => {
       expect(ids[1]).to.equal(parseInt(list2.id as unknown as string));
 
       // get listIds for another user
-      ids = await getAllShareableListIdsForUser(pilotUser2.userId);
+      ids = await getAllShareableListIdsForUser(parseInt(headers2.userId));
       expect(ids.length).to.equal(1);
       // check the returned ids are what we expect
       expect(ids[0]).to.equal(parseInt(list3.id as unknown as string));
