@@ -103,9 +103,9 @@ class ShareableListsAPI extends TerraformStack {
     new PocketAwsSyntheticChecks(this, 'synthetics', {
       alarmTopicArn:
         config.environment === 'Prod'
-          ? shareableListPagerduty.snsCriticalAlarmTopic.arn
-          : '', // this should be improved, empty string recreates updates constantly as is in cdktf
-      environment: process.env.NODE_ENV === 'development' ? 'Dev' : 'Prod', // yes we should use config.environment, but needs more refinment in module
+          ? shareableListPagerduty.snsNonCriticalAlarmTopic.arn
+          : null,
+      environment: config.environment,
       prefix: config.prefix,
       query: [
         {

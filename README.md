@@ -1,4 +1,5 @@
 # Shareable Lists API
+[Service Docs](https://getpocket.atlassian.net/wiki/spaces/PE/pages/2891776041/Shareable+Lists)
 
 The API that manages the ability to create and share lists of related content.
 
