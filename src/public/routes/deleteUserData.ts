@@ -1,8 +1,9 @@
-import { Request, Response, NextFunction } from 'express';
+import { Request, Response } from 'express';
 import { Router } from 'express';
-import { checkSchema, Schema, validationResult } from 'express-validator';
+import { checkSchema, Schema } from 'express-validator';
 import * as Sentry from '@sentry/node';
 import { client } from '../../database/client';
+import { validate } from './';
 
 const router = Router();
 const db = client();
@@ -15,23 +16,6 @@ const deleteUserDataSchema: Schema = {
     toInt: true,
   },
 };
-
-/**
- * This method validates the request made to the endpoint
- * @param req
- * @param res
- * @param next
- */
-function validate(req: Request, res: Response, next: NextFunction) {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return res
-      .status(400)
-      .json({ errors: errors.array() })
-      .setHeader('Content-Type', 'application/json');
-  }
-  next();
-}
 
 /**
  * This method returns an array of shareable list ids for a user
@@ -79,7 +63,7 @@ async function deleteShareableListUserData(
   // if there are no lists found for a userId, lets not make unecessary calls
   // to the db
   if (shareableListIds.length === 0) {
-    return `No shareable list data to delete for User ID: ${userId})`;
+    return `No shareable list data to delete for User ID: ${userId}`;
   }
   // First, delete all list items if there are any
   await deleteShareableListItemsForUser(shareableListIds);
@@ -92,7 +76,7 @@ async function deleteShareableListUserData(
       // some unexpected DB error, log to Sentry, but don't halt program
       Sentry.captureException('Failed to delete shareable list data: ', error);
     });
-  return `Deleting shareable lists data for User ID: ${userId})`;
+  return `Deleting shareable lists data for User ID: ${userId}`;
 }
 
 router.post(

@@ -11,6 +11,7 @@ import { getPublicContext, IPublicContext } from './public/context';
 import { getAdminContext, IAdminContext } from './admin/context';
 import { startAdminServer } from './admin/server';
 import deleteUserDataRouter from './public/routes/deleteUserData';
+import deleteShareableListItemsRouter from './public/routes/deleteShareableListItems';
 
 /**
  * Initialize an express server.
@@ -41,6 +42,8 @@ export async function startServer(port: number): Promise<{
   app.use(express.json());
   // Add route to delete user data
   app.use('/deleteUserData', deleteUserDataRouter);
+  // Add route to delete shareable list items for user
+  app.use('/deleteShareableListItems', deleteShareableListItemsRouter);
 
   // expose a health check url
   app.get('/.well-known/apollo/server-health', (req, res) => {
