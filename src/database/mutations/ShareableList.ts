@@ -175,6 +175,12 @@ export async function updateShareableList(
       data.slug = preparedSlug;
     }
   }
+
+  // even though @updatedAt in the prisma schema will auto-update this value
+  // on a db update, we set specifically here to strong test the value in our
+  // integration tests.
+  data.updatedAt = new Date().toISOString();
+
   const updatedList = await db.list.update({
     data,
     where: { externalId: data.externalId },

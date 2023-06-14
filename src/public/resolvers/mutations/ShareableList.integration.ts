@@ -509,6 +509,12 @@ describe('public mutations: ShareableList', () => {
     let pilotUserList: List;
     let nonPilotUserList: List;
 
+    let clock;
+
+    // for strong checks on createdAt and updatedAt values
+    const arbitraryTimestamp = 1664400000000;
+    const oneDay = 86400000;
+
     beforeEach(async () => {
       // Create a List for a pilot user
       pilotUserList = await createShareableListHelper(db, {
@@ -589,6 +595,15 @@ describe('public mutations: ShareableList', () => {
     });
 
     it('should update a list and return all props', async () => {
+      // stub the clock so we can directly check updatedAt
+      clock = sinon.useFakeTimers({
+        now: arbitraryTimestamp,
+        shouldAdvanceTime: false,
+      });
+
+      // advance the clock one day
+      clock.tick(oneDay);
+
       const data: UpdateShareableListInput = {
         externalId: pilotUserList.externalId,
         title: 'This Will Be A Brand New Title',
@@ -635,9 +650,11 @@ describe('public mutations: ShareableList', () => {
       expect(updatedList.user).to.deep.equal({ id: pilotUserHeaders.userId });
 
       // The `updatedAt` timestamp should change
-      expect(updatedList.updatedAt).not.to.equal(
-        pilotUserList.updatedAt.toISOString()
+      expect(Date.parse(updatedList.updatedAt)).to.equal(
+        arbitraryTimestamp + oneDay
       );
+
+      clock.restore();
     });
 
     it('should return a "Not Found" error if no list exists', async () => {

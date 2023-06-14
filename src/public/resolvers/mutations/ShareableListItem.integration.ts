@@ -5,13 +5,7 @@ import { print } from 'graphql';
 import request from 'supertest';
 import { ApolloServer } from '@apollo/server';
 import { EventBridgeClient } from '@aws-sdk/client-eventbridge';
-import {
-  List,
-  ListItem,
-  ModerationStatus,
-  PilotUser,
-  PrismaClient,
-} from '@prisma/client';
+import { List, ListItem, ModerationStatus, PrismaClient } from '@prisma/client';
 import { startServer } from '../../../express';
 import { IPublicContext } from '../../context';
 import { client } from '../../../database/client';
@@ -28,7 +22,6 @@ import {
 } from './sample-mutations.gql';
 import {
   clearDb,
-  createPilotUserHelper,
   createShareableListHelper,
   createShareableListItemHelper,
   mockRedisServer,
@@ -44,7 +37,12 @@ describe('public mutations: ShareableListItem', () => {
   let graphQLUrl: string;
   let db: PrismaClient;
   let eventBridgeClientStub: sinon.SinonStub;
-  let pilotUser2: PilotUser;
+
+  let clock;
+
+  // for strong checks on createdAt and updatedAt values
+  const arbitraryTimestamp = 1664400000000;
+  const oneDay = 86400000;
 
   const pilotUserHeaders = {
     userId: '8009882300',
@@ -54,15 +52,22 @@ describe('public mutations: ShareableListItem', () => {
     userId: '123456789',
   };
 
+  const publicUserHeaders2 = {
+    userId: '7732025862',
+  };
+
   beforeAll(async () => {
     mockRedisServer();
+
     // port 0 tells express to dynamically assign an available port
     ({
       app,
       publicServer: server,
       publicUrl: graphQLUrl,
     } = await startServer(0));
+
     db = client();
+
     // we mock the send method on EventBridgeClient
     eventBridgeClientStub = sinon
       .stub(EventBridgeClient.prototype, 'send')
@@ -81,11 +86,6 @@ describe('public mutations: ShareableListItem', () => {
 
     beforeEach(async () => {
       await clearDb(db);
-
-      // create pilot user
-      pilotUser2 = await createPilotUserHelper(db, {
-        userId: 7732025862,
-      });
 
       // Create a parent Shareable List for pilot & public users
       pilotList = await createShareableListHelper(db, {
@@ -419,6 +419,49 @@ describe('public mutations: ShareableListItem', () => {
       expect(listItem.createdAt).not.to.be.empty;
       expect(listItem.updatedAt).not.to.be.empty;
     });
+
+    it('should update the updatedAt value of the parent list', async () => {
+      // stub the clock so we can directly check updatedAt
+      clock = sinon.useFakeTimers({
+        now: arbitraryTimestamp,
+        shouldAdvanceTime: false,
+      });
+
+      // advance the clock one day
+      clock.tick(oneDay);
+
+      const data: CreateShareableListItemInput = {
+        listExternalId: list.externalId,
+        itemId: '3834701731',
+        url: 'https://www.test.com/this-is-a-story',
+        title: 'A story is a story',
+        excerpt: '<blink>The best story ever told</blink>',
+        imageUrl: 'https://www.test.com/thumbnail.jpg',
+        publisher: 'The London Times',
+        authors: 'Charles Dickens, Mark Twain',
+        sortOrder: 10,
+      };
+
+      await request(app)
+        .post(graphQLUrl)
+        .set(publicUserHeaders)
+        .send({
+          query: print(CREATE_SHAREABLE_LIST_ITEM),
+          variables: { data },
+        });
+
+      const updatedList = await db.list.findFirst({
+        where: {
+          externalId: list.externalId,
+        },
+      });
+
+      expect(updatedList.updatedAt.getTime()).to.equal(
+        arbitraryTimestamp + oneDay
+      );
+
+      clock.restore();
+    });
   });
 
   describe('updateShareableListItem', () => {
@@ -426,11 +469,6 @@ describe('public mutations: ShareableListItem', () => {
     let shareableList2: List;
     let listItem1: ListItem;
     let listItem2: ListItem;
-
-    let clock;
-    // for strong checks on createdAt and updatedAt values
-    const arbitraryTimestamp = 1664400000000;
-    const oneDay = 86400000;
 
     beforeEach(async () => {
       await clearDb(db);
@@ -486,12 +524,7 @@ describe('public mutations: ShareableListItem', () => {
       expect(listItem.sortOrder).to.equal(data.sortOrder);
     });
 
-    it('should update the updatedAt value', async () => {
-      // Create a ListItem (specifically here to verify timestamps)
-      listItem1 = await createShareableListItemHelper(db, {
-        list: shareableList1,
-      });
-
+    it('should update the updatedAt value of the item and the parent list', async () => {
       // stub the clock so we can directly check createdAt and updatedAt
       clock = sinon.useFakeTimers({
         now: arbitraryTimestamp,
@@ -519,6 +552,14 @@ describe('public mutations: ShareableListItem', () => {
       expect(
         Date.parse(result.body.data.updateShareableListItem.updatedAt)
       ).to.equal(arbitraryTimestamp + oneDay);
+
+      const list = await db.list.findFirst({
+        where: {
+          externalId: shareableList1.externalId,
+        },
+      });
+
+      expect(list.updatedAt.getTime()).to.equal(arbitraryTimestamp + oneDay);
 
       clock.restore();
     });
@@ -676,67 +717,68 @@ describe('public mutations: ShareableListItem', () => {
   });
 
   describe('updateShareableListItems', () => {
-    let shareableList1: List;
-    let shareableList2: List;
-    let listItem1: ListItem;
-    let listItem2: ListItem;
-    let listItem3: ListItem;
-
-    let clock;
-    // for strong checks on createdAt and updatedAt values
-    const arbitraryTimestamp = 1664400000000;
-    const oneDay = 86400000;
+    let shareableList1User1: List;
+    let shareableList2User1: List;
+    let shareableList1User2: List;
+    let shareableList1User1_item1: ListItem;
+    let shareableList1User1_item2: ListItem;
+    let shareableList2User1_item1: ListItem;
+    let shareableList1User2_item1: ListItem;
 
     beforeEach(async () => {
       await clearDb(db);
 
-      // create pilot users
-      pilotUser2 = await createPilotUserHelper(db, {
-        userId: 7732025862,
-      });
-
-      // Create a VISIBLE List for pilot user 1
-      shareableList1 = await createShareableListHelper(db, {
-        userId: parseInt(pilotUserHeaders.userId),
+      // create lists for public user 1
+      shareableList1User1 = await createShareableListHelper(db, {
+        userId: parseInt(publicUserHeaders.userId),
         title: 'Simon Le Bon List',
       });
 
-      // Create a ListItem
-      listItem1 = await createShareableListItemHelper(db, {
-        list: shareableList1,
+      shareableList2User1 = await createShareableListHelper(db, {
+        userId: parseInt(publicUserHeaders.userId),
+        title: 'Nick Rhodes List',
       });
 
-      listItem2 = await createShareableListItemHelper(db, {
-        list: shareableList1,
+      // create list items
+      shareableList1User1_item1 = await createShareableListItemHelper(db, {
+        list: shareableList1User1,
       });
 
-      // Create a VISIBLE List for pilot user 2
-      shareableList2 = await createShareableListHelper(db, {
-        userId: pilotUser2.userId,
+      shareableList1User1_item2 = await createShareableListItemHelper(db, {
+        list: shareableList1User1,
+      });
+
+      shareableList2User1_item1 = await createShareableListItemHelper(db, {
+        list: shareableList2User1,
+      });
+
+      // create a list for public user 2
+      shareableList1User2 = await createShareableListHelper(db, {
+        userId: parseInt(publicUserHeaders2.userId),
         title: 'Aux Merveilleux de Fred',
       });
 
-      // Create a ListItem
-      listItem3 = await createShareableListItemHelper(db, {
-        list: shareableList2,
+      // create list items
+      shareableList1User2_item1 = await createShareableListItemHelper(db, {
+        list: shareableList1User2,
       });
     });
 
     it('should update sortOrders of an array of shareable list items', async () => {
       const data: UpdateShareableListItemsInput[] = [
         {
-          externalId: listItem1.externalId,
+          externalId: shareableList1User1_item1.externalId,
           sortOrder: 1,
         },
         {
-          externalId: listItem2.externalId,
+          externalId: shareableList1User1_item2.externalId,
           sortOrder: 2,
         },
       ];
 
       const result = await request(app)
         .post(graphQLUrl)
-        .set(pilotUserHeaders)
+        .set(publicUserHeaders)
         .send({
           query: print(UPDATE_SHAREABLE_LIST_ITEMS),
           variables: { data },
@@ -755,15 +797,7 @@ describe('public mutations: ShareableListItem', () => {
     });
 
     it('should update the updatedAt value for each shareable list item', async () => {
-      // Create a ListItems (specifically here to verify timestamps)
-      listItem1 = await createShareableListItemHelper(db, {
-        list: shareableList1,
-      });
-      listItem2 = await createShareableListItemHelper(db, {
-        list: shareableList1,
-      });
-
-      // stub the clock so we can directly check createdAt and updatedAt
+      // stub the clock so we can directly check updatedAt
       clock = sinon.useFakeTimers({
         now: arbitraryTimestamp,
         shouldAdvanceTime: false,
@@ -774,18 +808,18 @@ describe('public mutations: ShareableListItem', () => {
 
       const data: UpdateShareableListItemsInput[] = [
         {
-          externalId: listItem1.externalId,
+          externalId: shareableList1User1_item1.externalId,
           sortOrder: 1,
         },
         {
-          externalId: listItem2.externalId,
+          externalId: shareableList1User1_item2.externalId,
           sortOrder: 2,
         },
       ];
 
       const result = await request(app)
         .post(graphQLUrl)
-        .set(pilotUserHeaders)
+        .set(publicUserHeaders)
         .send({
           query: print(UPDATE_SHAREABLE_LIST_ITEMS),
           variables: { data },
@@ -798,10 +832,76 @@ describe('public mutations: ShareableListItem', () => {
       expect(result.body.data.updateShareableListItems).not.to.be.null;
 
       const listItems = result.body.data.updateShareableListItems;
+
       expect(Date.parse(listItems[0].updatedAt)).to.equal(
         arbitraryTimestamp + oneDay
       );
+
       expect(Date.parse(listItems[1].updatedAt)).to.equal(
+        arbitraryTimestamp + oneDay
+      );
+
+      clock.restore();
+    });
+
+    it('should update the updatedAt value for each parent list', async () => {
+      // stub the clock so we can directly check createdAt and updatedAt
+      clock = sinon.useFakeTimers({
+        now: arbitraryTimestamp,
+        shouldAdvanceTime: false,
+      });
+
+      // advance the clock one day to mimic an update made a day after create
+      clock.tick(oneDay);
+
+      const data: UpdateShareableListItemsInput[] = [
+        {
+          externalId: shareableList1User1_item1.externalId,
+          sortOrder: 1,
+        },
+        {
+          externalId: shareableList1User1_item2.externalId,
+          sortOrder: 2,
+        },
+        // a list item from a different list! will this ever happen in
+        // practice? unclear. but it could, so we should test it.
+        {
+          externalId: shareableList2User1_item1.externalId,
+          sortOrder: 15,
+        },
+      ];
+
+      const result = await request(app)
+        .post(graphQLUrl)
+        .set(publicUserHeaders)
+        .send({
+          query: print(UPDATE_SHAREABLE_LIST_ITEMS),
+          variables: { data },
+        });
+
+      // There should be no errors
+      expect(result.body.errors).to.be.undefined;
+
+      // A result should be returned
+      expect(result.body.data.updateShareableListItems).not.to.be.null;
+
+      // retrieve the paret lists that should have been updated
+      const updatedLists = await db.list.findMany({
+        where: {
+          externalId: {
+            in: [
+              shareableList1User1.externalId,
+              shareableList2User1.externalId,
+            ],
+          },
+        },
+      });
+
+      expect(updatedLists[0].updatedAt.getTime()).to.equal(
+        arbitraryTimestamp + oneDay
+      );
+
+      expect(updatedLists[1].updatedAt.getTime()).to.equal(
         arbitraryTimestamp + oneDay
       );
 
@@ -811,7 +911,7 @@ describe('public mutations: ShareableListItem', () => {
     it('should fail the entire update call if one of the externalIds is invalid', async () => {
       const data: UpdateShareableListItemsInput[] = [
         {
-          externalId: listItem1.externalId, // valid
+          externalId: shareableList1User1_item1.externalId, // valid
           sortOrder: 1,
         },
         {
@@ -834,12 +934,14 @@ describe('public mutations: ShareableListItem', () => {
       );
       // lets make sure the valid list item was not updated
       const validListItem = await db.listItem.findFirst({
-        where: { externalId: listItem1.externalId },
+        where: { externalId: shareableList1User1_item1.externalId },
       });
       // expect the list item sortOrder not be updated to 1
       expect(validListItem.sortOrder).not.to.equal(1);
       // double check sortOrder is original value
-      expect(validListItem.sortOrder).to.equal(listItem1.sortOrder);
+      expect(validListItem.sortOrder).to.equal(
+        shareableList1User1_item1.sortOrder
+      );
     });
 
     it('should fail if more than 30 list items are provided as input', async () => {
@@ -850,7 +952,7 @@ describe('public mutations: ShareableListItem', () => {
       const data: UpdateShareableListItemsInput[] = [];
       for (let i = 0; i < 31; i++) {
         listItem = await createShareableListItemHelper(db, {
-          list: shareableList1,
+          list: shareableList1User1,
         });
         externalIds.push(listItem.externalId);
         sortOrders.push(i);
@@ -881,11 +983,11 @@ describe('public mutations: ShareableListItem', () => {
     it('should fail the entire update call if one of the shareable list item is for a different user', async () => {
       const data: UpdateShareableListItemsInput[] = [
         {
-          externalId: listItem1.externalId, // valid
+          externalId: shareableList1User1_item1.externalId, // valid
           sortOrder: 1,
         },
         {
-          externalId: listItem3.externalId, // listItem3 belongs to pilotUser 2
+          externalId: shareableList1User2_item1.externalId, // listItem3 belongs to pilotUser 2
           sortOrder: 2,
         },
       ];
@@ -1041,6 +1143,37 @@ describe('public mutations: ShareableListItem', () => {
       expect(result2.body.errors[0].message).to.equal(
         'Error - Not Found: A list item by that ID could not be found'
       );
+    });
+
+    it('should update the parent list updatedAt value when deleting a list item', async () => {
+      // stub the clock so we can directly check updatedAt
+      clock = sinon.useFakeTimers({
+        now: arbitraryTimestamp,
+        shouldAdvanceTime: false,
+      });
+
+      // advance the clock one day to mimic an update made a day after create
+      clock.tick(oneDay);
+
+      // run the mutation
+      await request(app)
+        .post(graphQLUrl)
+        .set(publicUserHeaders)
+        .send({
+          query: print(DELETE_SHAREABLE_LIST_ITEM),
+          variables: { externalId: listItem1.externalId },
+        });
+
+      // retrieve the parent list of the item updated
+      const list = await db.list.findFirst({
+        where: {
+          externalId: shareableList.externalId,
+        },
+      });
+
+      expect(list.updatedAt.getTime()).to.equal(arbitraryTimestamp + oneDay);
+
+      clock.restore();
     });
   });
 });
