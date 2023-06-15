@@ -1,6 +1,7 @@
 import { config } from './config';
 import { AwsProvider } from '@cdktf/provider-aws/lib/provider';
 import { SqsQueue } from '@cdktf/provider-aws/lib/sqs-queue';
+import { CloudwatchLogGroup } from '@cdktf/provider-aws/lib/cloudwatch-log-group';
 import { DataAwsCallerIdentity } from '@cdktf/provider-aws/lib/data-aws-caller-identity';
 import { DataAwsKmsAlias } from '@cdktf/provider-aws/lib/data-aws-kms-alias';
 import { DataAwsRegion } from '@cdktf/provider-aws/lib/data-aws-region';
@@ -104,7 +105,7 @@ class ShareableListsAPI extends TerraformStack {
       alarmTopicArn:
         config.environment === 'Prod'
           ? shareableListPagerduty.snsNonCriticalAlarmTopic.arn
-          : null,
+          : '',
       environment: config.environment,
       prefix: config.prefix,
       query: [
@@ -302,14 +303,6 @@ class ShareableListsAPI extends TerraformStack {
           },
           envVars: [
             {
-              name: 'AWS_XRAY_CONTEXT_MISSING',
-              value: 'LOG_ERROR',
-            },
-            {
-              name: 'AWS_XRAY_LOG_LEVEL',
-              value: 'silent',
-            },
-            {
               name: 'NODE_ENV',
               value: process.env.NODE_ENV,
             },
@@ -322,6 +315,12 @@ class ShareableListsAPI extends TerraformStack {
               value: config.eventBusName,
             },
             {
+              name: 'RELEASE_SHA',
+              value:
+                process.env.CODEBUILD_RESOLVED_SOURCE_VERSION ??
+                process.env.CIRCLE_SHA1,
+            },
+            {
               name: 'REDIS_PRIMARY_ENDPOINT',
               value: cache.primaryEndpoint,
             },
@@ -330,6 +329,8 @@ class ShareableListsAPI extends TerraformStack {
               value: cache.readerEndpoint,
             },
           ],
+          logGroup: this.createCustomLogGroup('app'),
+          logMultilinePattern: '^\\S.+',
           secretEnvVars: [
             {
               name: 'SENTRY_DSN',
@@ -340,19 +341,6 @@ class ShareableListsAPI extends TerraformStack {
               valueFrom: `${rds.secretARN}:database_url::`,
             },
           ],
-        },
-        {
-          name: 'xray-daemon',
-          containerImage: 'amazon/aws-xray-daemon',
-          repositoryCredentialsParam: `arn:aws:secretsmanager:${region.name}:${caller.accountId}:secret:Shared/DockerHub`,
-          portMappings: [
-            {
-              hostPort: 2000,
-              containerPort: 2000,
-              protocol: 'udp',
-            },
-          ],
-          command: ['--region', 'us-east-1', '--local-mode'],
         },
       ],
       codeDeploy: {
@@ -425,6 +413,26 @@ class ShareableListsAPI extends TerraformStack {
       },
       alarms: {},
     });
+  }
+
+  /**
+   * Create Custom log group for ECS to share across task revisions
+   * @param containerName
+   * @private
+   */
+  private createCustomLogGroup(containerName: string) {
+    const logGroup = new CloudwatchLogGroup(
+      this,
+      `${containerName}-log-group`,
+      {
+        name: `/Backend/${config.prefix}/ecs/${containerName}`,
+        retentionInDays: 90,
+        skipDestroy: true,
+        tags: config.tags,
+      }
+    );
+
+    return logGroup.name;
   }
 }
 const app = new App();

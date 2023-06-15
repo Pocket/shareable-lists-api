@@ -16,12 +16,13 @@ import {
 } from './events';
 import { EventBridgeEventType } from './types';
 import { faker } from '@faker-js/faker';
+import { serverLogger } from '../express';
 
 describe('Snowplow event helpers', () => {
   let eventBridgeClientStub: sinon.SinonStub;
   let sentryStub;
   let crumbStub;
-  let consoleSpy;
+  let loggerErrorSpy;
 
   const shareableList: ShareableListComplete = {
     externalId: faker.string.uuid(),
@@ -58,14 +59,14 @@ describe('Snowplow event helpers', () => {
       .stub(EventBridgeClient.prototype, 'send')
       .resolves({ FailedEntryCount: 0 });
     sentryStub = sinon.stub(Sentry, 'captureException').resolves();
-    consoleSpy = sinon.spy(console, 'log');
+    loggerErrorSpy = sinon.spy(serverLogger, 'error');
     crumbStub = sinon.stub(Sentry, 'addBreadcrumb').resolves();
   });
 
   afterEach(() => {
     eventBridgeClientStub.restore();
     sentryStub.restore();
-    consoleSpy.restore();
+    loggerErrorSpy.restore();
     crumbStub.restore();
   });
 
@@ -413,8 +414,8 @@ describe('Snowplow event helpers', () => {
       expect(crumbStub.getCall(0).firstArg.message).to.contain(
         `Failed to send event 'shareable_list_created' to event bus`
       );
-      expect(consoleSpy.callCount).to.equal(2);
-      expect(consoleSpy.getCall(0).firstArg.message).to.contain(
+      expect(loggerErrorSpy.callCount).to.equal(1);
+      expect(loggerErrorSpy.getCall(0).firstArg.message).to.contain(
         `Failed to send event 'shareable_list_created' to event bus`
       );
     });
@@ -441,8 +442,8 @@ describe('Snowplow event helpers', () => {
       expect(crumbStub.getCall(0).firstArg.message).to.contain(
         `Failed to send event 'shareable_list_item_created' to event bus`
       );
-      expect(consoleSpy.callCount).to.equal(2);
-      expect(consoleSpy.getCall(0).firstArg.message).to.contain(
+      expect(loggerErrorSpy.callCount).to.equal(1);
+      expect(loggerErrorSpy.getCall(0).firstArg.message).to.contain(
         `Failed to send event 'shareable_list_item_created' to event bus`
       );
     });
@@ -464,7 +465,7 @@ describe('Snowplow event helpers', () => {
         // nothing to see here
       }, 100);
       expect(sentryStub.callCount).to.equal(0);
-      expect(consoleSpy.callCount).to.equal(0);
+      expect(loggerErrorSpy.callCount).to.equal(0);
     });
     it('should send shareable-list-item event to event bus with proper event data', async () => {
       // let's first generate a payload to send to the event bridge
@@ -484,7 +485,7 @@ describe('Snowplow event helpers', () => {
         // nothing to see here
       }, 100);
       expect(sentryStub.callCount).to.equal(0);
-      expect(consoleSpy.callCount).to.equal(0);
+      expect(loggerErrorSpy.callCount).to.equal(0);
     });
     it('should log error if send call throws error for shareable-list event', async () => {
       eventBridgeClientStub.restore();
@@ -510,8 +511,8 @@ describe('Snowplow event helpers', () => {
       expect(sentryStub.getCall(0).firstArg.message).to.contain(
         `Failed to send event 'shareable_list_created' to event bus`
       );
-      expect(consoleSpy.callCount).to.equal(1);
-      expect(consoleSpy.getCall(0).firstArg.message).to.contain(
+      expect(loggerErrorSpy.callCount).to.equal(1);
+      expect(loggerErrorSpy.getCall(0).firstArg.message).to.contain(
         `Failed to send event 'shareable_list_created' to event bus`
       );
     });
@@ -541,8 +542,8 @@ describe('Snowplow event helpers', () => {
       expect(sentryStub.getCall(0).firstArg.message).to.contain(
         `Failed to send event 'shareable_list_item_created' to event bus`
       );
-      expect(consoleSpy.callCount).to.equal(1);
-      expect(consoleSpy.getCall(0).firstArg.message).to.contain(
+      expect(loggerErrorSpy.callCount).to.equal(1);
+      expect(loggerErrorSpy.getCall(0).firstArg.message).to.contain(
         `Failed to send event 'shareable_list_item_created' to event bus`
       );
     });
