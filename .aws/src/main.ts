@@ -1,6 +1,7 @@
 import { config } from './config';
 import { AwsProvider } from '@cdktf/provider-aws/lib/provider';
 import { SqsQueue } from '@cdktf/provider-aws/lib/sqs-queue';
+import { CloudwatchLogGroup } from '@cdktf/provider-aws/lib/cloudwatch-log-group';
 import { DataAwsCallerIdentity } from '@cdktf/provider-aws/lib/data-aws-caller-identity';
 import { DataAwsKmsAlias } from '@cdktf/provider-aws/lib/data-aws-kms-alias';
 import { DataAwsRegion } from '@cdktf/provider-aws/lib/data-aws-region';
@@ -314,6 +315,12 @@ class ShareableListsAPI extends TerraformStack {
               value: config.eventBusName,
             },
             {
+              name: 'RELEASE_SHA',
+              value:
+                process.env.CODEBUILD_RESOLVED_SOURCE_VERSION ??
+                process.env.CIRCLE_SHA1,
+            },
+            {
               name: 'REDIS_PRIMARY_ENDPOINT',
               value: cache.primaryEndpoint,
             },
@@ -322,13 +329,9 @@ class ShareableListsAPI extends TerraformStack {
               value: cache.readerEndpoint,
             },
           ],
-          logGroup: `/backend/${config.prefix}/ecs/app`,
+          logGroup: this.createCustomLogGroup('app'),
           logMultilinePattern: '^\\S.+',
           secretEnvVars: [
-            {
-              name: 'RELEASE_SHA',
-              valueFrom: `arn:aws:ssm:${region.name}:${caller.accountId}:parameter/${config.name}/${config.environment}/SERVICE_HASH`,
-            },
             {
               name: 'SENTRY_DSN',
               valueFrom: `arn:aws:ssm:${region.name}:${caller.accountId}:parameter/${config.name}/${config.environment}/SENTRY_DSN`,
@@ -410,6 +413,26 @@ class ShareableListsAPI extends TerraformStack {
       },
       alarms: {},
     });
+  }
+
+  /**
+   * Create Custom log group for ECS to share across task revisions
+   * @param containerName
+   * @private
+   */
+  private createCustomLogGroup(containerName: string) {
+    const logGroup = new CloudwatchLogGroup(
+      this,
+      `${containerName}-log-group`,
+      {
+        name: `/Backend/${config.prefix}/ecs/${containerName}`,
+        retentionInDays: 90,
+        skipDestroy: true,
+        tags: config.tags,
+      }
+    );
+
+    return logGroup.name;
   }
 }
 const app = new App();

@@ -6,7 +6,9 @@ import {
 } from '../src/test/helpers';
 import { faker } from '@faker-js/faker';
 import { updateShareableList } from '../src/database/mutations';
+import { setLogger } from '@pocket-tools/ts-logger';
 
+const prismaSeedLogger = setLogger();
 const prisma = new PrismaClient();
 
 async function main() {
@@ -54,7 +56,7 @@ async function main() {
 
     for (let i = 0; i <= numberOfStories; i++) {
       await createShareableListItemHelper(prisma, { list }).catch(
-        console.error
+        prismaSeedLogger.error
       );
     }
   }
@@ -62,7 +64,7 @@ async function main() {
 
 main()
   .catch((e) => {
-    console.error(e);
+    prismaSeedLogger.error({ error: e, message: 'primsa seed main() error' });
     process.exit(1);
   })
   .finally(async () => {

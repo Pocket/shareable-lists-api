@@ -11,6 +11,9 @@ import { getAdminContext, IAdminContext } from './admin/context';
 import { startAdminServer } from './admin/server';
 import deleteUserDataRouter from './public/routes/deleteUserData';
 import deleteShareableListItemsRouter from './public/routes/deleteShareableListItems';
+import { setLogger, setMorgan } from '@pocket-tools/ts-logger';
+
+export const serverLogger = setLogger();
 
 /**
  * Initialize an express server.
@@ -34,8 +37,12 @@ export async function startServer(port: number): Promise<{
   const app = express();
   const httpServer = http.createServer(app);
 
-  // JSON parser to enable POST body with JSON
-  app.use(express.json());
+  app.use(
+    // JSON parser to enable POST body with JSON
+    express.json(),
+    // JSON parser to enable POST body with JSON
+    setMorgan(serverLogger)
+  );
   // Add route to delete user data
   app.use('/deleteUserData', deleteUserDataRouter);
   // Add route to delete shareable list items for user
