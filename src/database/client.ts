@@ -28,18 +28,22 @@ export function client(): PrismaClient {
   });
 
   prisma.$on('error', (e) => {
+    e.source = 'prisma';
     serverLogger.error(e);
   });
 
   prisma.$on('warn', (e) => {
+    e.source = 'prisma';
     serverLogger.warn(e);
   });
 
   prisma.$on('info', (e) => {
+    e.source = 'prisma';
     serverLogger.info(e);
   });
 
   prisma.$on('query', (e) => {
+    e.source = 'prisma';
     serverLogger.debug(e);
   });
 
