@@ -302,14 +302,6 @@ class ShareableListsAPI extends TerraformStack {
           },
           envVars: [
             {
-              name: 'AWS_XRAY_CONTEXT_MISSING',
-              value: 'LOG_ERROR',
-            },
-            {
-              name: 'AWS_XRAY_LOG_LEVEL',
-              value: 'silent',
-            },
-            {
               name: 'NODE_ENV',
               value: process.env.NODE_ENV,
             },
@@ -330,7 +322,13 @@ class ShareableListsAPI extends TerraformStack {
               value: cache.readerEndpoint,
             },
           ],
+          logGroup: `/backend/${config.prefix}/ecs/app`,
+          logMultilinePattern: '^\\S.+',
           secretEnvVars: [
+            {
+              name: 'RELEASE_SHA',
+              valueFrom: `arn:aws:ssm:${region.name}:${caller.accountId}:parameter/${config.name}/${config.environment}/SERVICE_HASH`,
+            },
             {
               name: 'SENTRY_DSN',
               valueFrom: `arn:aws:ssm:${region.name}:${caller.accountId}:parameter/${config.name}/${config.environment}/SENTRY_DSN`,
@@ -340,19 +338,6 @@ class ShareableListsAPI extends TerraformStack {
               valueFrom: `${rds.secretARN}:database_url::`,
             },
           ],
-        },
-        {
-          name: 'xray-daemon',
-          containerImage: 'amazon/aws-xray-daemon',
-          repositoryCredentialsParam: `arn:aws:secretsmanager:${region.name}:${caller.accountId}:secret:Shared/DockerHub`,
-          portMappings: [
-            {
-              hostPort: 2000,
-              containerPort: 2000,
-              protocol: 'udp',
-            },
-          ],
-          command: ['--region', 'us-east-1', '--local-mode'],
         },
       ],
       codeDeploy: {

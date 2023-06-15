@@ -52,15 +52,6 @@ services:
     volumes:
       - ./.docker/localstack:/docker-entrypoint-initaws.d
 
-  otlpcollector:
-      image: amazon/aws-otel-collector@sha256:fc6705ad08413abae9e4f33cf5249ef39075bc5e4ab6f4957cf0c2019b6ca527
-      command: --config=/etc/ecs/ecs-default-config.yaml --set=service.telemetry.logs.level=debug
-      env_file:
-        - .docker/local.env
-      ports:
-        - '4137:4137'
-        - '4138:4138'
-
   app:
     # Debian GNU/Linux 11 (bullseye)
     image: node:18-slim@sha256:b175cd7f3358c399f7bcee9b1032b86b71b1afa4cfb4dd0db55d66f871475a3e
@@ -72,8 +63,6 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
-      otlpcollector:
-        condition: service_started
     env_file:
       - .docker/local.env
     environment:

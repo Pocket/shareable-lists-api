@@ -173,8 +173,6 @@ jobs:
           password: $DOCKERHUB_PASSWORD
         environment:
           NODE_ENV: test
-          AWS_XRAY_LOG_LEVEL: silent
-          AWS_XRAY_CONTEXT_MISSING: IGNORE_ERROR
       # Example for snowplow service
       - image: pocket/snowplow-micro:prod
         auth:

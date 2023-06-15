@@ -2,7 +2,6 @@ import * as Sentry from '@sentry/node';
 import express from 'express';
 import http from 'http';
 import cors from 'cors';
-import xrayExpress from 'aws-xray-sdk-express';
 import { ApolloServer } from '@apollo/server';
 import { expressMiddleware } from '@apollo/server/express4';
 import config from './config';
@@ -34,9 +33,6 @@ export async function startServer(port: number): Promise<{
   // provided to drain plugin for graceful shutdown.
   const app = express();
   const httpServer = http.createServer(app);
-
-  // If there is no host header (really there always should be...) then use shareable-lists-api as the name
-  app.use(xrayExpress.openSegment('shareable-lists-api'));
 
   // JSON parser to enable POST body with JSON
   app.use(express.json());
@@ -73,9 +69,6 @@ export async function startServer(port: number): Promise<{
       context: getPublicContext,
     })
   );
-
-  //Make sure the express app has the xray close segment handler
-  app.use(xrayExpress.closeSegment());
 
   await new Promise<void>((resolve) => httpServer.listen({ port }, resolve));
   return { app, adminServer, adminUrl, publicServer, publicUrl };
