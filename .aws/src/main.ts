@@ -105,7 +105,7 @@ class ShareableListsAPI extends TerraformStack {
       alarmTopicArn:
         config.environment === 'Prod'
           ? shareableListPagerduty.snsNonCriticalAlarmTopic.arn
-          : null,
+          : '',
       environment: config.environment,
       prefix: config.prefix,
       query: [
