@@ -10,7 +10,7 @@ import { getPublicContext, IPublicContext } from './public/context';
 import { getAdminContext, IAdminContext } from './admin/context';
 import { startAdminServer } from './admin/server';
 import deleteUserDataRouter from './public/routes/deleteUserData';
-import deleteShareableListItemsRouter from './public/routes/deleteShareableListItems';
+import deleteShareableListItemsRouter from './public/routes/queueDeleteShareableListItems';
 import { setLogger, setMorgan } from '@pocket-tools/ts-logger';
 
 export const serverLogger = setLogger();
