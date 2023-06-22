@@ -312,16 +312,16 @@ class ShareableListsAPI extends TerraformStack {
           },
           envVars: [
             {
-              name: 'NODE_ENV',
-              value: process.env.NODE_ENV,
-            },
-            {
               name: 'ENVIRONMENT',
               value: process.env.NODE_ENV,
             },
             {
               name: 'EVENT_BUS_NAME',
               value: config.eventBusName,
+            },
+            {
+              name: 'NODE_ENV',
+              value: process.env.NODE_ENV,
             },
             {
               name: 'RELEASE_SHA',
@@ -336,6 +336,10 @@ class ShareableListsAPI extends TerraformStack {
             {
               name: 'REDIS_READER_ENDPOINT',
               value: cache.readerEndpoint,
+            },
+            {
+              name: 'SQS_BATCH_LIST_ITEM_DELETE_QUEUE_URL',
+              value: config.sqsBatchDeleteQueueName,
             },
           ],
           logGroup: this.createCustomLogGroup('app'),

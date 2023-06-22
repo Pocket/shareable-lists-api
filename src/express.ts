@@ -10,7 +10,7 @@ import { getPublicContext, IPublicContext } from './public/context';
 import { getAdminContext, IAdminContext } from './admin/context';
 import { startAdminServer } from './admin/server';
 import deleteUserDataRouter from './public/routes/deleteUserData';
-import deleteShareableListItemsRouter from './public/routes/deleteShareableListItems';
+import queueDeleteShareableListItemsRouter from './public/routes/queueDeleteShareableListItems';
 import { setLogger, setMorgan } from '@pocket-tools/ts-logger';
 
 export const serverLogger = setLogger();
@@ -43,10 +43,15 @@ export async function startServer(port: number): Promise<{
     // JSON parser to enable POST body with JSON
     setMorgan(serverLogger)
   );
+
   // Add route to delete user data
   app.use('/deleteUserData', deleteUserDataRouter);
+
   // Add route to delete shareable list items for user
-  app.use('/deleteShareableListItems', deleteShareableListItemsRouter);
+  app.use(
+    '/queueDeleteShareableListItems',
+    queueDeleteShareableListItemsRouter
+  );
 
   // expose a health check url
   app.get('/.well-known/apollo/server-health', (req, res) => {
