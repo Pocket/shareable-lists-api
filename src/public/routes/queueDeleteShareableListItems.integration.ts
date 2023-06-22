@@ -25,7 +25,7 @@ describe('/queueDeleteShareableListItems', () => {
   let db: PrismaClient;
   let userLists = [];
   let userListItems = [];
-  const endpoint = 'deleteShareableListItems';
+  const endpoint = 'queueDeleteShareableListItems';
 
   let sentrySpy;
   let breadSpy;

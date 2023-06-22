@@ -18,7 +18,7 @@ const router = Router();
 const db = client();
 
 // the body of the sqs message, essentially
-export type DeleteListItemsSqsMessage = {
+export type QueueDeleteShareableListItemsSqsMessage = {
   // keeping userId and url in the message for logging purposes.
   // may not be necessary, but it's a small amount of data that could be
   // very helpful in debugging...
@@ -27,7 +27,7 @@ export type DeleteListItemsSqsMessage = {
   externalIds: string[];
 };
 
-const deleteShareableListItemDataSchema: Schema = {
+const queueDeleteShareableListItemDataSchema: Schema = {
   userId: {
     in: ['body'],
     errorMessage: 'Must provide valid userId',
@@ -105,7 +105,7 @@ function* chunk(list: string[], size = 1000): Generator<string[]> {
  * @param message
  */
 export function convertToSqsEntry(
-  message: DeleteListItemsSqsMessage
+  message: QueueDeleteShareableListItemsSqsMessage
 ): SendMessageBatchRequestEntry {
   return {
     // copied this Id pattern from annotations API - but i don't really
@@ -237,7 +237,7 @@ export async function enqueueListItemExternalIds(
 
 router.post(
   '/',
-  checkSchema(deleteShareableListItemDataSchema),
+  checkSchema(queueDeleteShareableListItemDataSchema),
   validate,
   async (req: Request, res: Response) => {
     const userId = req.body.userId;
