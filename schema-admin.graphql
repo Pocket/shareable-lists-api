@@ -21,64 +21,6 @@ enum ShareableListModerationReason {
   PHISHING
 }
 
-"""
-A Pocket Save (story) that has been added to a Shareable List. This is the admin version which
-does not include the Parser Item.
-"""
-type ShareableListItemAdmin {
-  """
-  A unique string identifier in UUID format.
-  """
-  externalId: ID!
-  """
-  The Parser Item ID.
-  """
-  itemId: ID!
-  """
-  The URL of the story saved to a list.
-  """
-  url: Url!
-  """
-  The title of the story. Supplied by the Parser.
-  May not be available for URLs that cannot be resolved.
-  Not editable by the Pocket user, as are all the other
-  Parser-supplied story properties below.
-  """
-  title: String
-  """
-  The excerpt of the story. Supplied by the Parser.
-  """
-  excerpt: String
-  """
-  User generated note to accompany this list item.
-  """
-  note: String
-  """
-  The URL of the thumbnail image illustrating the story. Supplied by the Parser.
-  """
-  imageUrl: Url
-  """
-  The name of the publisher for this story. Supplied by the Parser.
-  """
-  publisher: String
-  """
-  A comma-separated list of story authors. Supplied by the Parser.
-  """
-  authors: String
-  """
-  The custom sort order of stories within a list. Defaults to 1.
-  """
-  sortOrder: Int!
-  """
-  The timestamp of when this story was added to the list by its owner.
-  """
-  createdAt: ISOString!
-  """
-  The timestamp of when the story was last updated. Not used for the MVP.
-  """
-  updatedAt: ISOString!
-}
-
 type ShareableListComplete {
   """
   A unique string identifier in UUID format.
@@ -121,7 +63,7 @@ type ShareableListComplete {
   """
   Pocket Saves that have been added to this list by the Pocket user.
   """
-  listItems: [ShareableListItemAdmin!]!
+  listItems: [ShareableListItem!]!
   """
   The visibility of notes added to list items for this list.
   """

@@ -9,7 +9,7 @@ export const resolvers = {
   ShareableListComplete: {
     user: UserResolver,
   },
-  ShareableListItemAdmin: {
+  ShareableListItem: {
     itemId: PrismaBigIntResolver,
   },
   Query: { searchShareableList },
