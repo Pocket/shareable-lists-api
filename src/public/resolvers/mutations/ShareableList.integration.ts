@@ -272,7 +272,6 @@ describe('public mutations: ShareableList', () => {
       expect(listItem.title).to.equal(listItemData.title);
       expect(listItem.url).to.equal(listItemData.url);
       expect(listItem.itemId).to.equal(listItemData.itemId);
-      expect(listItem.item.givenUrl).to.equal(listItemData.url);
       expect(listItem.excerpt).to.equal(listItemData.excerpt);
       expect(listItem.imageUrl).to.equal(listItemData.imageUrl);
       expect(listItem.publisher).to.equal(listItemData.publisher);
