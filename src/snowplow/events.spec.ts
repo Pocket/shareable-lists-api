@@ -6,7 +6,7 @@ import { Visibility, ModerationStatus } from '@prisma/client';
 import {
   ShareableListModerationReason,
   ShareableListComplete,
-  ShareableListItemTemp,
+  ShareableListItem,
 } from '../database/types';
 import {
   generateShareableListEventBridgePayload,
@@ -42,11 +42,16 @@ describe('Snowplow event helpers', () => {
     listItems: [],
   };
 
-  const shareableListItem: ShareableListItemTemp = {
+  const shareableListItem: ShareableListItem = {
     externalId: faker.string.uuid(),
     itemId: BigInt(98765),
     url: `${faker.internet.url()}/${faker.lorem.slug(5)}`,
+    title: faker.lorem.words(5),
+    excerpt: faker.lorem.sentences(2),
     note: faker.lorem.sentences(1),
+    imageUrl: faker.image.urlLoremFlickr({ category: 'cats' }),
+    publisher: faker.company.name(),
+    authors: `${faker.person.firstName()},${faker.person.firstName()}`,
     sortOrder: faker.number.int(),
     createdAt: new Date('2023-01-01 10:10:10'),
     updatedAt: new Date('2023-01-01 10:10:10'),
@@ -337,6 +342,18 @@ describe('Snowplow event helpers', () => {
     // url-> given_url
     expect(payload.shareableListItem.given_url).to.equal(shareableListItem.url);
 
+    // imageUrl-> image_url
+    expect(payload.shareableListItem.image_url).to.equal(
+      shareableListItem.imageUrl
+    );
+    // authors string getting mapped to array of strings
+    expect(JSON.stringify(payload.shareableListItem.authors)).to.equal(
+      JSON.stringify(shareableListItem.authors.split(','))
+    );
+    // publisher
+    expect(payload.shareableListItem.publisher).to.equal(
+      shareableListItem.publisher
+    );
     // note
     expect(payload.shareableListItem.note).to.equal(shareableListItem.note);
     // sortOrder -> sort_order
