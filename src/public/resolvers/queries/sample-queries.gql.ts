@@ -36,14 +36,3 @@ export const SHAREABLE_LISTS_PILOT_USER = gql`
     shareableListsPilotUser
   }
 `;
-
-export const SHAREABLE_LIST_TOTAL_COUNT_SAVEDITEM_REFERENCE_RESOLVER = gql`
-  query ($url: String) {
-    _entities(representations: { url: $url, __typename: "SavedItem" }) {
-      ... on SavedItem {
-        url
-        shareableListTotalCount
-      }
-    }
-  }
-`;
