@@ -63,22 +63,22 @@ export type ShareableListItem = Prisma.ListItemGetPayload<
  * Once Parser metata is removed from the db and code, switch back to the original
  * type definition and delete this type definition.
  */
-export const shareableListItemSelectFieldsTemp =
-  Prisma.validator<Prisma.ListItemSelect>()({
-    externalId: true,
-    itemId: true,
-    url: true,
-    note: true,
-    sortOrder: true,
-    createdAt: true,
-    updatedAt: true,
-  });
-const shareableListItemTemp = Prisma.validator<Prisma.ListItemArgs>()({
-  select: shareableListItemSelectFieldsTemp,
-});
-export type ShareableListItemTemp = Prisma.ListItemGetPayload<
-  typeof shareableListItemTemp
->;
+// export const shareableListItemSelectFieldsTemp =
+//   Prisma.validator<Prisma.ListItemSelect>()({
+//     externalId: true,
+//     itemId: true,
+//     url: true,
+//     note: true,
+//     sortOrder: true,
+//     createdAt: true,
+//     updatedAt: true,
+//   });
+// const shareableListItemTemp = Prisma.validator<Prisma.ListItemArgs>()({
+//   select: shareableListItemSelectFieldsTemp,
+// });
+// export type ShareableListItemTemp = Prisma.ListItemGetPayload<
+//   typeof shareableListItemTemp
+// >;
 
 /**
  * This is the shape of a shareable list object on the public Pocket Graph -
