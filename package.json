@@ -28,7 +28,6 @@
     "@apollo/subgraph": "^2.3.2",
     "@apollo/utils.keyvadapter": "^2.0.1",
     "@aws-sdk/client-eventbridge": "^3.352.0",
-    "@aws-sdk/client-sqs": "^3.354.0",
     "@keyv/redis": "^2.5.6",
     "@pocket-tools/apollo-utils": "3.3.1",
     "@pocket-tools/terraform-modules": "^4.16.2",
@@ -49,7 +48,6 @@
     "graphql-upload": "15.0.2",
     "isomorphic-fetch": "^3.0.0",
     "keyv": "^4.5.2",
-    "nanoid": "3.3.6",
     "sinon": "^15.0.1",
     "slugify": "1.6.6",
     "uuid": "9.0.0"

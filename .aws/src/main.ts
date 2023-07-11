@@ -337,10 +337,6 @@ class ShareableListsAPI extends TerraformStack {
               name: 'REDIS_READER_ENDPOINT',
               value: cache.readerEndpoint,
             },
-            {
-              name: 'SQS_BATCH_LIST_ITEM_DELETE_QUEUE_URL',
-              value: config.sqsBatchDeleteQueueName,
-            },
           ],
           logGroup: this.createCustomLogGroup('app'),
           logMultilinePattern: '^\\S.+',
