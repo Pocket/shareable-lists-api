@@ -48,5 +48,4 @@ export const config = {
       listEvents: `PocketEventBridge-${environment}-ListEventTopic`,
     },
   },
-  sqsBatchDeleteQueueName: `${name}-${environment}-Batch-Delete-Consumer-Queue`,
 };
