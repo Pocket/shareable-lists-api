@@ -14,7 +14,6 @@ import {
   ApplicationRedis,
   ApplicationRDSCluster,
   ApplicationSqsSnsTopicSubscription,
-  ApplicationSQSQueue,
   PocketALBApplication,
   PocketAwsSyntheticChecks,
   PocketECSCodePipeline,
@@ -87,14 +86,6 @@ class ShareableListsAPI extends TerraformStack {
         dependsOn: [lambda.sqsQueueResource as SqsQueue],
       }
     );
-
-    // SQS to queue shareable list items for deletion
-    new ApplicationSQSQueue(this, 'batch-delete-consumer-queue', {
-      name: config.sqsBatchDeleteQueueName,
-      tags: config.tags,
-      //need to set maxReceiveCount to enable DLQ
-      maxReceiveCount: 2,
-    });
 
     const shareableListPagerduty = this.createPagerDuty();
 
