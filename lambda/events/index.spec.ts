@@ -6,7 +6,6 @@ import * as Sentry from '@sentry/serverless';
 
 describe('event handlers', () => {
   let accountDeleteStub: sinon.SinonStub;
-  let saveDeleteStub: sinon.SinonStub;
   let sentryStub: sinon.SinonStub;
 
   beforeEach(() => {
@@ -21,12 +20,10 @@ describe('event handlers', () => {
       accountDeleteStub = sinon
         .stub(handlers, Event.ACCOUNT_DELETION)
         .resolves();
-
-      saveDeleteStub = sinon.stub(handlers, Event.DELETE_ITEM).resolves();
     });
 
     it('routes to the correct handler function based on detail-type', async () => {
-      let records = {
+      const records = {
         Records: [
           {
             body: JSON.stringify({
@@ -41,23 +38,8 @@ describe('event handlers', () => {
       await processor(records as SQSEvent);
       expect(accountDeleteStub.callCount).toEqual(1);
       expect(accountDeleteStub.getCall(0).args).toEqual([records.Records[0]]);
-
-      records = {
-        Records: [
-          {
-            body: JSON.stringify({
-              Message: JSON.stringify({
-                'detail-type': Event.DELETE_ITEM,
-              }),
-            }),
-          },
-        ],
-      };
-
-      await processor(records as SQSEvent);
-      expect(saveDeleteStub.callCount).toEqual(1);
-      expect(saveDeleteStub.getCall(0).args).toEqual([records.Records[0]]);
     });
+
     it('is a NOOP if a handler does not exist', async () => {
       const records = {
         Records: [
@@ -80,7 +62,6 @@ describe('event handlers', () => {
 
       // no handlers were called
       expect(accountDeleteStub.callCount).toEqual(0);
-      expect(saveDeleteStub.callCount).toEqual(0);
     });
   });
   describe('with handler errors', () => {
