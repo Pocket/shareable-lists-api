@@ -6,7 +6,6 @@ import * as Sentry from '@sentry/serverless';
 
 describe('event handlers', () => {
   let accountDeleteStub: sinon.SinonStub;
-  let saveDeleteStub: sinon.SinonStub;
   let sentryStub: sinon.SinonStub;
 
   beforeEach(() => {
@@ -24,7 +23,7 @@ describe('event handlers', () => {
     });
 
     it('routes to the correct handler function based on detail-type', async () => {
-      let records = {
+      const records = {
         Records: [
           {
             body: JSON.stringify({
