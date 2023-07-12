@@ -73,20 +73,6 @@ class ShareableListsAPI extends TerraformStack {
       }
     );
 
-    // save delete handler - we delete list items when the underlying save is
-    // deleted
-    new ApplicationSqsSnsTopicSubscription(
-      this,
-      'list-events-sns-subscription',
-      {
-        name: config.prefix,
-        snsTopicArn: `arn:aws:sns:${pocketVpc.region}:${pocketVpc.accountId}:${config.lambda.snsTopicName.listEvents}`,
-        sqsQueue: lambda.sqsQueueResource,
-        tags: config.tags,
-        dependsOn: [lambda.sqsQueueResource as SqsQueue],
-      }
-    );
-
     const shareableListPagerduty = this.createPagerDuty();
 
     const pocketApp = this.createPocketAlbApplication({

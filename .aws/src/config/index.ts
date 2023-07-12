@@ -45,7 +45,6 @@ export const config = {
   lambda: {
     snsTopicName: {
       userEvents: `PocketEventBridge-${environment}-UserEventTopic`,
-      listEvents: `PocketEventBridge-${environment}-ListEventTopic`,
     },
   },
 };
