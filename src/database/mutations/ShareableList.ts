@@ -4,7 +4,6 @@ import {
   UserInputError,
 } from '@pocket-tools/apollo-utils';
 import { Visibility, ModerationStatus, PrismaClient } from '@prisma/client';
-import slugify from 'slugify';
 import {
   CreateShareableListInput,
   ModerateShareableListInput,
@@ -21,8 +20,7 @@ import {
   ACCESS_DENIED_ERROR,
   PRISMA_RECORD_NOT_FOUND,
 } from '../../shared/constants';
-import { getShareableList, isPilotUser } from '../queries';
-import config from '../../config';
+import { getShareableList } from '../queries';
 import { validateItemId } from '../../public/resolvers/utils';
 import { sendEventHelper } from '../../snowplow/events';
 import { EventBridgeEventType } from '../../snowplow/types';
@@ -97,7 +95,7 @@ export async function createShareableList(
 }
 
 /**
- * This mutation updates a shareable list, including making it public.
+ * This mutation updates a shareable list, but does not allow to make a list public.
  *
  * @param db
  * @param data
@@ -115,17 +113,22 @@ export async function updateShareableList(
     throw new NotFoundError(`A list by that ID could not be found`);
   }
 
+  // we don't allow lists to be public anymore. block updates that try to make a list public
+  if (data.status === Visibility.PUBLIC) {
+    throw new ForbiddenError(ACCESS_DENIED_ERROR);
+  }
+
   // until moderation is in place, we need to restrict non-pilot users from
   // creating public lists. this is also enforced on the client, but an extra
   // check here in case someone is clever.
   // if you're trying to go from private to public, you have to be in the pilot
-  if (list.status === Visibility.PRIVATE && data.status === Visibility.PUBLIC) {
-    const isInPilot = await isPilotUser(db, userId);
+  // if (list.status === Visibility.PRIVATE && data.status === Visibility.PUBLIC) {
+  //   const isInPilot = await isPilotUser(db, userId);
 
-    if (isInPilot <= 0) {
-      throw new ForbiddenError(ACCESS_DENIED_ERROR);
-    }
-  }
+  //   if (isInPilot <= 0) {
+  //     throw new ForbiddenError(ACCESS_DENIED_ERROR);
+  //   }
+  // }
 
   // If the title is getting updated, check if the user already has a list
   // with the same title.
@@ -148,33 +151,33 @@ export async function updateShareableList(
   // If there is no slug and the list is being shared with the world,
   // let's generate a unique slug from the title. Once set, it will not be
   // updated to sync with any further title edits.
-  if (data.status === Visibility.PUBLIC && !list.slug) {
-    // run the title through the slugify function
-    const slugifiedTitle = slugify(data.title ?? list.title, config.slugify);
+  // if (data.status === Visibility.PUBLIC && !list.slug) {
+  //   // run the title through the slugify function
+  //   const slugifiedTitle = slugify(data.title ?? list.title, config.slugify);
 
-    // if title was made up entirely of characters that the slug cannot contain,
-    // e.g. emojis, generate a neutral-sounding, short slug
-    const preparedSlug =
-      slugifiedTitle.length > 0 ? slugifiedTitle : 'shared-list';
+  //   // if title was made up entirely of characters that the slug cannot contain,
+  //   // e.g. emojis, generate a neutral-sounding, short slug
+  //   const preparedSlug =
+  //     slugifiedTitle.length > 0 ? slugifiedTitle : 'shared-list';
 
-    // First check how many slugs containing the list title already exist in the db
-    const slugCount = await db.list.count({
-      where: {
-        userId,
-        slug: { contains: preparedSlug },
-      },
-    });
+  //   // First check how many slugs containing the list title already exist in the db
+  //   const slugCount = await db.list.count({
+  //     where: {
+  //       userId,
+  //       slug: { contains: preparedSlug },
+  //     },
+  //   });
 
-    // if there is at least 1 slug containing title of list to update,
-    // append next consecutive # of slugCount to data.slug
-    if (slugCount) {
-      data.slug = `${preparedSlug}-${slugCount + 1}`;
-    } else {
-      // If an updated title is provided, generate the slug from that,
-      // otherwise default to the title saved previously.
-      data.slug = preparedSlug;
-    }
-  }
+  //   // if there is at least 1 slug containing title of list to update,
+  //   // append next consecutive # of slugCount to data.slug
+  //   if (slugCount) {
+  //     data.slug = `${preparedSlug}-${slugCount + 1}`;
+  //   } else {
+  //     // If an updated title is provided, generate the slug from that,
+  //     // otherwise default to the title saved previously.
+  //     data.slug = preparedSlug;
+  //   }
+  // }
 
   // even though @updatedAt in the prisma schema will auto-update this value
   // on a db update, we set specifically here to strong test the value in our

@@ -7,12 +7,10 @@ import {
   List,
   Visibility,
   ModerationStatus,
-  PilotUser,
   PrismaClient,
 } from '@prisma/client';
 import { EventBridgeClient } from '@aws-sdk/client-eventbridge';
 import { faker } from '@faker-js/faker';
-import slugify from 'slugify';
 import { startServer } from '../../../express';
 import { IPublicContext } from '../../context';
 import { client } from '../../../database/client';
@@ -32,7 +30,6 @@ import {
   createShareableListItemHelper,
   mockRedisServer,
 } from '../../../test/helpers';
-import config from '../../../config';
 import {
   ACCESS_DENIED_ERROR,
   LIST_TITLE_MAX_CHARS,
@@ -45,7 +42,6 @@ describe('public mutations: ShareableList', () => {
   let graphQLUrl: string;
   let db: PrismaClient;
   let eventBridgeClientStub: sinon.SinonStub;
-  let pilotUser2: PilotUser;
 
   // this user will be put into the pilot
   const pilotUserHeaders = {
@@ -84,10 +80,6 @@ describe('public mutations: ShareableList', () => {
     // create pilot users
     await createPilotUserHelper(db, {
       userId: parseInt(pilotUserHeaders.userId),
-    });
-
-    pilotUser2 = await createPilotUserHelper(db, {
-      userId: 7732025862,
     });
   });
 
@@ -549,11 +541,7 @@ describe('public mutations: ShareableList', () => {
       expect(result.body.errors[0].extensions.code).to.equal('NOT_FOUND');
     });
 
-    /**
-     * this test is temporary while we get moderation in order. until then,
-     * only pilot users can make a list public.
-     */
-    it('should not update a list to PUBLIC if the user is not in the pilot', async () => {
+    it('should not update a list to PUBLIC -- non pilot user', async () => {
       const data: UpdateShareableListInput = {
         externalId: nonPilotUserList.externalId,
         status: Visibility.PUBLIC,
@@ -573,7 +561,7 @@ describe('public mutations: ShareableList', () => {
       expect(result.body.errors[0].message).to.equal(ACCESS_DENIED_ERROR);
     });
 
-    it('should update a list to PUBLIC if the user is in the pilot', async () => {
+    it('should not update a list to PUBLIC -- pilot user', async () => {
       const data: UpdateShareableListInput = {
         externalId: pilotUserList.externalId,
         status: Visibility.PUBLIC,
@@ -587,11 +575,31 @@ describe('public mutations: ShareableList', () => {
           variables: { data },
         });
 
-      expect(result.body.errors).to.be.undefined;
+      expect(result.body.data).to.be.null;
 
-      expect(result.body.data.updateShareableList).not.to.be.null;
-      expect(result.body.data.updateShareableList.status).to.equal(data.status);
+      expect(result.body.errors[0].extensions.code).to.equal('FORBIDDEN');
+      expect(result.body.errors[0].message).to.equal(ACCESS_DENIED_ERROR);
     });
+
+    // it('should update a list to PUBLIC if the user is in the pilot', async () => {
+    //   const data: UpdateShareableListInput = {
+    //     externalId: pilotUserList.externalId,
+    //     status: Visibility.PUBLIC,
+    //   };
+
+    //   const result = await request(app)
+    //     .post(graphQLUrl)
+    //     .set(pilotUserHeaders)
+    //     .send({
+    //       query: print(UPDATE_SHAREABLE_LIST),
+    //       variables: { data },
+    //     });
+
+    //   expect(result.body.errors).to.be.undefined;
+
+    //   expect(result.body.data.updateShareableList).not.to.be.null;
+    //   expect(result.body.data.updateShareableList.status).to.equal(data.status);
+    // });
 
     it('should update a list and return all props', async () => {
       // stub the clock so we can directly check updatedAt
@@ -731,444 +739,446 @@ describe('public mutations: ShareableList', () => {
       expect(result.body.data.updateShareableList.title).to.equal(data.title);
     });
 
-    it('should generate a slug if a list is being made public for the first time', async () => {
-      const data: UpdateShareableListInput = {
-        externalId: pilotUserList.externalId,
-        status: Visibility.PUBLIC,
-      };
-
-      const result = await request(app)
-        .post(graphQLUrl)
-        .set(pilotUserHeaders)
-        .send({
-          query: print(UPDATE_SHAREABLE_LIST),
-          variables: { data },
-        });
-
-      // This mutation should not be cached, expect headers.cache-control = no-store
-      expect(result.headers['cache-control']).to.equal('no-store');
-      // There should be no errors
-      expect(result.body.errors).to.be.undefined;
-
-      // A result should be returned
-      expect(result.body.data.updateShareableList).not.to.be.null;
-
-      // Verify that the updates have taken place
-      const updatedList = result.body.data.updateShareableList;
-      expect(updatedList.status).to.equal(Visibility.PUBLIC);
-      expect(updatedList.slug).not.to.be.empty;
-
-      // Does the slug match the current title?
-      expect(updatedList.slug).to.equal(
-        slugify(updatedList.title, config.slugify)
-      );
-    });
-
-    it('should generate a slug from updated title if one is provided and made public for the first time', async () => {
-      const data: UpdateShareableListInput = {
-        externalId: pilotUserList.externalId,
-        title: 'This Title is Different',
-        status: Visibility.PUBLIC,
-      };
-
-      const result = await request(app)
-        .post(graphQLUrl)
-        .set(pilotUserHeaders)
-        .send({
-          query: print(UPDATE_SHAREABLE_LIST),
-          variables: { data },
-        });
-
-      // This mutation should not be cached, expect headers.cache-control = no-store
-      expect(result.headers['cache-control']).to.equal('no-store');
-      // There should be no errors
-      expect(result.body.errors).to.be.undefined;
-
-      // A result should be returned
-      expect(result.body.data.updateShareableList).not.to.be.null;
-
-      // Verify that the updates have taken place
-      const updatedList = result.body.data.updateShareableList;
-      expect(updatedList.status).to.equal(Visibility.PUBLIC);
-      expect(updatedList.slug).not.to.be.empty;
-
-      // Does the slug match the updated title?
-      expect(updatedList.slug).to.equal(slugify(data.title, config.slugify));
-    });
-
-    it('should append next consecutive number to generated slug for list made public for the first time if slug containing list title already exists for a single user', async () => {
-      let dataList1: UpdateShareableListInput;
-      // create list 1
-      const firstList = await createShareableListHelper(db, {
-        title: `Hangover Hotel`,
-        userId: BigInt(pilotUserHeaders.userId),
-      });
-      // make list 1 PUBLIC
-      dataList1 = {
-        externalId: firstList.externalId,
-        status: Visibility.PUBLIC,
-      };
-
-      let result = await request(app)
-        .post(graphQLUrl)
-        .set(pilotUserHeaders)
-        .send({
-          query: print(UPDATE_SHAREABLE_LIST),
-          variables: { data: dataList1 },
-        });
-
-      // This mutation should not be cached, expect headers.cache-control = no-store
-      expect(result.headers['cache-control']).to.equal('no-store');
-      // There should be no errors
-      expect(result.body.errors).to.be.undefined;
-
-      // A result should be returned
-      expect(result.body.data.updateShareableList).not.to.be.null;
-
-      // Verify that the updates have taken place
-      const updatedList = result.body.data.updateShareableList;
-      expect(updatedList.status).to.equal(Visibility.PUBLIC);
-      expect(updatedList.slug).not.to.be.empty;
-
-      // Does the slug match the list 1 title?
-      expect(updatedList.slug).to.equal(
-        slugify(firstList.title, config.slugify)
-      );
-
-      // Update list 1 title
-      dataList1 = {
-        externalId: firstList.externalId,
-        title: 'Sugar and Sunshine',
-      };
-
-      result = await request(app)
-        .post(graphQLUrl)
-        .set(pilotUserHeaders)
-        .send({
-          query: print(UPDATE_SHAREABLE_LIST),
-          variables: { data: dataList1 },
-        });
-
-      // This mutation should not be cached, expect headers.cache-control = no-store
-      expect(result.headers['cache-control']).to.equal('no-store');
-      // There should be no errors
-      expect(result.body.errors).to.be.undefined;
-
-      // A result should be returned
-      expect(result.body.data.updateShareableList).not.to.be.null;
-
-      // Verify that the updates have taken place
-      const updatedList1a = result.body.data.updateShareableList;
-      expect(updatedList1a.status).to.equal(Visibility.PUBLIC);
-      expect(updatedList1a.title).to.equal(dataList1.title);
-      // We don't expect the slug to be updated. Tt should match the original generated slug (hangover-hotel).
-      expect(updatedList1a.slug).to.equal(updatedList.slug);
-
-      // Now create a new list 2 with List 1 original title (Hangover Hotel)
-      const secondList = await createShareableListHelper(db, {
-        title: `Hangover Hotel`,
-        userId: BigInt(pilotUserHeaders.userId),
-      });
-      // make list 2 PUBLIC
-      const dataList2 = {
-        externalId: secondList.externalId,
-        status: Visibility.PUBLIC,
-      };
-
-      result = await request(app)
-        .post(graphQLUrl)
-        .set(pilotUserHeaders)
-        .send({
-          query: print(UPDATE_SHAREABLE_LIST),
-          variables: { data: dataList2 },
-        });
-
-      // This mutation should not be cached, expect headers.cache-control = no-store
-      expect(result.headers['cache-control']).to.equal('no-store');
-      // There should be no errors
-      expect(result.body.errors).to.be.undefined;
-
-      // A result should be returned
-      expect(result.body.data.updateShareableList).not.to.be.null;
-
-      // Verify that the updates have taken place
-      const updatedList2 = result.body.data.updateShareableList;
-      expect(updatedList2.status).to.equal(Visibility.PUBLIC);
-      expect(updatedList2.title).to.equal(secondList.title);
-      // Expect the slug to equal hangover-hotel-2
-      expect(updatedList2.slug).to.equal('hangover-hotel-2');
-    });
-
-    it('should remove emojis from slugs', async () => {
-      const data: UpdateShareableListInput = {
-        externalId: pilotUserList.externalId,
-        title: 'This 👏 Title 👏 Is 👏 Full 👏 Of 👏 Emojis',
-        status: Visibility.PUBLIC,
-      };
-
-      const result = await request(app)
-        .post(graphQLUrl)
-        .set(pilotUserHeaders)
-        .send({
-          query: print(UPDATE_SHAREABLE_LIST),
-          variables: { data },
-        });
-
-      // This mutation should not be cached, expect headers.cache-control = no-store
-      expect(result.headers['cache-control']).to.equal('no-store');
-      // There should be no errors
-      expect(result.body.errors).to.be.undefined;
-
-      // A result should be returned
-      expect(result.body.data.updateShareableList).not.to.be.null;
-
-      // Verify that the updates have taken place
-      const updatedList = result.body.data.updateShareableList;
-      expect(updatedList.status).to.equal(Visibility.PUBLIC);
-      expect(updatedList.slug).not.to.be.empty;
-
-      // Does the slug look as expected?
-      expect(updatedList.slug).to.equal('this-title-is-full-of-emojis');
-    });
-
-    it('should generate a neutral title if slugified title is empty', async () => {
-      const data: UpdateShareableListInput = {
-        externalId: pilotUserList.externalId,
-        title: '👀 😱 😈 💚 👌 🔮️',
-        status: Visibility.PUBLIC,
-      };
-
-      const result = await request(app)
-        .post(graphQLUrl)
-        .set(pilotUserHeaders)
-        .send({
-          query: print(UPDATE_SHAREABLE_LIST),
-          variables: { data },
-        });
-
-      // This mutation should not be cached, expect headers.cache-control = no-store
-      expect(result.headers['cache-control']).to.equal('no-store');
-      // There should be no errors
-      expect(result.body.errors).to.be.undefined;
-
-      // A result should be returned
-      expect(result.body.data.updateShareableList).not.to.be.null;
-
-      // Verify that the updates have taken place
-      const updatedList = result.body.data.updateShareableList;
-      expect(updatedList.status).to.equal(Visibility.PUBLIC);
-      expect(updatedList.slug).not.to.be.empty;
-
-      // Since the slug is whittled away into nothingness with the removal
-      // of spaces and emojis, a neutral slug is used instead
-      expect(updatedList.slug).to.equal('shared-list');
-    });
-
-    it('should append consecutive numbers to slugs if user has multiple lists with all-emoji titles', async () => {
-      // create list 1
-      const firstList = await createShareableListHelper(db, {
-        title: '🌞 🌝 🌛 🌜 🌚 🌕 🌖 🌗 🌘 🌑 🌒 🌓 🌔 🌙',
-        userId: BigInt(pilotUserHeaders.userId),
-      });
-      // make list 1 PUBLIC
-      const dataList1 = {
-        externalId: firstList.externalId,
-        status: Visibility.PUBLIC,
-      };
-
-      let result = await request(app)
-        .post(graphQLUrl)
-        .set(pilotUserHeaders)
-        .send({
-          query: print(UPDATE_SHAREABLE_LIST),
-          variables: { data: dataList1 },
-        });
-
-      // This mutation should not be cached, expect headers.cache-control = no-store
-      expect(result.headers['cache-control']).to.equal('no-store');
-      // There should be no errors
-      expect(result.body.errors).to.be.undefined;
-
-      // A result should be returned
-      expect(result.body.data.updateShareableList).not.to.be.null;
-
-      // Verify that the updates have taken place
-      const updatedList = result.body.data.updateShareableList;
-      expect(updatedList.status).to.equal(Visibility.PUBLIC);
-      expect(updatedList.slug).not.to.be.empty;
-
-      // Is the slug the expected neutral name?
-      expect(updatedList.slug).to.equal('shared-list');
-
-      // Now create a new list with an all-emoji title, too
-      const secondList = await createShareableListHelper(db, {
-        title: '🍏 🍎 🍐 🍊 🍋 🍌 🍉 🍇 🍓 🫐 🍈 🍒 🍑 🥭 🍍',
-        userId: BigInt(pilotUserHeaders.userId),
-      });
-      // make list 2 PUBLIC
-      const dataList2 = {
-        externalId: secondList.externalId,
-        status: Visibility.PUBLIC,
-      };
-
-      result = await request(app)
-        .post(graphQLUrl)
-        .set(pilotUserHeaders)
-        .send({
-          query: print(UPDATE_SHAREABLE_LIST),
-          variables: { data: dataList2 },
-        });
-
-      // This mutation should not be cached, expect headers.cache-control = no-store
-      expect(result.headers['cache-control']).to.equal('no-store');
-      // There should be no errors
-      expect(result.body.errors).to.be.undefined;
-
-      // A result should be returned
-      expect(result.body.data.updateShareableList).not.to.be.null;
-
-      // Verify that the updates have taken place
-      const updatedList2 = result.body.data.updateShareableList;
-      expect(updatedList2.status).to.equal(Visibility.PUBLIC);
-      expect(updatedList2.title).to.equal(secondList.title);
-      // Expect the slug to equal shared-list-2
-      expect(updatedList2.slug).to.equal('shared-list-2');
-    });
-
-    it('should generate two identical slugs but for two different users', async () => {
-      // create list 1
-      const firstList = await createShareableListHelper(db, {
-        title: `Hangover Hotel`,
-        userId: BigInt(pilotUserHeaders.userId),
-      });
-      // make list 1 PUBLIC
-      const dataList1 = {
-        externalId: firstList.externalId,
-        status: Visibility.PUBLIC,
-      };
-
-      let result = await request(app)
-        .post(graphQLUrl)
-        .set(pilotUserHeaders)
-        .send({
-          query: print(UPDATE_SHAREABLE_LIST),
-          variables: { data: dataList1 },
-        });
-      // This mutation should not be cached, expect headers.cache-control = no-store
-      expect(result.headers['cache-control']).to.equal('no-store');
-      // There should be no errors
-      expect(result.body.errors).to.be.undefined;
-
-      // A result should be returned
-      expect(result.body.data.updateShareableList).not.to.be.null;
-
-      // Verify that the updates have taken place
-      const updatedList = result.body.data.updateShareableList;
-      expect(updatedList.status).to.equal(Visibility.PUBLIC);
-      expect(updatedList.slug).not.to.be.empty;
-
-      // Does the slug match the list 1 title (hangover-hotel)?
-      expect(updatedList.slug).to.equal(
-        slugify(firstList.title, config.slugify)
-      );
-
-      const headersUser2 = {
-        userId: pilotUser2.userId,
-      };
-      const secondList = await createShareableListHelper(db, {
-        title: `Hangover Hotel`,
-        userId: BigInt(headersUser2.userId),
-      });
-      // make list 2 PUBLIC
-      const dataList2 = {
-        externalId: secondList.externalId,
-        status: Visibility.PUBLIC,
-      };
-
-      result = await request(app)
-        .post(graphQLUrl)
-        .set(headersUser2)
-        .send({
-          query: print(UPDATE_SHAREABLE_LIST),
-          variables: { data: dataList2 },
-        });
-      // This mutation should not be cached, expect headers.cache-control = no-store
-      expect(result.headers['cache-control']).to.equal('no-store');
-      // There should be no errors
-      expect(result.body.errors).to.be.undefined;
-
-      // A result should be returned
-      expect(result.body.data.updateShareableList).not.to.be.null;
-
-      // Verify that the updates have taken place
-      const updatedList2 = result.body.data.updateShareableList;
-      expect(updatedList2.status).to.equal(Visibility.PUBLIC);
-      expect(updatedList2.title).to.equal(secondList.title);
-      // Expect the slug to equal hangover-hotel
-      expect(updatedList2.slug).to.equal(
-        slugify(secondList.title, config.slugify)
-      );
-    });
-
-    it('should not update the slug once set if any other updates are made', async () => {
-      // Run through the steps to publish the list and update the slug
-      const data: UpdateShareableListInput = {
-        externalId: pilotUserList.externalId,
-        title: 'This Title Could Not Be More Different',
-        status: Visibility.PUBLIC,
-      };
-
-      const result = await request(app)
-        .post(graphQLUrl)
-        .set(pilotUserHeaders)
-        .send({
-          query: print(UPDATE_SHAREABLE_LIST),
-          variables: { data },
-        });
-      // This mutation should not be cached, expect headers.cache-control = no-store
-      expect(result.headers['cache-control']).to.equal('no-store');
-      // There should be no errors
-      expect(result.body.errors).to.be.undefined;
-
-      // A result should be returned
-      expect(result.body.data.updateShareableList).not.to.be.null;
-
-      // Let's save the list in this updated state
-      const listWithSlugSet = result.body.data.updateShareableList;
-
-      // Now update the title, status, description and see if anything happens
-      // to the slug
-      const data2: UpdateShareableListInput = {
-        externalId: pilotUserList.externalId,
-        title: 'Suddenly This List is Private Again',
-        description: 'I really should have kept this to myself',
-        status: Visibility.PRIVATE,
-      };
-
-      const result2 = await request(app)
-        .post(graphQLUrl)
-        .set(pilotUserHeaders)
-        .send({
-          query: print(UPDATE_SHAREABLE_LIST),
-          variables: { data: data2 },
-        });
-      // This mutation should not be cached, expect headers.cache-control = no-store
-      expect(result.headers['cache-control']).to.equal('no-store');
-      // There should be no errors
-      expect(result2.body.errors).to.be.undefined;
-
-      // A result should be returned
-      expect(result2.body.data.updateShareableList).not.to.be.null;
-
-      // Verify that the updates have taken place
-      const updatedList = result2.body.data.updateShareableList;
-      expect(updatedList.status).to.equal(Visibility.PRIVATE);
-      expect(updatedList.title).to.equal(data2.title);
-      expect(updatedList.description).to.equal(data2.description);
-
-      // Is the slug unchanged? It should be!
-      expect(updatedList.slug).to.equal(listWithSlugSet.slug);
-    });
+    // The following test-cases are commented out as making lists PUBLIC is not supported atm.
+
+    // it('should generate a slug if a list is being made public for the first time', async () => {
+    //   const data: UpdateShareableListInput = {
+    //     externalId: pilotUserList.externalId,
+    //     status: Visibility.PUBLIC,
+    //   };
+
+    //   const result = await request(app)
+    //     .post(graphQLUrl)
+    //     .set(pilotUserHeaders)
+    //     .send({
+    //       query: print(UPDATE_SHAREABLE_LIST),
+    //       variables: { data },
+    //     });
+
+    //   // This mutation should not be cached, expect headers.cache-control = no-store
+    //   expect(result.headers['cache-control']).to.equal('no-store');
+    //   // There should be no errors
+    //   expect(result.body.errors).to.be.undefined;
+
+    //   // A result should be returned
+    //   expect(result.body.data.updateShareableList).not.to.be.null;
+
+    //   // Verify that the updates have taken place
+    //   const updatedList = result.body.data.updateShareableList;
+    //   expect(updatedList.status).to.equal(Visibility.PUBLIC);
+    //   expect(updatedList.slug).not.to.be.empty;
+
+    //   // Does the slug match the current title?
+    //   expect(updatedList.slug).to.equal(
+    //     slugify(updatedList.title, config.slugify)
+    //   );
+    // });
+
+    // it('should generate a slug from updated title if one is provided and made public for the first time', async () => {
+    //   const data: UpdateShareableListInput = {
+    //     externalId: pilotUserList.externalId,
+    //     title: 'This Title is Different',
+    //     status: Visibility.PUBLIC,
+    //   };
+
+    //   const result = await request(app)
+    //     .post(graphQLUrl)
+    //     .set(pilotUserHeaders)
+    //     .send({
+    //       query: print(UPDATE_SHAREABLE_LIST),
+    //       variables: { data },
+    //     });
+
+    //   // This mutation should not be cached, expect headers.cache-control = no-store
+    //   expect(result.headers['cache-control']).to.equal('no-store');
+    //   // There should be no errors
+    //   expect(result.body.errors).to.be.undefined;
+
+    //   // A result should be returned
+    //   expect(result.body.data.updateShareableList).not.to.be.null;
+
+    //   // Verify that the updates have taken place
+    //   const updatedList = result.body.data.updateShareableList;
+    //   expect(updatedList.status).to.equal(Visibility.PUBLIC);
+    //   expect(updatedList.slug).not.to.be.empty;
+
+    //   // Does the slug match the updated title?
+    //   expect(updatedList.slug).to.equal(slugify(data.title, config.slugify));
+    // });
+
+    // it('should append next consecutive number to generated slug for list made public for the first time if slug containing list title already exists for a single user', async () => {
+    //   let dataList1: UpdateShareableListInput;
+    //   // create list 1
+    //   const firstList = await createShareableListHelper(db, {
+    //     title: `Hangover Hotel`,
+    //     userId: BigInt(pilotUserHeaders.userId),
+    //   });
+    //   // make list 1 PUBLIC
+    //   dataList1 = {
+    //     externalId: firstList.externalId,
+    //     status: Visibility.PUBLIC,
+    //   };
+
+    //   let result = await request(app)
+    //     .post(graphQLUrl)
+    //     .set(pilotUserHeaders)
+    //     .send({
+    //       query: print(UPDATE_SHAREABLE_LIST),
+    //       variables: { data: dataList1 },
+    //     });
+
+    //   // This mutation should not be cached, expect headers.cache-control = no-store
+    //   expect(result.headers['cache-control']).to.equal('no-store');
+    //   // There should be no errors
+    //   expect(result.body.errors).to.be.undefined;
+
+    //   // A result should be returned
+    //   expect(result.body.data.updateShareableList).not.to.be.null;
+
+    //   // Verify that the updates have taken place
+    //   const updatedList = result.body.data.updateShareableList;
+    //   expect(updatedList.status).to.equal(Visibility.PUBLIC);
+    //   expect(updatedList.slug).not.to.be.empty;
+
+    //   // Does the slug match the list 1 title?
+    //   expect(updatedList.slug).to.equal(
+    //     slugify(firstList.title, config.slugify)
+    //   );
+
+    //   // Update list 1 title
+    //   dataList1 = {
+    //     externalId: firstList.externalId,
+    //     title: 'Sugar and Sunshine',
+    //   };
+
+    //   result = await request(app)
+    //     .post(graphQLUrl)
+    //     .set(pilotUserHeaders)
+    //     .send({
+    //       query: print(UPDATE_SHAREABLE_LIST),
+    //       variables: { data: dataList1 },
+    //     });
+
+    //   // This mutation should not be cached, expect headers.cache-control = no-store
+    //   expect(result.headers['cache-control']).to.equal('no-store');
+    //   // There should be no errors
+    //   expect(result.body.errors).to.be.undefined;
+
+    //   // A result should be returned
+    //   expect(result.body.data.updateShareableList).not.to.be.null;
+
+    //   // Verify that the updates have taken place
+    //   const updatedList1a = result.body.data.updateShareableList;
+    //   expect(updatedList1a.status).to.equal(Visibility.PUBLIC);
+    //   expect(updatedList1a.title).to.equal(dataList1.title);
+    //   // We don't expect the slug to be updated. Tt should match the original generated slug (hangover-hotel).
+    //   expect(updatedList1a.slug).to.equal(updatedList.slug);
+
+    //   // Now create a new list 2 with List 1 original title (Hangover Hotel)
+    //   const secondList = await createShareableListHelper(db, {
+    //     title: `Hangover Hotel`,
+    //     userId: BigInt(pilotUserHeaders.userId),
+    //   });
+    //   // make list 2 PUBLIC
+    //   const dataList2 = {
+    //     externalId: secondList.externalId,
+    //     status: Visibility.PUBLIC,
+    //   };
+
+    //   result = await request(app)
+    //     .post(graphQLUrl)
+    //     .set(pilotUserHeaders)
+    //     .send({
+    //       query: print(UPDATE_SHAREABLE_LIST),
+    //       variables: { data: dataList2 },
+    //     });
+
+    //   // This mutation should not be cached, expect headers.cache-control = no-store
+    //   expect(result.headers['cache-control']).to.equal('no-store');
+    //   // There should be no errors
+    //   expect(result.body.errors).to.be.undefined;
+
+    //   // A result should be returned
+    //   expect(result.body.data.updateShareableList).not.to.be.null;
+
+    //   // Verify that the updates have taken place
+    //   const updatedList2 = result.body.data.updateShareableList;
+    //   expect(updatedList2.status).to.equal(Visibility.PUBLIC);
+    //   expect(updatedList2.title).to.equal(secondList.title);
+    //   // Expect the slug to equal hangover-hotel-2
+    //   expect(updatedList2.slug).to.equal('hangover-hotel-2');
+    // });
+
+    // it('should remove emojis from slugs', async () => {
+    //   const data: UpdateShareableListInput = {
+    //     externalId: pilotUserList.externalId,
+    //     title: 'This 👏 Title 👏 Is 👏 Full 👏 Of 👏 Emojis',
+    //     status: Visibility.PUBLIC,
+    //   };
+
+    //   const result = await request(app)
+    //     .post(graphQLUrl)
+    //     .set(pilotUserHeaders)
+    //     .send({
+    //       query: print(UPDATE_SHAREABLE_LIST),
+    //       variables: { data },
+    //     });
+
+    //   // This mutation should not be cached, expect headers.cache-control = no-store
+    //   expect(result.headers['cache-control']).to.equal('no-store');
+    //   // There should be no errors
+    //   expect(result.body.errors).to.be.undefined;
+
+    //   // A result should be returned
+    //   expect(result.body.data.updateShareableList).not.to.be.null;
+
+    //   // Verify that the updates have taken place
+    //   const updatedList = result.body.data.updateShareableList;
+    //   expect(updatedList.status).to.equal(Visibility.PUBLIC);
+    //   expect(updatedList.slug).not.to.be.empty;
+
+    //   // Does the slug look as expected?
+    //   expect(updatedList.slug).to.equal('this-title-is-full-of-emojis');
+    // });
+
+    // it('should generate a neutral title if slugified title is empty', async () => {
+    //   const data: UpdateShareableListInput = {
+    //     externalId: pilotUserList.externalId,
+    //     title: '👀 😱 😈 💚 👌 🔮️',
+    //     status: Visibility.PUBLIC,
+    //   };
+
+    //   const result = await request(app)
+    //     .post(graphQLUrl)
+    //     .set(pilotUserHeaders)
+    //     .send({
+    //       query: print(UPDATE_SHAREABLE_LIST),
+    //       variables: { data },
+    //     });
+
+    //   // This mutation should not be cached, expect headers.cache-control = no-store
+    //   expect(result.headers['cache-control']).to.equal('no-store');
+    //   // There should be no errors
+    //   expect(result.body.errors).to.be.undefined;
+
+    //   // A result should be returned
+    //   expect(result.body.data.updateShareableList).not.to.be.null;
+
+    //   // Verify that the updates have taken place
+    //   const updatedList = result.body.data.updateShareableList;
+    //   expect(updatedList.status).to.equal(Visibility.PUBLIC);
+    //   expect(updatedList.slug).not.to.be.empty;
+
+    //   // Since the slug is whittled away into nothingness with the removal
+    //   // of spaces and emojis, a neutral slug is used instead
+    //   expect(updatedList.slug).to.equal('shared-list');
+    // });
+
+    // it('should append consecutive numbers to slugs if user has multiple lists with all-emoji titles', async () => {
+    //   // create list 1
+    //   const firstList = await createShareableListHelper(db, {
+    //     title: '🌞 🌝 🌛 🌜 🌚 🌕 🌖 🌗 🌘 🌑 🌒 🌓 🌔 🌙',
+    //     userId: BigInt(pilotUserHeaders.userId),
+    //   });
+    //   // make list 1 PUBLIC
+    //   const dataList1 = {
+    //     externalId: firstList.externalId,
+    //     status: Visibility.PUBLIC,
+    //   };
+
+    //   let result = await request(app)
+    //     .post(graphQLUrl)
+    //     .set(pilotUserHeaders)
+    //     .send({
+    //       query: print(UPDATE_SHAREABLE_LIST),
+    //       variables: { data: dataList1 },
+    //     });
+
+    //   // This mutation should not be cached, expect headers.cache-control = no-store
+    //   expect(result.headers['cache-control']).to.equal('no-store');
+    //   // There should be no errors
+    //   expect(result.body.errors).to.be.undefined;
+
+    //   // A result should be returned
+    //   expect(result.body.data.updateShareableList).not.to.be.null;
+
+    //   // Verify that the updates have taken place
+    //   const updatedList = result.body.data.updateShareableList;
+    //   expect(updatedList.status).to.equal(Visibility.PUBLIC);
+    //   expect(updatedList.slug).not.to.be.empty;
+
+    //   // Is the slug the expected neutral name?
+    //   expect(updatedList.slug).to.equal('shared-list');
+
+    //   // Now create a new list with an all-emoji title, too
+    //   const secondList = await createShareableListHelper(db, {
+    //     title: '🍏 🍎 🍐 🍊 🍋 🍌 🍉 🍇 🍓 🫐 🍈 🍒 🍑 🥭 🍍',
+    //     userId: BigInt(pilotUserHeaders.userId),
+    //   });
+    //   // make list 2 PUBLIC
+    //   const dataList2 = {
+    //     externalId: secondList.externalId,
+    //     status: Visibility.PUBLIC,
+    //   };
+
+    //   result = await request(app)
+    //     .post(graphQLUrl)
+    //     .set(pilotUserHeaders)
+    //     .send({
+    //       query: print(UPDATE_SHAREABLE_LIST),
+    //       variables: { data: dataList2 },
+    //     });
+
+    //   // This mutation should not be cached, expect headers.cache-control = no-store
+    //   expect(result.headers['cache-control']).to.equal('no-store');
+    //   // There should be no errors
+    //   expect(result.body.errors).to.be.undefined;
+
+    //   // A result should be returned
+    //   expect(result.body.data.updateShareableList).not.to.be.null;
+
+    //   // Verify that the updates have taken place
+    //   const updatedList2 = result.body.data.updateShareableList;
+    //   expect(updatedList2.status).to.equal(Visibility.PUBLIC);
+    //   expect(updatedList2.title).to.equal(secondList.title);
+    //   // Expect the slug to equal shared-list-2
+    //   expect(updatedList2.slug).to.equal('shared-list-2');
+    // });
+
+    // it('should generate two identical slugs but for two different users', async () => {
+    //   // create list 1
+    //   const firstList = await createShareableListHelper(db, {
+    //     title: `Hangover Hotel`,
+    //     userId: BigInt(pilotUserHeaders.userId),
+    //   });
+    //   // make list 1 PUBLIC
+    //   const dataList1 = {
+    //     externalId: firstList.externalId,
+    //     status: Visibility.PUBLIC,
+    //   };
+
+    //   let result = await request(app)
+    //     .post(graphQLUrl)
+    //     .set(pilotUserHeaders)
+    //     .send({
+    //       query: print(UPDATE_SHAREABLE_LIST),
+    //       variables: { data: dataList1 },
+    //     });
+    //   // This mutation should not be cached, expect headers.cache-control = no-store
+    //   expect(result.headers['cache-control']).to.equal('no-store');
+    //   // There should be no errors
+    //   expect(result.body.errors).to.be.undefined;
+
+    //   // A result should be returned
+    //   expect(result.body.data.updateShareableList).not.to.be.null;
+
+    //   // Verify that the updates have taken place
+    //   const updatedList = result.body.data.updateShareableList;
+    //   expect(updatedList.status).to.equal(Visibility.PUBLIC);
+    //   expect(updatedList.slug).not.to.be.empty;
+
+    //   // Does the slug match the list 1 title (hangover-hotel)?
+    //   expect(updatedList.slug).to.equal(
+    //     slugify(firstList.title, config.slugify)
+    //   );
+
+    //   const headersUser2 = {
+    //     userId: pilotUser2.userId,
+    //   };
+    //   const secondList = await createShareableListHelper(db, {
+    //     title: `Hangover Hotel`,
+    //     userId: BigInt(headersUser2.userId),
+    //   });
+    //   // make list 2 PUBLIC
+    //   const dataList2 = {
+    //     externalId: secondList.externalId,
+    //     status: Visibility.PUBLIC,
+    //   };
+
+    //   result = await request(app)
+    //     .post(graphQLUrl)
+    //     .set(headersUser2)
+    //     .send({
+    //       query: print(UPDATE_SHAREABLE_LIST),
+    //       variables: { data: dataList2 },
+    //     });
+    //   // This mutation should not be cached, expect headers.cache-control = no-store
+    //   expect(result.headers['cache-control']).to.equal('no-store');
+    //   // There should be no errors
+    //   expect(result.body.errors).to.be.undefined;
+
+    //   // A result should be returned
+    //   expect(result.body.data.updateShareableList).not.to.be.null;
+
+    //   // Verify that the updates have taken place
+    //   const updatedList2 = result.body.data.updateShareableList;
+    //   expect(updatedList2.status).to.equal(Visibility.PUBLIC);
+    //   expect(updatedList2.title).to.equal(secondList.title);
+    //   // Expect the slug to equal hangover-hotel
+    //   expect(updatedList2.slug).to.equal(
+    //     slugify(secondList.title, config.slugify)
+    //   );
+    // });
+
+    // it('should not update the slug once set if any other updates are made', async () => {
+    //   // Run through the steps to publish the list and update the slug
+    //   const data: UpdateShareableListInput = {
+    //     externalId: pilotUserList.externalId,
+    //     title: 'This Title Could Not Be More Different',
+    //     status: Visibility.PUBLIC,
+    //   };
+
+    //   const result = await request(app)
+    //     .post(graphQLUrl)
+    //     .set(pilotUserHeaders)
+    //     .send({
+    //       query: print(UPDATE_SHAREABLE_LIST),
+    //       variables: { data },
+    //     });
+    //   // This mutation should not be cached, expect headers.cache-control = no-store
+    //   expect(result.headers['cache-control']).to.equal('no-store');
+    //   // There should be no errors
+    //   expect(result.body.errors).to.be.undefined;
+
+    //   // A result should be returned
+    //   expect(result.body.data.updateShareableList).not.to.be.null;
+
+    //   // Let's save the list in this updated state
+    //   const listWithSlugSet = result.body.data.updateShareableList;
+
+    //   // Now update the title, status, description and see if anything happens
+    //   // to the slug
+    //   const data2: UpdateShareableListInput = {
+    //     externalId: pilotUserList.externalId,
+    //     title: 'Suddenly This List is Private Again',
+    //     description: 'I really should have kept this to myself',
+    //     status: Visibility.PRIVATE,
+    //   };
+
+    //   const result2 = await request(app)
+    //     .post(graphQLUrl)
+    //     .set(pilotUserHeaders)
+    //     .send({
+    //       query: print(UPDATE_SHAREABLE_LIST),
+    //       variables: { data: data2 },
+    //     });
+    //   // This mutation should not be cached, expect headers.cache-control = no-store
+    //   expect(result.headers['cache-control']).to.equal('no-store');
+    //   // There should be no errors
+    //   expect(result2.body.errors).to.be.undefined;
+
+    //   // A result should be returned
+    //   expect(result2.body.data.updateShareableList).not.to.be.null;
+
+    //   // Verify that the updates have taken place
+    //   const updatedList = result2.body.data.updateShareableList;
+    //   expect(updatedList.status).to.equal(Visibility.PRIVATE);
+    //   expect(updatedList.title).to.equal(data2.title);
+    //   expect(updatedList.description).to.equal(data2.description);
+
+    //   // Is the slug unchanged? It should be!
+    //   expect(updatedList.slug).to.equal(listWithSlugSet.slug);
+    // });
 
     it('should not update List with a title of more than 100 chars', async () => {
       const data: UpdateShareableListInput = {
