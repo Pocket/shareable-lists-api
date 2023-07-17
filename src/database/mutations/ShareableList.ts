@@ -4,6 +4,7 @@ import {
   UserInputError,
 } from '@pocket-tools/apollo-utils';
 import { Visibility, ModerationStatus, PrismaClient } from '@prisma/client';
+// import slugify from 'slugify';
 import {
   CreateShareableListInput,
   ModerateShareableListInput,
@@ -20,7 +21,11 @@ import {
   ACCESS_DENIED_ERROR,
   PRISMA_RECORD_NOT_FOUND,
 } from '../../shared/constants';
-import { getShareableList } from '../queries';
+import {
+  getShareableList,
+  // isPilotUser
+} from '../queries';
+// import config from '../../config';
 import { validateItemId } from '../../public/resolvers/utils';
 import { sendEventHelper } from '../../snowplow/events';
 import { EventBridgeEventType } from '../../snowplow/types';
@@ -113,8 +118,8 @@ export async function updateShareableList(
     throw new NotFoundError(`A list by that ID could not be found`);
   }
 
-  // we don't allow lists to be public anymore. block updates that try to make a list public
-  if (data.status === Visibility.PUBLIC) {
+  // we don't allow lists to be public anymore. block updates that try to make a list from PRIVATE to PUBLIC
+  if (list.status === Visibility.PRIVATE && data.status === Visibility.PUBLIC) {
     throw new ForbiddenError(ACCESS_DENIED_ERROR);
   }
 

@@ -7,10 +7,12 @@ import {
   List,
   Visibility,
   ModerationStatus,
+  // PilotUser,
   PrismaClient,
 } from '@prisma/client';
 import { EventBridgeClient } from '@aws-sdk/client-eventbridge';
 import { faker } from '@faker-js/faker';
+// import slugify from 'slugify';
 import { startServer } from '../../../express';
 import { IPublicContext } from '../../context';
 import { client } from '../../../database/client';
@@ -30,6 +32,7 @@ import {
   createShareableListItemHelper,
   mockRedisServer,
 } from '../../../test/helpers';
+// import config from '../../../config';
 import {
   ACCESS_DENIED_ERROR,
   LIST_TITLE_MAX_CHARS,
@@ -42,6 +45,7 @@ describe('public mutations: ShareableList', () => {
   let graphQLUrl: string;
   let db: PrismaClient;
   let eventBridgeClientStub: sinon.SinonStub;
+  // let pilotUser2: PilotUser;
 
   // this user will be put into the pilot
   const pilotUserHeaders = {
@@ -81,6 +85,10 @@ describe('public mutations: ShareableList', () => {
     await createPilotUserHelper(db, {
       userId: parseInt(pilotUserHeaders.userId),
     });
+
+    // pilotUser2 = await createPilotUserHelper(db, {
+    //   userId: 7732025862,
+    // });
   });
 
   describe('createShareableList', () => {
@@ -499,6 +507,7 @@ describe('public mutations: ShareableList', () => {
   describe('updateShareableList', () => {
     let pilotUserList: List;
     let nonPilotUserList: List;
+    let publicList: List;
 
     let clock;
 
@@ -517,6 +526,14 @@ describe('public mutations: ShareableList', () => {
       nonPilotUserList = await createShareableListHelper(db, {
         userId: parseInt(publicUserHeaders.userId),
         title: 'The Most Shareable List',
+      });
+
+      // Create a public list
+      publicList = await createShareableListHelper(db, {
+        userId: parseInt(pilotUserHeaders.userId),
+        title: 'Burning Rose',
+        status: Visibility.PUBLIC,
+        slug: 'burning-rose',
       });
     });
 
@@ -662,6 +679,34 @@ describe('public mutations: ShareableList', () => {
       );
 
       clock.restore();
+    });
+
+    it('should update a list (PUBLIC status -> PUBLIC status)', async () => {
+      const data: UpdateShareableListInput = {
+        externalId: publicList.externalId,
+        status: Visibility.PUBLIC,
+        description: 'new description',
+      };
+
+      const result = await request(app)
+        .post(graphQLUrl)
+        .set(pilotUserHeaders)
+        .send({
+          query: print(UPDATE_SHAREABLE_LIST),
+          variables: { data },
+        });
+
+      // This mutation should not be cached, expect headers.cache-control = no-store
+      expect(result.headers['cache-control']).to.equal('no-store');
+      // There should be no errors
+      expect(result.body.errors).to.be.undefined;
+
+      // A result should be returned
+      expect(result.body.data.updateShareableList).not.to.be.null;
+      const updatedList = result.body.data.updateShareableList;
+
+      expect(updatedList.description).to.equal(data.description);
+      expect(updatedList.status).to.equal(data.status); // status should stay PUBLIC
     });
 
     it('should return a "Not Found" error if no list exists', async () => {
