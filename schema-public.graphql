@@ -207,7 +207,7 @@ type Mutation {
   """
   deleteShareableList(externalId: ID!): ShareableList!
   """
-  Updates a Shareable List. This includes making it public.
+  Updates a Shareable List. Cannot make a list public.
   """
   updateShareableList(data: UpdateShareableListInput!): ShareableList!
   """
