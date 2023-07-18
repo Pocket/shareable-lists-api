@@ -101,6 +101,8 @@ export async function createShareableList(
 
 /**
  * This mutation updates a shareable list, but does not allow to make a list public.
+ * Some of the blocks of code are commented out due to removing ability to make lists public.
+ * See ticket: https://getpocket.atlassian.net/browse/OSL-577
  *
  * @param db
  * @param data
