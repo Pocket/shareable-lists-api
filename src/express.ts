@@ -1,16 +1,19 @@
-import * as Sentry from '@sentry/node';
+import cors from 'cors';
 import express from 'express';
 import http from 'http';
-import cors from 'cors';
+
 import { ApolloServer } from '@apollo/server';
 import { expressMiddleware } from '@apollo/server/express4';
+import { setLogger, setMorgan } from '@pocket-tools/ts-logger';
+import * as Sentry from '@sentry/node';
+
 import config from './config';
-import { startPublicServer } from './public/server';
+import { client } from './database/client';
+import deleteUserDataRouter from './public/routes/deleteUserData';
 import { getPublicContext, IPublicContext } from './public/context';
 import { getAdminContext, IAdminContext } from './admin/context';
 import { startAdminServer } from './admin/server';
-import deleteUserDataRouter from './public/routes/deleteUserData';
-import { setLogger, setMorgan } from '@pocket-tools/ts-logger';
+import { startPublicServer } from './public/server';
 
 export const serverLogger = setLogger();
 
@@ -46,9 +49,17 @@ export async function startServer(port: number): Promise<{
   // Add route to delete user data
   app.use('/deleteUserData', deleteUserDataRouter);
 
-  // expose a health check url
-  app.get('/.well-known/apollo/server-health', (req, res) => {
-    res.status(200).send('ok');
+  // expose a health check url that makes sure the express app is up and the db
+  // is reachable
+  app.get('/.well-known/apollo/server-health', async (req, res) => {
+    try {
+      const db = client();
+      await db.$queryRaw`SELECT 1`;
+      res.status(200).send('ok');
+      return;
+    } catch (e) {
+      res.status(500).send('fail');
+    }
   });
 
   // set up the admin server
