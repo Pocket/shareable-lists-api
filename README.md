@@ -1,4 +1,8 @@
 # Shareable Lists API
+
+> [!IMPORTANT]  
+> This repo has been moved to [Pocket's Monorepo](https://github.com/Pocket/pocket-monorepo)
+
 [Service Docs](https://getpocket.atlassian.net/wiki/spaces/PE/pages/2891776041/Shareable+Lists)
 
 The API that manages the ability to create and share lists of related content.
@@ -188,4 +192,3 @@ For example, if you were testing a schema change and then want to test a differe
 Another common scenario is the need to reset all test data to the initial seed data provided by the seed script.
 
 To reset the Dev database, [follow the instructions in Confluence](https://getpocket.atlassian.net/wiki/spaces/PE/pages/2938273799/Resetting+Data+for+a+Prisma-based+Subgraph+on+Dev).
-
