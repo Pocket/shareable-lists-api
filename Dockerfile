@@ -1,5 +1,5 @@
 # Debian GNU/Linux 11 (bullseye)
-FROM node:18-slim@sha256:b175cd7f3358c399f7bcee9b1032b86b71b1afa4cfb4dd0db55d66f871475a3e
+FROM node:18-slim@sha256:15cebc4ed172ec2c33eb5712f4fd98221369ae2343c72feed02bf6d730badf3e
 
 ARG GIT_SHA
 ENV GIT_SHA=${GIT_SHA}
