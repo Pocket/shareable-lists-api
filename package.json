@@ -45,7 +45,7 @@
     "graphql": "16.6.0",
     "graphql-constraint-directive": "^5.0.0",
     "graphql-tag": "2.12.6",
-    "graphql-upload": "15.0.2",
+    "graphql-upload": "16.0.2",
     "isomorphic-fetch": "^3.0.0",
     "keyv": "^4.5.2",
     "sinon": "^15.0.1",
