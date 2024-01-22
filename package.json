@@ -42,7 +42,7 @@
     "express": "4.18.2",
     "express-validator": "^7.0.0",
     "fetch-retry": "^5.0.4",
-    "graphql": "16.6.0",
+    "graphql": "16.8.1",
     "graphql-constraint-directive": "^5.0.0",
     "graphql-tag": "2.12.6",
     "graphql-upload": "15.0.2",
